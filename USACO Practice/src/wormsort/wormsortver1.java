@@ -15,6 +15,18 @@ class wormsortver1 {
 		
 		//TODO make stack and do bfs; make a stack and put the first element in, iterating through elements.
 		
+//		int[][] filteredWormholes = new int[wormholes.length - (wormholes.length - pointer)][3];
+//		
+//		for(int i = pointer; i < wormholes.length; i++) {
+//			
+//			filteredWormholes[i - pointer][0] = wormholes[i][0];
+//			filteredWormholes[i - pointer][1] = wormholes[i][1];
+//			filteredWormholes[i - pointer][2] = wormholes[i][2];
+//			
+//		}
+		
+		//Graph g = new Graph(filteredWormholes);
+		
 		ArrayList<Integer> inGraph = new ArrayList<Integer>();
 	    HashSet<Integer> visited = new HashSet<Integer>();
 	    
@@ -152,13 +164,17 @@ class wormsortver1 {
 	    
 	    int maxSize = 0;
 	    
+	    Graph g = new Graph(wormholes, n, misplacedCows);
+	    
 	    while(!isMaxSize) {
 	    	
+		    int threshold = wormholes[pointer][2];
 		    
+		    int nextThreshold = wormholes[pointer + 1][2];
 		    
-		    if(isCompleteGraph(misplacedCows, wormholes, pointer)) {
+		    if(g.isCompleteGraph(threshold)) {
 		    	
-		    	if(!isCompleteGraph(misplacedCows, wormholes, pointer + 1)) {
+		    	if(!g.isCompleteGraph(nextThreshold)) {
 		    		
 		    		maxSize = wormholes[pointer][2];
 		    		isMaxSize = true;
@@ -193,4 +209,83 @@ class wormsortver1 {
     fout.close();
     
 	}
+}
+
+class Graph {
+	
+	public ArrayList<ArrayList<int[]>> connections;
+	public ArrayList<Integer> misplacedCows;
+	
+	public Graph(int[][] wormholes, int numNodes, ArrayList<Integer> misplacedCows) {
+		
+		System.out.println(numNodes + " num Nodes");
+		
+		this.connections = new ArrayList<ArrayList<int[]>>();
+		
+		this.misplacedCows = misplacedCows;
+		
+		for(int i = 0; i < numNodes; i++) {
+			this.connections.add(new ArrayList<int[]>());
+		}
+		
+		for(int i = 0; i < wormholes.length; i++) {
+			
+			this.connections.get(wormholes[i][0]).add(new int[] {wormholes[i][1], wormholes[i][2]});
+			this.connections.get(wormholes[i][1]).add(new int[] {wormholes[i][0], wormholes[i][2]});
+			
+		}
+		
+	}
+	
+	public boolean isCompleteGraph(int threshold) {
+		
+		System.out.println("Start new check with threshold: " + threshold);
+		
+		HashSet<Integer> visited = new HashSet<Integer>();
+		
+		ArrayList<Integer> toProcess = new ArrayList<Integer>();
+		
+		toProcess.add(misplacedCows.get(0));
+		visited.add(misplacedCows.get(0));
+		
+		while(toProcess.size() != 0) {
+			
+			ArrayList<Integer> nextToProcess = new ArrayList<Integer>();
+			
+			for(int i = 0; i < toProcess.size(); i++) {
+				
+				ArrayList<int[]> curNode = this.connections.get(toProcess.get(i));
+				
+				for(int j = 0; j < curNode.size(); j++) {
+					
+					int nextNode = curNode.get(j)[0];
+					
+					if(!visited.contains(nextNode) && curNode.get(j)[1] >= threshold) {
+						nextToProcess.add(nextNode);
+						visited.add(nextNode);
+					}
+					
+				}
+				
+			}
+			
+			toProcess = nextToProcess;
+			
+		}
+		
+		for(int i = 0; i < misplacedCows.size(); i++) {
+			
+			if(!visited.contains(misplacedCows.get(i))){
+				System.out.println(false);
+				return false;
+			}
+			
+		}
+		
+		System.out.println(true);
+		
+		return true;
+		
+	}
+	
 }

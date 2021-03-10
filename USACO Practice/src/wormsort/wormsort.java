@@ -166,7 +166,7 @@ class wormsort {
 	    
 	    Graph g = new Graph(wormholes, n, misplacedCows);
 	    
-	    while(!isMaxSize) {
+	    while(!isMaxSize) {	//binary search
 	    	
 		    int threshold = wormholes[pointer][2];
 		    

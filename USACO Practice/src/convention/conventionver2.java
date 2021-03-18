@@ -4,16 +4,16 @@ LANG: JAVA
 TASK: convention
 */
 
-//package convention;
+package convention;
 
 import java.io.*;
 import java.util.*;
 
-class convention {
+class conventionver2 {
 	
 	static boolean isValid(int[] cowTimes, int maxWait, int busSize, int numBusses) {
 		
-		//System.out.println("max wait " + maxWait);
+		System.out.println("max wait " + maxWait);
 		
 		int curBus = 0;
 		int busCounter = 0;
@@ -105,7 +105,7 @@ class convention {
     
     //System.out.println(isValid(cowTimes, 4, c, m));
     
-    //System.out.println(ans);
+    System.out.println(ans);
     
     fout.println(ans);
     

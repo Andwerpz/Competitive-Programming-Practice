@@ -9,7 +9,7 @@ package example;
 import java.io.*;
 import java.util.*;
 
-class example {
+public class example {
 	public static void main (String [] args) throws IOException {
     
     BufferedReader fin = new BufferedReader(new FileReader("example.in"));

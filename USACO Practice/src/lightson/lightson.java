@@ -9,8 +9,14 @@ TASK: lightson
 import java.io.*;
 import java.util.*;
 
-class lightson {
+public class lightson {
 	public static void main (String [] args) throws IOException {
+		
+	//this solution will ignore all the fancy time saving techniques. Whenever we reach a point where we can't activate more rooms, we
+	//are just going to restart the floodfill. If we can get more rooms, then good, but if we can't then we count the amount of rooms that we already have
+	//and we return that 
+		
+	//im dumb lol, we need to return the amount of rooms illuminated, not the amount of rooms that bessie can walk in
     
     BufferedReader fin = new BufferedReader(new FileReader("lightson.in"));
     PrintWriter fout = new PrintWriter(new BufferedWriter(new FileWriter("lightson.out")));
@@ -19,14 +25,16 @@ class lightson {
     int n = Integer.parseInt(st.nextToken());
     int m = Integer.parseInt(st.nextToken());
     
-    ArrayList<ArrayList<ArrayList<int[]>>> connections = new ArrayList<ArrayList<ArrayList<int[]>>>();
+    boolean[][] rooms = new boolean[n][n];
+    boolean[][] switchFlipped = new boolean[n][n];
+    ArrayList<ArrayList<ArrayList<int[]>>> switches = new ArrayList<ArrayList<ArrayList<int[]>>>();
+    
+    rooms[0][0] = true;
     
     for(int i = 0; i < n; i++) {
-    	connections.add(new ArrayList<ArrayList<int[]>>());
+    	switches.add(new ArrayList<ArrayList<int[]>>());
     	for(int j = 0; j < n; j++) {
-    		
-    		connections.get(i).add(new ArrayList<int[]>());
-    		
+    		switches.get(i).add(new ArrayList<int[]>());
     	}
     }
     
@@ -34,133 +42,103 @@ class lightson {
     	
     	st = new StringTokenizer(fin.readLine());
     	
-    	int[] start = new int[] {Integer.parseInt(st.nextToken()) - 1, Integer.parseInt(st.nextToken()) - 1};
-    	int[] end = new int[] {Integer.parseInt(st.nextToken()) - 1, Integer.parseInt(st.nextToken()) - 1};
+    	int x = Integer.parseInt(st.nextToken()) - 1;
+    	int y = Integer.parseInt(st.nextToken()) - 1;
     	
-    	connections.get(start[0]).get(start[1]).add(end);
+    	int[] coords = new int[] {Integer.parseInt(st.nextToken()) - 1, Integer.parseInt(st.nextToken()) - 1};
     	
-    	//System.out.print(start[0] + " " + start[1] + " ");
-    	//System.out.println(end[0] + " " + end[1]);
+    	switches.get(x).get(y).add(coords);
     	
     }
     
     
-    boolean[][] isLight = new boolean[n][n];
-    isLight[0][0] = true;
+    boolean done = false;
     
-    boolean[][] visited = new boolean[n][n];
-    visited[0][0] = true;
-    
-    Stack<int[]> toProcess = new Stack<int[]>();
-    toProcess.add(new int[] {0, 0});
-    
-    int numVisited = 1;
-    
-    int counter = 0;
-    
-    while(toProcess.size() != 0) {
+    while(!done) {
     	
-    	counter++;
+    	done = true;
     	
-    	//System.out.println(counter);
+    	Stack<int[]> toProcess = new Stack<int[]>();
+    	toProcess.add(new int[] {0, 0});
     	
-//    	for(int i = 0; i < n; i++) {
-//        	
-//        	for(int j = 0; j < n; j++) {
-//        		
-//        		if(isLight[i][j]) {
-//        			//System.out.print("# ");
-//        		}
-//        		
-//        		else {
-//        			//System.out.print(". ");
-//        		}
-//        		
-//        	}
-//        	
-//        	//System.out.println();
-//        	
-//        }
+    	HashSet<ArrayList<Integer>> visited = new HashSet<ArrayList<Integer>>();
+    	visited.add(new ArrayList<Integer>(Arrays.asList(0, 0)));
     	
-    	int[] curLoc = toProcess.pop();
-    	
-    	//System.out.println("processing: " + curLoc[0] + " " + curLoc[1]);
-    	
-    	ArrayList<int[]> conn = connections.get(curLoc[0]).get(curLoc[1]);
-    	
-    	for(int i = 0; i < conn.size(); i++) {
+    	while(toProcess.size() != 0) {
     		
-    		int[] temp = conn.get(i);
-    		isLight[temp[0]][temp[1]] = true;
+    		int[] cur = toProcess.pop();
     		
-    		//System.out.println(temp[0] + " " + temp[1]);
+    		int x = cur[0];
+    		int y = cur[1];
     		
-    		//checking if the newly turned on room is connected to any visited rooms
-    		
-    		//System.out.println("Visited Room to left? " + (temp[1] - 1 > 0 && visited[temp[0]][temp[1] - 1]));
-    		//System.out.println("Visited Room to the right? " + (temp[1] + 1 < n && visited[temp[0]][temp[1] + 1]));
-    		
-    		if(
-    				((temp[0] - 1 > -1 && visited[temp[0] - 1][temp[1]]) || 
-    				(temp[0] + 1 < n && visited[temp[0] + 1][temp[1]]) ||
-    				(temp[1] - 1 > -1 && visited[temp[0]][temp[1] - 1]) ||
-    				(temp[1] + 1 < n && visited[temp[0]][temp[1] + 1])) &&
-    				!visited[temp[0]][temp[1]]){	
+    		if(!switchFlipped[x][y]) {
     			
-    			//System.out.println("is connected to light: " + temp[0] + " " + temp[1]);
+    			for(int i = 0; i < switches.get(x).get(y).size(); i++) {
+    				
+    				int[] s = switches.get(x).get(y).get(i);
+    				rooms[s[0]][s[1]] = true;
+    				
+    			}
     			
-    			toProcess.add(temp);
-    			visited[temp[0]][temp[1]] = true;
-    			
-    			numVisited++;
+    			switchFlipped[x][y] = true;
+    			done = false;
     			
     		}
     		
+    		x -= 1;
+    		
+    		if(x >= 0 && !visited.contains(new ArrayList<Integer>(Arrays.asList(x, y))) && rooms[x][y] == true) {
+    			
+    			toProcess.add(new int[] {x, y});
+    			visited.add(new ArrayList<Integer>(Arrays.asList(x, y)));
+    			
+    		}
+    		
+    		x += 2;
+    		
+    		if(x < rooms.length && !visited.contains(new ArrayList<Integer>(Arrays.asList(x, y))) && rooms[x][y] == true) {
+    			
+    			toProcess.add(new int[] {x, y});
+    			visited.add(new ArrayList<Integer>(Arrays.asList(x, y)));
+    			
+    		}
+    		
+    		x -= 1;
+    		y -= 1;
+
+			if(y >= 0 && !visited.contains(new ArrayList<Integer>(Arrays.asList(x, y))) && rooms[x][y] == true) {
+				
+				toProcess.add(new int[] {x, y});
+				visited.add(new ArrayList<Integer>(Arrays.asList(x, y)));
+				
+			}
+			
+			y += 2;
+			
+			if(y < rooms.length && !visited.contains(new ArrayList<Integer>(Arrays.asList(x, y))) && rooms[x][y] == true) {
+				
+				toProcess.add(new int[] {x, y});
+				visited.add(new ArrayList<Integer>(Arrays.asList(x, y)));
+				
+			}
+    		
     	}
     	
-    	if(curLoc[0] - 1 > -1 && isLight[curLoc[0] - 1][curLoc[1]] && !visited[curLoc[0] - 1][curLoc[1]]) {	//-x
-    		
-    		toProcess.add(new int[] {curLoc[0] - 1, curLoc[1]});
-    		visited[curLoc[0] - 1][curLoc[1]] = true;
-    		
-    		numVisited++;
-    		
-    	}
-    	
-    	if(curLoc[0] + 1 < n && isLight[curLoc[0] + 1][curLoc[1]] && !visited[curLoc[0] + 1][curLoc[1]]) {	//+x
-    		
-    		toProcess.add(new int[] {curLoc[0] + 1, curLoc[1]});
-    		visited[curLoc[0] + 1][curLoc[1]] = true;
-    		
-    		numVisited++;
-    		
-    	}
-    	
-    	if(curLoc[1] - 1 > -1 && isLight[curLoc[0]][curLoc[1] - 1] && !visited[curLoc[0]][curLoc[1] - 1]) {	//-y
-    		
-    		toProcess.add(new int[] {curLoc[0], curLoc[1] - 1});
-    		visited[curLoc[0]][curLoc[1] - 1] = true;
-    		
-    		numVisited++;
-    		
-    	}
-    	
-    	if(curLoc[1] + 1 < n && isLight[curLoc[0]][curLoc[1] + 1] && !visited[curLoc[0]][curLoc[1] + 1]) {	//+y
-    		
-    		toProcess.add(new int[] {curLoc[0], curLoc[1] + 1});
-    		visited[curLoc[0]][curLoc[1] + 1] = true;
-    		
-    		numVisited++;
-    		
-    	}
-    	
-    	//System.out.println("size of stack: " + toProcess.size());
-    	//System.out.println("numVisited: " + numVisited);
+    	//System.out.println(visited.size());
     	
     }
     
-    fout.println(numVisited);
+    int numIlluminated = 0;
     
+    for(boolean[] i : rooms) {
+    	for(boolean j : i) {
+    		if(j) {
+    			numIlluminated++;
+    		}
+    	}
+    }
+    
+    fout.println(numIlluminated);
     fin.close();
     fout.close();
     

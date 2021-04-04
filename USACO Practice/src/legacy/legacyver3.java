@@ -1,13 +1,14 @@
 
-//package legacy;
+package legacy;
 
 import java.io.*;
 import java.util.*;
 
-public class legacy {
+public class legacyver3 {
 	public static void main (String [] args) throws IOException {
 		
 	//using dijkstra's algorithm
+	//fixed the algorithm from previous iterations, just too slow
     
     BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
     StringTokenizer st = new StringTokenizer(fin.readLine());

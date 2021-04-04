@@ -1,9 +1,9 @@
-//package diamond;
+package diamond;
 
 import java.util.*;
 import java.io.*;
 
-public class diamond {
+public class diamondver3 {
 	public static void main(String[] args) throws IOException {
 		BufferedReader fin = new BufferedReader(new FileReader("diamond.in"));
 	    PrintWriter fout = new PrintWriter(new BufferedWriter(new FileWriter("diamond.out")));
@@ -48,7 +48,5 @@ public class diamond {
 			}
 		}
 		fout.println(ans);
-		fin.close();
-		fout.close();
 	}
 }

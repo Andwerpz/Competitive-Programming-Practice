@@ -6,6 +6,8 @@ import java.io.*;
 public class partialteacher {
 	public static void main(String[] args) throws IOException {
 		
+		//67A
+		
 		//so... an 'L' means that the number on the left is bigger and a 'R' means that the right number is bigger. So if you have a bunch of 'L's on your right, that means that you are at least
 		//that number, the number of 'L's. Take the max between that and the number of 'R's on the left. You count until you hit the other letter, because when you hit the other letter
 		//you pretty much break the chain, saying that the number on the other side is greater, so you don't need to prop up the original number any more to satisfy the requirement

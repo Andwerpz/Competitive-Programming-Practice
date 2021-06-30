@@ -6,46 +6,58 @@ import java.io.*;
 public class squarefreedivision {
 	public static void main(String[] args) throws IOException {
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
+		ArrayList<Integer> primes = new ArrayList<Integer>();
+		boolean[] isPrime = new boolean[4000];
+		Arrays.fill(isPrime, true);
+		for(int i = 2; i < isPrime.length; i++) {
+			if(isPrime[i]) {
+				primes.add(i);
+				for(int j = i * 2; j < isPrime.length; j += i) {
+					isPrime[j] = false;
+				}
+			}
+		}
 		int t = Integer.parseInt(fin.readLine());
 		StringBuilder fout = new StringBuilder();
-		int[] squares = new int[3164];	//stores values of perfect squares.	im dumb, the values can repeat.
-		for(int i = 0; i < squares.length; i++) {
-			squares[i] = i * i;
-		}
 		while(t-- > 0) {
 			StringTokenizer st = new StringTokenizer(fin.readLine());
 			int n = Integer.parseInt(st.nextToken());
 			int k = Integer.parseInt(st.nextToken());
-			int[] nums = new int[n];
 			st = new StringTokenizer(fin.readLine());
+			int[] nums = new int[n];
 			for(int i = 0; i < n; i++) {
-				nums[i] = Integer.parseInt(st.nextToken());
-			}
-			ArrayList<HashSet<Integer>> sections = new ArrayList<HashSet<Integer>>();
-			sections.add(new HashSet<Integer>());
-			sections.get(0).add(nums[0]);
-			for(int i = 1; i < n; i++) {
-				int next = nums[i];
-				boolean isValid = true;
-				for(int j = 1; j < squares.length; j++) {
-					if(squares[j] % next == 0) {
-						int test = squares[j] / next;
-						if(sections.get(sections.size() - 1).contains(test)) {
-							isValid = false;
-							break;
-						}
+				int next = Integer.parseInt(st.nextToken());
+				int val = 1;
+				for(int j = 0; j < primes.size() && primes.get(j) <= next; j++) {
+					boolean add = false;
+					int prime = primes.get(j);
+					while(next % prime == 0) {
+						next /= prime;
+						add = !add;
 					}
-					
+					if(add) {
+						val *= prime;
+					}
 				}
-				if(isValid) {
-					sections.get(sections.size() - 1).add(next);
+				if(next != 1) {
+					val *= next;
 				}
-				else {
-					sections.add(new HashSet<Integer>());
-					sections.get(sections.size() - 1).add(next);
-				}
+				nums[i] = val;
 			}
-			fout.append(sections.size()).append("\n");
+			int ans = 1;
+			HashSet<Integer> dict = new HashSet<Integer>();
+			int pointer = 0;
+			for(int i = 0; i < n; i++) {
+				//System.out.print(nums[i] + " ");
+				int next = nums[i];
+				if(dict.contains(next)) {
+					dict.clear();
+					ans ++;
+				}
+				dict.add(next);
+			}
+			//System.out.println();
+			fout.append(ans).append("\n");
 		}
 		System.out.print(fout);
 	}

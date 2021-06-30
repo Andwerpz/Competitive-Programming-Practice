@@ -5,65 +5,46 @@ import java.io.*;
 
 public class abknapsack {
 	public static void main(String[] args) throws IOException {
-		
-		//every time we want to add an item into the knapsack, we see how much value we will get from just filling the knapsack with each weight group.
-		//then we choose the top from the weight group with the most value
-		
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		StringTokenizer st = new StringTokenizer(fin.readLine());
 		int n = Integer.parseInt(st.nextToken());
 		int m = Integer.parseInt(st.nextToken());
-		long s = Integer.parseInt(st.nextToken());
-		long a = Integer.parseInt(st.nextToken());
-		long b = Integer.parseInt(st.nextToken());
-		int[] aItems = new int[n];
-		int[] bItems = new int[m];
+		int s = Integer.parseInt(st.nextToken());
+		int aWeight = Integer.parseInt(st.nextToken());
+		int bWeight = Integer.parseInt(st.nextToken());
+		long[] a = new long[n];
+		long[] b = new long[m];
 		st = new StringTokenizer(fin.readLine());
 		for(int i = 0; i < n; i++) {
-			aItems[i] = Integer.parseInt(st.nextToken());
+			a[i] = Integer.parseInt(st.nextToken());
 		}
 		st = new StringTokenizer(fin.readLine());
 		for(int i = 0; i < m; i++) {
-			bItems[i] = Integer.parseInt(st.nextToken());
+			b[i] = Integer.parseInt(st.nextToken());
 		}
-		Arrays.sort(aItems);
-		Arrays.sort(bItems);
-		long aSum = 0;
-		long bSum = 0;
-		int aLow = (int) (n - 1 - Math.min(n - 1, s / a));
-		int bLow = (int) (m - 1 - Math.min(m - 1, s / b));
-		int aHigh = n - 1;
-		int bHigh = m - 1;
+		Arrays.sort(a);
+		Arrays.sort(b);
+		
+		for(int i = a.length - 2; i >= 0; i--) {
+			a[i] += a[i + 1];
+		}
+		for(int i = b.length - 2; i >= 0; i--) {
+			b[i] += b[i + 1];
+		}
+		long weight = (a.length + 1) * aWeight;
+		int pointer = b.length;
 		long ans = 0;
-		for(int i = aLow; i < n; i++) {
-			aSum += aItems[i];
-		}
-		for(int i = bLow; i < m; i++) {
-			bSum += bItems[i];
-		}
-		while(true) {
-			if((s - a < 0 && s - b < 0) || (aHigh == -1 && bHigh == -1)) {
-				break;
+		for(int i = 0; i <= a.length; i++) {
+			weight -= aWeight;
+			long aCost = i != a.length? a[i] : 0;
+			long bCost = 0;
+			while(pointer - 1 != -1 && weight + bWeight <= s) {
+				pointer -= 1;
+				weight += bWeight;
 			}
-			if(aSum >= bSum && aHigh != -1) {
-				s -= a;
-				ans += aItems[aHigh];
-				aSum -= aItems[aHigh];
-				aHigh --;
-			}
-			else if(bSum > aSum && bHigh != -1) {
-				s -= b;
-				ans += bItems[bHigh];
-				bSum -= bItems[bHigh];
-				bHigh --;
-			}
-			while(aHigh - aLow + 1 > s / a && aLow < n) {
-				aSum -= aItems[aLow];
-				aLow ++;
-			}
-			while(bHigh - bLow + 1 > s / b && bLow < m) {
-				bSum -= bItems[bLow];
-				bLow ++;
+			bCost = pointer == b.length? 0 : b[pointer];
+			if(weight <= s) {
+				ans = Math.max(aCost + bCost, ans);
 			}
 		}
 		System.out.println(ans);

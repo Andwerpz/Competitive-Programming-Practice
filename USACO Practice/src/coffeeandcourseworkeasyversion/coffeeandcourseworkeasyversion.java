@@ -1,0 +1,63 @@
+//package coffeeandcourseworkeasyversion;
+
+import java.util.*;
+import java.io.*;
+
+public class coffeeandcourseworkeasyversion {
+	
+	public static boolean isValid(int val, int m, Integer[] nums) {
+		int pointer = nums.length - 1;
+		int amt = (nums.length / val) + (nums.length % val != 0? 1 : 0);
+		long sum = 0;
+		outer:
+		for(int i = 0; i < amt; i++) {
+			for(int j = 0; j < val; j++) {
+				sum += Math.max(nums[pointer] - i, 0);
+				pointer --;
+				if(pointer == -1) {
+					break outer;
+				}
+			}
+		}
+		if(sum >= m) {
+			return true;
+		}
+		return false;
+	}
+	
+	public static void main(String[] args) throws IOException {
+		
+		//1118D1
+		
+		//i was thinking that going from the greatest to least wouldn't be the optimal solution. Maybe it's better to go from least to greatest, that way you can have a greater sum...
+		
+		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
+		StringTokenizer st = new StringTokenizer(fin.readLine());
+		int n = Integer.parseInt(st.nextToken());
+		int m = Integer.parseInt(st.nextToken());
+		st = new StringTokenizer(fin.readLine());
+		Integer[] nums = new Integer[n];
+		for(int i = 0; i < n; i++) {
+			nums[i] = Integer.parseInt(st.nextToken());
+		}
+		Arrays.sort(nums);
+		int high = n;
+		int low = 1;
+		int mid = low + (high - low) / 2;
+		int ans = -1;
+		while(low <= high) {
+			if(isValid(mid, m, nums)) {
+				if(ans == -1) {
+					ans = mid;
+				}
+				ans = Math.min(ans, mid);
+				high = mid - 1;
+			}
+			else {
+				low = mid + 1;
+			}
+			mid = low + (high - low) / 2;
+		}
+		System.out.println(ans);
+	}
+}

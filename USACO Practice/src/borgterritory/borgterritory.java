@@ -67,7 +67,7 @@ public class borgterritory {
 			}
 			if(obstacles.size() != 0) {
 				obstacles.sort((a, b) -> Integer.compare(a[0], b[0]) == 0? Integer.compare(a[1], b[1]) : Integer.compare(a[0], b[0]));
-				System.out.println(obstacles.get(0)[0] + " " + obstacles.get(0)[0]);
+				System.out.println(obstacles.get(0)[0] + " " + obstacles.get(0)[1]);
 			}
 			else {
 				System.out.println("-1");

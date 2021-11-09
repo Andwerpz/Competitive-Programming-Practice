@@ -8,9 +8,10 @@ public class cookingconundrums1 {
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		int n = Integer.parseInt(fin.readLine());
 		StringTokenizer st = new StringTokenizer(fin.readLine());
-		int sum = 0;
-		int max = 0;
-		for(int i = 0; i < n; i++) {
+		int first = Integer.parseInt(st.nextToken());
+		int sum = first;
+		int max = first;
+		for(int i = 1; i < n; i++) {
 			int next = Integer.parseInt(st.nextToken());
 			sum = Math.max(next + sum, next);
 			max = Math.max(max, sum);

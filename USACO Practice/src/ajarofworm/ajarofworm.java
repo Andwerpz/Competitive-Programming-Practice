@@ -12,9 +12,11 @@ public class ajarofworm {
 		int x = Integer.parseInt(fin.readLine());
 		boolean[] isNotPrime = new boolean[x + 1];
 		long ans = 1;
-		long mod = 1000000007;
+		long mod = (long) (1e9 + 7);
+		int counter = 0;
 		for(int i = 2; i <= x; i++) {
 			if(!isNotPrime[i]) {
+				counter ++;
 				ans *= 2;
 				ans %= mod;
 				for(int j = i * 2; j <= x; j += i) {
@@ -22,6 +24,7 @@ public class ajarofworm {
 				}
 			}
 		}
+		System.out.println(counter);
 		System.out.println(ans);
 	}
 }

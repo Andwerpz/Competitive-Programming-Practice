@@ -12,7 +12,29 @@ using namespace std;
 
 //Codeforces - 1612D
 
-//couldn't figure this one out
+//a gcd based solution
+
+//first, make it so that a >= b. 
+
+//then, if b > a - b, then b = a - b.
+
+
+bool solve(ll a, ll b, ll x){
+    if(a == x || b == x){
+        return true;
+    }
+    if(b > a){
+        swap(a, b);
+    }
+    if (b > a - b){
+       b = a - b; 
+    } 
+    if (x > max(a, b) || a == 0 || b == 0) {
+        return false;
+    }
+    ll cnt = max(1ll, (a - max(x, b)) / (2 * b));
+    return solve(a - b * cnt, b, x);
+}
 
 int main() {
     ios_base::sync_with_stdio(false);
@@ -20,25 +42,13 @@ int main() {
     
     int t;
     cin >> t;
+    int counter = 0;
+    string ans = "";
     while(t-- > 0){
+        counter ++;
         ll x, a, b;
-        cin >> x >> a >> b;
-        if(x == a || x == b){
-            cout << "YES\n";
-            continue;
-        }
-        ll min = std::min(a, b);
-        ll max = std::max(a, b);
-        min = std::min(min, max - min);
-        if(x <= max && x % min == 0){
-            cout << "YES\n";
-            continue;
-        }
-        if(x <= min && (max + x) % min == 0){
-            cout << "YES\n";
-            continue;
-        }
-        cout << "NO\n";
+        cin >> a >> b >> x;
+        cout << (solve(a, b, x)? "YES\n" : "NO\n");
     }
     
     return 0;

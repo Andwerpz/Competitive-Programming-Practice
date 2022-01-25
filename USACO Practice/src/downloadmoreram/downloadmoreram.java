@@ -5,6 +5,13 @@ import java.io.*;
 
 public class downloadmoreram {
 	public static void main(String[] args) throws IOException {
+		
+		//1629A
+		
+		//as running the programs have no downside, it makes sense to run as many as you can. 
+		
+		//with that in mind, all you need to do is to sort the programs by cost, and then run them from least to greatest.
+		
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		int t = Integer.parseInt(fin.readLine());
 		StringBuilder fout = new StringBuilder();

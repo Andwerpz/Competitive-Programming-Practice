@@ -5,6 +5,9 @@ import java.io.*;
 
 public class cereal2 {
 	public static void main(String[] args) throws IOException {
+		
+		//USACO Silver 2022 Feb
+		
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		StringTokenizer st = new StringTokenizer(fin.readLine());
 		int n = Integer.parseInt(st.nextToken());
@@ -23,7 +26,7 @@ public class cereal2 {
 			c.get(b).add(new int[] {a, i + 1, 0});
 		}
 		ArrayList<Integer> ans = new ArrayList<Integer>();
-		HashSet<Integer> cows = new HashSet<Integer>();
+		HashSet<Integer> cows = new HashSet<Integer>();						
 		HashSet<Integer> desperate = new HashSet<Integer>();
 		for(int i = 0; i < n; i++) {
 			cows.add(i + 1);

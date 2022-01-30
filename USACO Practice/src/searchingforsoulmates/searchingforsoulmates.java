@@ -5,6 +5,13 @@ import java.io.*;
 
 public class searchingforsoulmates {
 	public static void main(String[] args) throws IOException {
+		
+		//USACO Silver 2022 Feb
+		
+		//first notice that the more you divide, the more +1 is worth, since you multiply it back up. 
+		
+		//the answer is to try every level of division, and construct the answer from there
+		
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		int t = Integer.parseInt(fin.readLine());
 		StringBuilder fout = new StringBuilder();

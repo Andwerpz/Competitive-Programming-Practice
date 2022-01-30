@@ -5,10 +5,15 @@ import java.io.*;
 
 public class cowfrisbee {
 	public static void main(String[] args) throws IOException {
+		
+		//USACO Silver 2022 Feb
+		
+		//stack based problem
+		
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		int n = Integer.parseInt(fin.readLine());
 		long ans = 0;
-		StringTokenizer st = new StringTokenizer(fin.readLine());
+		StringTokenizer st = new StringTokenizer(fin.readLine());		
 		Stack<int[]> s = new Stack<int[]>();
 		for(int i = 0; i < n; i++) {
 			int next = Integer.parseInt(st.nextToken());

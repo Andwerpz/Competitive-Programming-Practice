@@ -15,7 +15,7 @@ public class connectingtwobarns {
 		
 		//USACO 2021 December Contest Silver
 		
-		//graphs. idk why this one is timing out
+		//graphs. idk why this one is timing out - it's cuz it's O(n^2)
 		
 		//BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		in = new StreamTokenizer(new BufferedReader(new InputStreamReader(System.in)));

@@ -132,6 +132,7 @@
 /cbarn/
 /ceildivisions/
 /cellularnetwork/
+/cereal2/
 /challengingcliffs/
 /cheapdinner/
 /checity/
@@ -187,6 +188,7 @@
 /coverit/
 /cowandmessage/
 /cowandsnacks/
+/cowfrisbee/
 /cowntagion/
 /crackingthecode/
 /crazydiamond/
@@ -229,6 +231,7 @@
 /dominohardversion/
 /dominoonwindowsill/
 /doubleendedstrings/
+/downloadmoreram/
 /dreamoonandwifi/
 /dreamoonlikescoloring/
 /dreamoonlikessequences/
@@ -241,17 +244,20 @@
 /education/
 /ehabandprefixmexs/
 /elections/
+/elementaryparticles/
 /elimination/
 /epictransformation/
 /equalize/
 /equalizethearray/
 /equalizingbydivisionhardversion/
 /equation/
+/equidistantletters/
 /eraseandextendeasyversion/
 /eugeneandanarray/
 /evenoddgame/
 /evenpath/
 /everyoneisawinner/
+/exactchange/
 /examinbersuhardversion/
 /example/
 /excitingbets/
@@ -282,11 +288,13 @@
 /forestqueries/
 /fountains/
 /friendsandcandies/
+/funwithevensubarrays/
 /gameofcreditcards/
 /gameonleaves/
 /gamewithchips/
 /gaspipeline/
 /gates/
+/gcdarrays/
 /geniussgambit/
 /geometricprogression/
 /giftset/
@@ -399,6 +407,7 @@
 /messages/
 /messy/
 /meximization/
+/meximumarray/
 /mexmaximizing/
 /mikeandstrings/
 /milk/
@@ -415,6 +424,8 @@
 /minimumgridpath/
 /minimumties/
 /minimumvaluerectangle/
+/minmaxswap/
+/minorreduction/
 /misterbandbookreading/
 /mixingwater/
 /moamenandksubarrays/
@@ -425,6 +436,7 @@
 /mochaandredandblue/
 /moneysums/
 /monotonicrenumeration/
+/monstersandspells/
 /moocast/
 /moocastgold/
 /mootube/
@@ -457,8 +469,13 @@
 /nikitaandstring/
 /nomoreinversions/
 /nonzerosegments/
+/notadding/
 /notafraid/
+/notassigning/
+/notescaping/
 /notimetopaint/
+/notshading/
+/notsitting/
 /notveryrudesubstring/
 /numberofequal/
 /numberofminimumsonasegment/
@@ -493,6 +510,7 @@
 /paintingpebbles/
 /paintingthearray1/
 /paintingthefence/
+/paintthemiddle/
 /pairprogramming/
 /pairs/
 /pairup/
@@ -506,6 +524,7 @@
 /password/
 /pbinary/
 /peacefulrooks/
+/peculiarmoviepreferences/
 /pekoraandtrampoline/
 /penalty/
 /perfectkeyboard/
@@ -559,6 +578,7 @@
 /queueattheschool/
 /quiz/
 /randomevents/
+/rangeandpartition/
 /rangexorqueries/
 /ratingcompression/
 /readingbookseasyversion/
@@ -580,6 +600,7 @@
 /reversesort/
 /reversestring/
 /rgbsubstringhardversion/
+/roadoptimization/
 /robotcollisions/
 /robotontheboard1/
 /robotontheboard2/
@@ -601,6 +622,7 @@
 /savethenature/
 /savingthecity/
 /saynotopalindromes/
+/searchingforsoulmates/
 /secrets/
 /secretsanta/
 /segmentswithsmallset/
@@ -744,4 +766,5 @@
 /zeroremaindersum/
 /zmeigorynich/
 /zookeeperandtheinfinitezoo/
-*.class
+/abc/
+/roofconstruction/

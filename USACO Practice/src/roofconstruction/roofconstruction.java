@@ -1,31 +1,39 @@
-package roofconstruction;
+//package roofconstruction;
 
 import java.util.*;
 import java.io.*;
 
 public class roofconstruction {
 	public static void main(String[] args) throws IOException {
+		
+		//1632B
+		
+		//if n is a power of 2, then in order to minimize, we just need to make every adjacent number differ in only 1 bit.
+		
+		//if n is not a power of 2, we can just start the bit sequence at n - 1, and get all the highest numbers first
+		
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		StringBuilder fout = new StringBuilder();
 		int t = Integer.parseInt(fin.readLine());
 		while(t-- > 0) {
 			int n = Integer.parseInt(fin.readLine());
-			int[] nums = new int[(int) Math.pow(2, 1 + (int) (Math.log(n) / Math.log(2)))];
-			int pow = 1;
-			for(int i = 0; i < 14; i++) {
-				pow = (int) Math.pow(2, i);
-				int cycle = pow * 4;
-				for(int j = 0; j < nums.length; j++) {
-					int count = (j % cycle) + 1;
-					if(!(count <= (cycle / 4) || count > (cycle - (cycle / 4)))) {
-						nums[j] += pow;
+			HashSet<Integer> v = new HashSet<Integer>();
+			int pointer = n - 1;
+			for(int i = 0; i < n; i++) {
+				v.add(pointer);
+				fout.append(pointer).append(" ");
+				char[] s = Integer.toBinaryString(pointer).toCharArray();
+				int counter = s.length - 1;
+				for(int j = 1; j <= n; j *= 2) {
+					if((counter < 0 || s[counter] == '0') && pointer + j < n && !v.contains(pointer + j)) {
+						pointer += j;
+						break;
 					}
-				}
-			}
-			for(int i : nums) {
-				System.out.println(Integer.toBinaryString(i));
-				if(i < n) {
-					fout.append(i).append(" ");
+					else if(counter >= 0 && s[counter] == '1' && pointer >= j && !v.contains(pointer - j)) {
+						pointer -= j;
+						break;
+					}
+					counter --;
 				}
 			}
 			fout.append("\n");

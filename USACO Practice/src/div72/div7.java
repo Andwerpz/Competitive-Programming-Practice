@@ -5,6 +5,12 @@ import java.io.*;
 
 public class div7 {
 	public static void main(String[] args) throws IOException {
+		
+		//1633A
+		
+		//the inputs are small enough that you can brute force try all multiples of 7 from 1 - 1000
+		//for each number and pick the one that changes the minimum amount of digits
+		
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		StringBuilder fout = new StringBuilder();
 		int t = Integer.parseInt(fin.readLine());

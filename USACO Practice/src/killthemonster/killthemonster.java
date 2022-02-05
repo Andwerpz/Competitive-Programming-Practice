@@ -17,6 +17,19 @@ public class killthemonster {
 	}
 	
 	public static void main(String[] args) throws IOException {
+		
+		//1633C
+		
+		//given the players health, damage, and monsters health and damage, it is trivial to calculate in O(1) 
+		//whether the player will win. 
+		
+		//since there are only two variables that we need to optimize, namely the upgrades on health or damage, and k
+		//points to spend, we can do the following:
+		
+		//for each i from 0 - k, spend i points on health, and k - i on armor, and see if the player can win.
+		
+		//this tries all possible combinations of upgrades the player can get, and is possible since k is small enough
+		
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		int t = Integer.parseInt(fin.readLine());
 		StringBuilder fout = new StringBuilder();

@@ -5,6 +5,15 @@ import java.io.*;
 
 public class minority {
 	public static void main(String[] args) throws IOException {
+		
+		//1633B
+		
+		//notice that not choosing the entire binary string as your substring will lead to unnecessary losses
+		//in your final answer.
+		
+		//the only exception is when there are an equal amount of 1s and 0s in the string. In this case, you just need to 
+		//get rid of a 1 or 0, and take that one. 
+		
 		BufferedReader fin = new BufferedReader(new InputStreamReader(System.in));
 		int t = Integer.parseInt(fin.readLine());
 		StringBuilder fout = new StringBuilder();

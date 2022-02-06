@@ -1,9 +1,9 @@
-//package sagesbirthdayhardversion;
+package sagesbirthdayhardversion;
 
 import java.util.*;
 import java.io.*;
 
-public class sagesbirthdayhardversion {
+public class sagesbirthdayhardversionver4 {
 	
 	public static boolean isValid(Integer[] nums, int val) {
 		if(val == 0) {

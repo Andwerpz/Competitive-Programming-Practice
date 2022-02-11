@@ -1,3 +1,4 @@
+/abc/
 /abknapsack/
 /abpalindrome/
 /accuratelee/
@@ -221,6 +222,7 @@
 /distinctnumbers/
 /districtsconnection/
 /div7/
+/div72/
 /diversegarland/
 /divideandsummarize/
 /divisibilityby8/
@@ -267,6 +269,7 @@
 /extremesubtraction/
 /ezzatandtwosubsequences/
 /fairplayoff/
+/fairshare/
 /fastsearch/
 /feast/
 /feedingchicken/
@@ -286,6 +289,7 @@
 /flowers/
 /foreigncurrency/
 /forestqueries/
+/fortunetelling/
 /fountains/
 /friendsandcandies/
 /funwithevensubarrays/
@@ -350,6 +354,7 @@
 /karenandmorning/
 /kforthepriceofonehardversion/
 /killjoy/
+/killthemonster/
 /kingstask/
 /klcmeasyversion/
 /knapsack/
@@ -382,6 +387,7 @@
 /makeapoweroftwo/
 /makeitequal/
 /makeitgood/
+/makethemequal/
 /manhattansubarrays/
 /marcinandtrainingcamp/
 /marrays/
@@ -425,6 +431,7 @@
 /minimumties/
 /minimumvaluerectangle/
 /minmaxswap/
+/minority/
 /minorreduction/
 /misterbandbookreading/
 /mixingwater/
@@ -494,6 +501,7 @@
 /okabeandboxes/
 /okabeandcity/
 /okabeandfuturegadgetlaboratory/
+/okea/
 /oldfloppydrive/
 /omarandbaseball/
 /omkarandbadstory/
@@ -596,6 +604,7 @@
 /restoringthepermutation/
 /reststops/
 /revegetate/
+/reverseandconcatenate/
 /reversebinarystrings/
 /reversesort/
 /reversestring/
@@ -607,6 +616,7 @@
 /robotrappingresultsreport/
 /rockandlever/
 /rockpaperscissors/
+/roofconstruction/
 /rookbishopandking/
 /ropes/
 /routineproblem/
@@ -677,6 +687,7 @@
 /strangelist/
 /strangepartition/
 /strangetable/
+/strangetest/
 /stringcoloringeasyversion/
 /stringdeletion/
 /stringgame/
@@ -766,10 +777,3 @@
 /zeroremaindersum/
 /zmeigorynich/
 /zookeeperandtheinfinitezoo/
-/abc/
-/roofconstruction/
-/strangetest/
-/div72/
-/minority/
-/killthemonster/
-/makethemequal/

@@ -290,6 +290,7 @@
 /flightroutescheck/
 /flipthebits/
 /flowers/
+<<<<<<< Updated upstream
 /foreigncurrency/
 /forestqueries/
 /fortunetelling/
@@ -790,3 +791,6 @@
 /avoidlocalmaximums/
 /differentialsorting/
 /minorsum/
+=======
+/countingdivisors/
+>>>>>>> Stashed changes

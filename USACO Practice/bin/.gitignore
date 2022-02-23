@@ -64,6 +64,7 @@
 /asteroidbelt/
 /asyaandkittens/
 /averagesuperherogangpower/
+/avoidlocalmaximums/
 /ayoubandlostarray/
 /ayoubsfunction/
 /azamonwebservices/
@@ -185,6 +186,7 @@
 /correctplacement/
 /corruptedarray/
 /countcross/
+/countingdivisors/
 /countingrooms/
 /countthearrays/
 /counttriangles/
@@ -211,6 +213,7 @@
 /diamond/
 /diamondminer/
 /dicecombinations/
+/differentialsorting/
 /differentrules/
 /digitssum/
 /dilucandkaeya/
@@ -290,7 +293,6 @@
 /flightroutescheck/
 /flipthebits/
 /flowers/
-<<<<<<< Updated upstream
 /foreigncurrency/
 /forestqueries/
 /fortunetelling/
@@ -440,6 +442,7 @@
 /minmaxswap/
 /minority/
 /minorreduction/
+/minorsum/
 /misterbandbookreading/
 /mixingwater/
 /moamenandksubarrays/
@@ -788,9 +791,8 @@
 /zeroremaindersum/
 /zmeigorynich/
 /zookeeperandtheinfinitezoo/
-/avoidlocalmaximums/
-/differentialsorting/
-/minorsum/
-=======
-/countingdivisors/
->>>>>>> Stashed changes
+/doorsandkeys/
+/antifibonaccipermutation/
+/increasesubarraysums/
+/crosscoloring/
+/expandthepath/

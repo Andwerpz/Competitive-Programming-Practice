@@ -212,6 +212,7 @@
 /decorateappletree/
 /decreasethesumofdigits/
 /deletingdivisors/
+/deletionsoftwoadjacentletters/
 /densearray/
 /diamond/
 /diamondminer/
@@ -235,6 +236,7 @@
 /divideandsummarize/
 /divisibilityby8/
 /division/
+/divplusmod/
 /dmca/
 /dominantcharacter/
 /dominoeasyversion/
@@ -304,6 +306,8 @@
 /fountains/
 /friendsandcandies/
 /funwithevensubarrays/
+/game/
+/gameofballpassing/
 /gameofcreditcards/
 /gameonleaves/
 /gamewithchips/
@@ -350,6 +354,7 @@
 /infinitytable/
 /inflation/
 /integershavefriends/
+/integralarray/
 /interestingfunction/
 /interestingstory/
 /intersectingsegments/
@@ -589,6 +594,7 @@
 /powersequence/
 /powerwalking/
 /pprime/
+/prefixes/
 /prefixesandsuffixes/
 /prefixfliphardversion/
 /prefixsuffixpalindromehardversion/
@@ -621,6 +627,7 @@
 /rental/
 /repetitionsdecoding/
 /replaceandkeepsorted/
+/reschedulingtheexam/
 /resourcedistribution/
 /restaurant/
 /restaurantcustomers/
@@ -674,6 +681,7 @@
 /setordecrease/
 /shellgame/
 /shipmentcontainers/
+/shooting/
 /shortestandlongestlis/
 /shortestpathwithobstacle/
 /shorttask/
@@ -732,6 +740,7 @@
 /sumoftwovalues/
 /superherobattle/
 /sweetseating/
+/swords/
 /systemtesting/
 /taskontheboard/
 /taymyriscallingyou/
@@ -763,6 +772,7 @@
 /treelabeling/
 /triangularpaths/
 /tvshows/
+/twistthepermutation/
 /twoarraysandsumoffunctions/
 /twoplatforms/
 /twosets2/
@@ -784,9 +794,12 @@
 /vovaandtrophies/
 /walkonmatrix/
 /weboflies/
+/weightofthesystemofnestedsegments/
+/weirdsum/
 /where/
 /whitesheet/
 /whosopposite/
+/wifi/
 /wonderfulcoloring1/
 /wonderfulcoloring2/
 /wormhole/
@@ -803,11 +816,5 @@
 /zeroremaindersum/
 /zmeigorynich/
 /zookeeperandtheinfinitezoo/
-/wifi/
-/swords/
-/shooting/
-/prefixes/
-/game/
-/gameofballpassing/
-/weirdsum/
-/integralarray/
+/vitalyandadvanceduselessalgorithms/
+/countingshortcuts/

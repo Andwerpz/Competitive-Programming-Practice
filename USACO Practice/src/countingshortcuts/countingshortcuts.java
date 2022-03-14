@@ -62,59 +62,55 @@ public class countingshortcuts {
 			long ans = 0;
 			long mod = (long) 1e9 + 7l;
 			HashSet<Integer> q = new HashSet<>();	//shortest path
+			HashSet<Integer> qp1 = new HashSet<>();
 			boolean[] v = new boolean[n];
 			v[s] = true;
 			q.add(s);
 			long[] val = new long[n];
 			val[s] = 1;
-			HashSet<Integer> qp1 = new HashSet<>();
-			boolean[] vp1 = new boolean[n];
-			vp1[s] = true;
 			long[] valp1 = new long[n];
 			for(int i = 0; i < pathLen; i++) {
-				ArrayList<Integer> nextQ = new ArrayList<Integer>();
-				ArrayList<Integer> nextQp1 = new ArrayList<>();
 				long[] nextVal = new long[n];
+				ArrayList<Integer> nextQp1 = new ArrayList<Integer>();
+				for(int next : qp1) {
+					for(int j : c.get(next)) {
+						if(q.contains(j)) {
+							nextQp1.add(j);
+							valp1[j] += valp1[next];
+							valp1[j] %= mod;
+						}
+					}
+				}
+				boolean[] nextV = new boolean[n];
+				HashSet<Integer> nextQ = new HashSet<Integer>();
 				for(int next : q) {
 					for(int j : c.get(next)) {
-						if(!v[j] || q.contains(j)) {
-							v[j] = true;
+						if(!v[j]) {
+							nextV[j] = true;
 							nextQ.add(j);
-							nextVal[j] += val[next];
-							nextVal[j] %= mod;
+							System.out.println(next);
+							val[j] += val[next];
+							val[j] %= mod;
 						}
-//						else if(q.contains(j)) {
-//							vp1[j] = true;
-//							qp1.add(j);
-//							valp1[j] += val[next];
-//							valp1[j] %= mod;
-//						}
+						else if(q.contains(j)) {
+							nextQp1.add(j);
+							valp1[j] += val[next];
+							valp1[j] %= mod;
+						}
 					}
 				}
 				for(int j = 0; j < n; j++) {
-					val[j] = nextVal[j];
+					v[j] |= nextV[j];
+					System.out.print(val[j] + " ");
 				}
-				System.out.println(q);
+				System.out.println();
+				System.out.println(q + " " + nextQ);
 				q.clear();
 				q.addAll(nextQ);
-//				for(int next : qp1) {
-//					for(int j : c.get(next)) {
-//						if(!vp1[j]) {
-//							vp1[j] = true;
-//							nextQp1.add(j);
-//							valp1[j] += valp1[next];
-//							valp1[j] %= mod;
-//						}
-//					}
-//				}
-//				qp1.clear();
-//				qp1.addAll(nextQp1);
-				
-//				for(long j : valp1) {
-//					System.out.print(j + " ");
-//				}
-//				System.out.println("\n");
+				qp1.clear();
+				qp1.addAll(nextQp1);
 			}
+			System.out.println(q + " " + qp1);
 			for(long j : val) {
 				System.out.print(j + " ");
 			}

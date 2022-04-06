@@ -1,45 +1,51 @@
-//package restaurantcustomers;
+package concerttickets;
 
-import java.io.*;
 import java.util.*;
+import java.io.*;
 
-public class restaurantcustomers {
+public class concertticketsver3 {
 	public static void main(String[] args) throws IOException {
-		
-		//CSES 1619
-		
-		//aggregate all the times into 1 array, and mark the times to differentiate between customers arriving and leaving
-		//then sort by time.
-		
-		//iterate through the array and keep a running sum of customers in the restaurant
-		
+
+		// CSES 1091
+
+		// this problem is simple with tree multiset.
+
+		// for each customer, look for the greatest cost ticket to give them.
+		// if there is no ticket less than what they want, then print -1
+
 		Reader io = new Reader();
+		PrintWriter pw = new PrintWriter(System.out);
+
 		int n = io.nextInt();
-		int[][] times = new int[n * 2][2];
+		int m = io.nextInt();
+		TreeMap<Integer, Integer> tickets = new TreeMap<>();
+		int[] customers = new int[m];
 		for (int i = 0; i < n; i++) {
-			int a = io.nextInt();
-			int b = io.nextInt();
-			times[i] = new int[] { a, 0 };
-			times[i + n] = new int[] { b, 1 };
+			int next = io.nextInt();
+			tickets.put(next, tickets.getOrDefault(next, 0) + 1);
 		}
-		Arrays.sort(times, (a, b) -> a[0] - b[0]);
-		int max = 0;
-		int cur = 0;
-		for (int i = 0; i < times.length; i++) {
-			// System.out.println(cur);
-			if (times[i][1] == 0) {
-				cur++;
-			}
-			else {
-				cur--;
-			}
-			if (cur > max) {
-				max = cur;
-			}
+		for (int i = 0; i < m; i++) {
+			customers[i] = io.nextInt();
 		}
-		System.out.println(max);
+		StringBuilder fout = new StringBuilder();
+		Map.Entry<Integer, Integer> val;
+		for (int i = 0; i < m; i++) {
+			int next = customers[i];
+			val = tickets.lowerEntry(next + 1);
+			if (val != null) {
+				if (val.getValue() == 1) {
+					tickets.remove(val.getKey());
+				} else {
+					tickets.put(val.getKey(), val.getValue() - 1);
+				}
+			}
+			pw.println(val == null ? -1 : val.getKey());
+		}
+		io.close();
+		pw.close();
 	}
-	
+
+	// have to use custom input class
 	static class Reader {
 		final private int BUFFER_SIZE = 1 << 16;
 		private DataInputStream din;

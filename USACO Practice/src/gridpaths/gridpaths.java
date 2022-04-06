@@ -6,7 +6,7 @@ import java.io.*;
 public class gridpaths {
 	public static void main(String[] args) throws IOException {
 		
-		//Codforces? Keep Austin Hacking?
+		//Codeforces? Keep Austin Hacking?
 		
 		//for each grid cell, we compute how many paths there are to get to this cell. 
 		//to do this, we start from the top left cell with a value of one, and add to each cell to the right and bottom, the stored value in

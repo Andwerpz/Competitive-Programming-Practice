@@ -1,43 +1,33 @@
-//package restaurantcustomers;
+//package sticklengths;
 
-import java.io.*;
 import java.util.*;
+import java.io.*;
 
-public class restaurantcustomers {
+public class sticklengths {
 	public static void main(String[] args) throws IOException {
 		
-		//CSES 1619
+		//CSES 1074
 		
-		//aggregate all the times into 1 array, and mark the times to differentiate between customers arriving and leaving
-		//then sort by time.
+		//we want the target to be equal to the median stick length.
 		
-		//iterate through the array and keep a running sum of customers in the restaurant
+		//if x is the target, and the total cost to adjust all sticks to x = y, and you plot it, then the graph will
+		//look like a parabola. The lowest point of the parabola is when x = median.
 		
-		Reader io = new Reader();
-		int n = io.nextInt();
-		int[][] times = new int[n * 2][2];
-		for (int i = 0; i < n; i++) {
-			int a = io.nextInt();
-			int b = io.nextInt();
-			times[i] = new int[] { a, 0 };
-			times[i + n] = new int[] { b, 1 };
+		//you can also think of it like the sum of a bunch of absolute value functions. 
+		
+		Reader cin = new Reader();
+		int n = cin.nextInt();
+		Integer[] nums = new Integer[n];
+		for(int i = 0; i < n; i++) {
+			nums[i] = cin.nextInt();
 		}
-		Arrays.sort(times, (a, b) -> a[0] - b[0]);
-		int max = 0;
-		int cur = 0;
-		for (int i = 0; i < times.length; i++) {
-			// System.out.println(cur);
-			if (times[i][1] == 0) {
-				cur++;
-			}
-			else {
-				cur--;
-			}
-			if (cur > max) {
-				max = cur;
-			}
+		Arrays.sort(nums);
+		int mid = nums[n / 2];
+		long ans = 0;
+		for(int i = 0; i < n; i++) {
+			ans += (long) Math.abs(nums[i] - mid);
 		}
-		System.out.println(max);
+		System.out.println(ans);
 	}
 	
 	static class Reader {

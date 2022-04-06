@@ -1,46 +1,46 @@
-//package apartments;
- 
+//package towers;
+
 import java.util.*;
-import java.io.*;
- 
-public class apartments {
-	
+import java.io.*;	
+
+public class towers {
 	public static void main(String[] args) throws IOException {
 		
-		//CSES 1084
+		//CSES 1073
 		
-		//for each apartment, we assign the lowest request to it
+		//for each cube, put it on the smallest cube that you can put it on, or if there exists no cube that you can
+		//place it on, make a new tower.
 		
 		FastIO cin = new FastIO();
 		int n = cin.nextInt();
-		int m = cin.nextInt();
-		int k = cin.nextInt();
-		Integer[] p = new Integer[n];
-		Integer[] a = new Integer[m];
+		int[] nums = new int[n];
 		for(int i = 0; i < n; i++) {
-			p[i] = cin.nextInt();
+			nums[i] = cin.nextInt();
 		}
-		for(int i = 0; i < m; i++) {
-			a[i] = cin.nextInt();
+		TreeMap<Integer, Integer> map = new TreeMap<Integer, Integer>();
+		Map.Entry<Integer, Integer> val;
+		for(int i = 0; i < n; i++) {
+			int next = nums[i];
+			val = map.ceilingEntry(next + 1);
+			if(val == null) {
+				map.put(next, map.getOrDefault(next, 0) + 1);
+			}
+			else {
+				if(val.getValue() == 1) {
+					map.remove(val.getKey());
+				}
+				else {
+					map.put(val.getKey(), val.getValue() - 1);
+				}
+				map.put(next, map.getOrDefault(next, 0) + 1);
+			}
 		}
-		Arrays.sort(p);
-		Arrays.sort(a);
-		int pointer = 0;
 		int ans = 0;
-		for(int i = 0; i < m; i++) {
-			a[i]-=k;
-			while(pointer < n && p[pointer] < a[i]) {
-				pointer ++;
-			}
-			if(pointer == n) {
-				break;
-			}
-			if(p[pointer] <= a[i] + 2*k) {
-				pointer++;
-				ans ++;
-			}
+		for(Integer i : map.values()) {
+			ans += i;
 		}
 		System.out.println(ans);
+		cin.close();
 	}
 	
 	static class FastIO extends PrintWriter {
@@ -89,7 +89,6 @@ public class apartments {
 			do {
 				c = nextByte();
 			} while (c <= ' ');
-
 			StringBuilder res = new StringBuilder();
 			do {
 				res.appendCodePoint(c);
@@ -103,13 +102,11 @@ public class apartments {
 			do {
 				c = nextByte();
 			} while (c <= ' ');
-
 			int sgn = 1;
 			if (c == '-') {
 				sgn = -1;
 				c = nextByte();
 			}
-
 			int res = 0;
 			do {
 				if (c < '0' || c > '9') {
@@ -120,7 +117,6 @@ public class apartments {
 			} while (c > ' ');
 			return res * sgn;
 		}
-
 		public double nextDouble() { return Double.parseDouble(next()); }
 	}
 }

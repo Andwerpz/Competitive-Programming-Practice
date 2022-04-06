@@ -1,44 +1,39 @@
-//package apartments;
- 
+//package playlist2;
+
 import java.util.*;
 import java.io.*;
- 
-public class apartments {
-	
+
+public class playlist {
 	public static void main(String[] args) throws IOException {
 		
-		//CSES 1084
+		//CSES 1141
 		
-		//for each apartment, we assign the lowest request to it
+		//you can iterate over the songs and maintain a set of unique songs. 
+		
+		//when you visit a song that is a member of the set, then remove songs from the end of your list until you remove
+		//the song of the same type as the new song. 
 		
 		FastIO cin = new FastIO();
 		int n = cin.nextInt();
-		int m = cin.nextInt();
-		int k = cin.nextInt();
-		Integer[] p = new Integer[n];
-		Integer[] a = new Integer[m];
+		int[] nums = new int[n];
 		for(int i = 0; i < n; i++) {
-			p[i] = cin.nextInt();
+			nums[i] = cin.nextInt();
 		}
-		for(int i = 0; i < m; i++) {
-			a[i] = cin.nextInt();
-		}
-		Arrays.sort(p);
-		Arrays.sort(a);
-		int pointer = 0;
+		HashSet<Integer> set = new HashSet<>();
 		int ans = 0;
-		for(int i = 0; i < m; i++) {
-			a[i]-=k;
-			while(pointer < n && p[pointer] < a[i]) {
-				pointer ++;
+		int l = 0;
+		for(int i = 0; i < n; i++) {
+			int next = nums[i];
+			if(set.contains(next)) {
+				while(nums[l] != next) {
+					set.remove(nums[l]);
+					l++;
+				}
+				set.remove(nums[l]);
+				l++;
 			}
-			if(pointer == n) {
-				break;
-			}
-			if(p[pointer] <= a[i] + 2*k) {
-				pointer++;
-				ans ++;
-			}
+			set.add(next);
+			ans = Math.max(ans, set.size());
 		}
 		System.out.println(ans);
 	}
@@ -89,7 +84,6 @@ public class apartments {
 			do {
 				c = nextByte();
 			} while (c <= ' ');
-
 			StringBuilder res = new StringBuilder();
 			do {
 				res.appendCodePoint(c);
@@ -103,13 +97,11 @@ public class apartments {
 			do {
 				c = nextByte();
 			} while (c <= ' ');
-
 			int sgn = 1;
 			if (c == '-') {
 				sgn = -1;
 				c = nextByte();
 			}
-
 			int res = 0;
 			do {
 				if (c < '0' || c > '9') {
@@ -120,7 +112,6 @@ public class apartments {
 			} while (c > ' ');
 			return res * sgn;
 		}
-
 		public double nextDouble() { return Double.parseDouble(next()); }
 	}
 }

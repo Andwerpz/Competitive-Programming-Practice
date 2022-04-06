@@ -1,46 +1,60 @@
-//package apartments;
- 
+//package trafficlights;
+
 import java.util.*;
 import java.io.*;
- 
-public class apartments {
-	
+
+public class trafficlights {
 	public static void main(String[] args) throws IOException {
 		
-		//CSES 1084
+		//CSES 1163
 		
-		//for each apartment, we assign the lowest request to it
+		//first, calculate the maximum seg length with all the lights installed. Then you can remove the lights in backwards order
+		//and to find the new max seg length, you can just take the max of the prev max seg length and the new segment created
+		//by removing the light. 
+		
+		//Solving it while considering the lights in forward order is also possible, but it requires an extra treemap to store the 
+		//lengths of each segment. This is necessary as when you install a light, you reduce the length of segments, and in order
+		//to find the next max segment, it is necessary to store all segments. 
 		
 		FastIO cin = new FastIO();
+		int x = cin.nextInt();
 		int n = cin.nextInt();
-		int m = cin.nextInt();
-		int k = cin.nextInt();
-		Integer[] p = new Integer[n];
-		Integer[] a = new Integer[m];
+		int[] nums = new int[n];
+		NavigableSet<Integer> lights = new TreeSet<Integer>();
 		for(int i = 0; i < n; i++) {
-			p[i] = cin.nextInt();
+			nums[i] = cin.nextInt();
+			lights.add(nums[i]);
 		}
-		for(int i = 0; i < m; i++) {
-			a[i] = cin.nextInt();
-		}
-		Arrays.sort(p);
-		Arrays.sort(a);
-		int pointer = 0;
-		int ans = 0;
-		for(int i = 0; i < m; i++) {
-			a[i]-=k;
-			while(pointer < n && p[pointer] < a[i]) {
-				pointer ++;
-			}
-			if(pointer == n) {
+		lights.add(0);
+		lights.add(x);
+		//find max seg length
+		int maxSeg = 0;
+		int prev = lights.first();
+		while(true) {
+			Integer next = lights.ceiling(prev + 1);
+			if(next == null) {
 				break;
 			}
-			if(p[pointer] <= a[i] + 2*k) {
-				pointer++;
-				ans ++;
-			}
+			maxSeg = Math.max(maxSeg, next - prev);
+			prev = next;
 		}
-		System.out.println(ans);
+		//remove lights backwards
+		int[] ansArr = new int[n];
+		ansArr[n - 1] = maxSeg;
+		for(int i = n - 1; i > 0; i--) {
+			int next = nums[i];
+			lights.remove(next);
+			int l = lights.floor(next);
+			int r = lights.ceiling(next);
+			maxSeg = Math.max(maxSeg, r - l);
+			ansArr[i - 1] = maxSeg;
+		}
+		StringBuilder fout = new StringBuilder();
+		for(int i : ansArr) {
+			fout.append(i).append(" ");
+		}
+		cin.println(fout);
+		cin.close();
 	}
 	
 	static class FastIO extends PrintWriter {
@@ -89,7 +103,6 @@ public class apartments {
 			do {
 				c = nextByte();
 			} while (c <= ' ');
-
 			StringBuilder res = new StringBuilder();
 			do {
 				res.appendCodePoint(c);
@@ -103,13 +116,11 @@ public class apartments {
 			do {
 				c = nextByte();
 			} while (c <= ' ');
-
 			int sgn = 1;
 			if (c == '-') {
 				sgn = -1;
 				c = nextByte();
 			}
-
 			int res = 0;
 			do {
 				if (c < '0' || c > '9') {
@@ -120,7 +131,6 @@ public class apartments {
 			} while (c > ' ');
 			return res * sgn;
 		}
-
 		public double nextDouble() { return Double.parseDouble(next()); }
 	}
-}
+}	

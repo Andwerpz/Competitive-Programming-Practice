@@ -45,6 +45,7 @@
 /antonandpolyhedrons/
 /apartments/
 /apolloversuspan/
+/appledivision/
 /applyingmaxtosegment/
 /aquamoonandstolenstring/
 /aquamoonandstrangesort/
@@ -164,6 +165,8 @@
 /coincombinations1/
 /coincombinations2/
 /coinrows/
+/collectingnumbers/
+/collectingnumbersII/
 /coloredrectangles/
 /coloredrooks/
 /colourtheflag/
@@ -209,6 +212,7 @@
 /cut/
 /cuttingout/
 /cyclicpermutations/
+/dailytrain/
 /dancemooves/
 /dashaandpassword/
 /decorateappletree/
@@ -221,6 +225,7 @@
 /dicecombinations/
 /differentialsorting/
 /differentrules/
+/digitqueries/
 /digitssum/
 /dilucandkaeya/
 /dimaandabadxor/
@@ -293,6 +298,7 @@
 /fence2/
 /fencepainting/
 /fenceplan/
+/ferriswheel/
 /fibonacciadditions/
 /filelist/
 /fillomino2/
@@ -333,6 +339,7 @@
 /gregorandthepawngame/
 /grid00100/
 /gridpaths/
+/gridpaths2/
 /guessthekthzero/
 /hamburgers/
 /hardway/
@@ -464,6 +471,7 @@
 /minority/
 /minorreduction/
 /minorsum/
+/missingcoinsum/
 /misterbandbookreading/
 /mixingwater/
 /moamenandksubarrays/
@@ -588,6 +596,7 @@
 /planetlapituletti/
 /platformsjumping/
 /playlist/
+/playlist2/
 /playoff/
 /pleasantpairs/
 /plusandmultiply/
@@ -724,6 +733,7 @@
 /stargate/
 /stasandthequeueatthebuffet/
 /staticrangesum/
+/sticklengths/
 /stonedgame/
 /stonegame/
 /strangebeauty/
@@ -748,7 +758,6 @@
 /subsetequality/
 /suffixarray1/
 /suminthetree/
-/weightthetree/
 /sumof2050/
 /sumofpaths/
 /sumofthreevalues/
@@ -779,7 +788,9 @@
 /togoornottogo/
 /totallength/
 /towerofhanoi/
+/towers/
 /toytrainsimplified/
+/trafficlights/
 /trailinglovesorloeufs/
 /train/
 /transform/
@@ -813,6 +824,7 @@
 /walkonmatrix/
 /weboflies/
 /weightofthesystemofnestedsegments/
+/weightthetree/
 /weirdsum/
 /where/
 /whitesheet/
@@ -834,18 +846,4 @@
 /zeroremaindersum/
 /zmeigorynich/
 /zookeeperandtheinfinitezoo/
-/dailytrain/
-/appledivision/
-/digitqueries/
-/gridpaths2/
-<<<<<<< Updated upstream
-/missingcoinsum/
-/collectingnumbers/
-/collectingnumbersII/
-/playlist2/
-/towers/
-/trafficlights/
-=======
-/ferriswheel/
-/sticklengths/
->>>>>>> Stashed changes
+/josephusproblemI/

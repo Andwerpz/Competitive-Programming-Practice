@@ -11,6 +11,14 @@ vector<ll> cost;
 
 //it's just dikjstra's algorithm.
 
+//instead of storing node : cost pairs in a priority queue, we can define a new set comparator and save
+//the cost information in a seperate array. 
+
+//be careful when doing this though. If you only compare two items using their costs, if two items have equal
+//costs, then they will be judged as equal, and only one of them will be allowed to exist within the set. 
+
+//so when defining the comparator, you also need to check whether the two node ids are equal. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
@@ -27,24 +35,39 @@ int main() {
     }
     cost = vector<ll>(n, (ll) 1e18);
     cost[0] = 0;
-    auto compare = [] (pair<int, ll> a, pair<int, ll> b) {return a.second > b.second;};
-    priority_queue<pair<int, ll>, vector<pair<int, ll>>, decltype(compare)> q(compare);
-    q.push({0, 0});
+    auto compare = [] (int a, int b) {return cost[a] != cost[b]? cost[a] < cost[b] : a < b;};
+    set<int, decltype(compare)> q(compare);
+    q.insert(0);
     vector<bool> v(n);
     while(q.size() != 0) {
-        int curNode = q.top().first;
-        ll curCost = q.top().second;
-        q.pop();
-        if(v[curNode]){
-            continue;
-        }
+        // for(int i : q){
+        //     cout << i << " : " << cost[i] << endl;
+        // }
+        int curNode = *q.begin();
+        ll curCost = cost[curNode];
+        //cout << "Visiting: " << curNode << endl;
+        q.erase(curNode);
         v[curNode] = true;
         for(auto [nNode, nCost] : c[curNode]){
+            //cout << "Next: " << nNode << " New Cost: " << (curCost + nCost) << endl;
             if(cost[nNode] > curCost + nCost){
-                cost[nNode] = curCost + nCost;
-                q.push({nNode, cost[nNode]});
+                if(q.find(nNode) != q.end()){
+                    q.erase(nNode);
+                    cost[nNode] = curCost + nCost;
+                    q.insert(nNode);
+                    //cout << "Updating: " << nNode << " Success: " << (q.find(nNode) != q.end()) << endl;
+                }
+                else{
+                    cost[nNode] = curCost + nCost;
+                }
+            }
+            if(!v[nNode]){
+                if(q.find(nNode) == q.end()){
+                    q.insert(nNode);
+                }
             }
         }
+        //cout << endl;
     }
     //cout << endl;
     for(ll i : cost){

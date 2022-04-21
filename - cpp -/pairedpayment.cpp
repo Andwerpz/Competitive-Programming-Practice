@@ -7,6 +7,19 @@ using namespace std;
 
 vector<int> cost;
 
+//1486E
+
+//dijkstra with extra steps.
+
+//when travelling, you need to always move 2 cities at a time. This means that you'll always have an intermediate city
+//that you skip over. 
+
+//for each node, make a list of intermediate nodes. If you've already visited an intermediate node with a lesser
+//cost, then discard that node, else, keep it. 
+
+//Out of the intermediate nodes, visit all their neighbors, and add to the set any nodes that you haven't seen
+//before. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
@@ -28,7 +41,7 @@ int main() {
     cost[0] = 0;
     vector<bool> v(n, false);
     v[0] = true;
-    vector<bool> vm(n, false);
+    vector<int> vm(n, 1e9);
     s.insert(0);
     while(s.size() != 0){
         int cur = *s.begin();
@@ -37,10 +50,10 @@ int main() {
         for(pair<int, int> p1 : c[cur]){
             int mid = p1.first;
             int midCost = p1.second;
-            if(vm[mid]){
+            if(vm[mid] <= midCost){
                 continue;
             }
-            vm[mid] = true;
+            vm[mid] = midCost;
             for(pair<int, int> p2 : c[mid]){
                 int next = p2.first;
                 int nextCost = p2.second;

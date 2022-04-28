@@ -1,49 +1,38 @@
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <string>
 #include <bits/stdc++.h>
-
 typedef long long ll;
+using namespace std;
 
 //Codeforces - 61E
 
-//use two segment trees. One to keep track of occurrences of numbers, and one to keep track of for each person, how many people they are greater than.
+//first, compress the strengths of the soldiers into a range from 0 - (n - 1)
 
-using namespace std;
+//use two segment trees. One to keep track of occurrences of numbers, 
+//and one to keep track of for each person, how many people they are greater than.
 
-void insert(vector<vector<ll>> &tree, int index, ll val){
-    for(int i = 0; i < tree.size(); i++){
-        tree[i][index] += val;
-        //cout << tree[i][index] << " " << i << " " << index << endl;
-        index /= 2;
+//when you reach the ith person with strength 'a', update the 'a'th position in the first tree to be 1, 
+//and update the 'a'th position in the second tree to be equal to the range sum of first tree from
+//(a + 1) - (n - 1). this represents how many people there are in the prefix that have id greater than 'a'. 
+
+//next, just update ans with range sum of second tree from (a + 1) - (n - 1). As the second tree represents
+//the number of pairs ending at each number, taking the range sum will make it represent the number of triples ending at
+//each number. 
+
+vector<ll> tree(1e6 * 2);
+vector<ll> tree2(1e6 * 2);
+
+void modify(vector<ll>& t, int i, ll val, int n){
+    i += n;
+    t[i] = val;
+    for(; i > 1; i /= 2){
+        t[i / 2] = t[i] + t[i + (i % 2 == 0? 1 : -1)];
     }
 }
 
-ll getSum(vector<vector<ll>> &tree, int l, int r){
+ll query(vector<ll>& t, int l, int r, int n){
     ll ans = 0;
-    for(int i = l; i <= r; i += 0){
-        int index = i;
-        int increment = 1;
-        int layer = 0;
-        while(true){
-            int temp = index;
-            index /= 2;
-            increment *= 2;
-            layer ++;
-            int low = index * increment;
-            int high = low + increment;
-            if(low < l || high > r){
-                index = temp;
-                increment /= 2;
-                layer --;
-                break;
-            }
-        }
-        i += increment;
-        ans += tree[layer][index];
+    for(l += n, r += n; l < r; l /= 2, r /= 2){
+        if(l % 2 == 1) {ans += t[l++];}
+        if(r % 2 == 1) {ans += t[--r];}
     }
     return ans;
 }
@@ -51,54 +40,29 @@ ll getSum(vector<vector<ll>> &tree, int l, int r){
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-
+    
     int n;
     cin >> n;
-    int treeLayers = (int) ceil((double)log(n) / (double)log(2)) + 1;
-    int pointer = pow(2, treeLayers);
-    vector<vector<ll>> tree(treeLayers);
-    vector<vector<ll>> tree2(treeLayers);
-    //cout << treeLayers << endl;
-    vector<pair<ll, ll>> nums(n);
+    vector<pair<int, int>> nums(n);
     for(int i = 0; i < n; i++){
         cin >> nums[i].first;
         nums[i].second = i;
     }
-    pointer /= 2;
-    for(int i = 0; i < treeLayers; i++){
-        //cout << pointer << " ";
-        tree[i] = vector<ll>(pointer);
-        tree2[i] = vector<ll>(pointer);
-        pointer /= 2;
-    }
-    //cout << endl;
-    sort(nums.begin(), nums.end(), [&](pair<ll, ll> a, pair<ll, ll> b) -> bool {return a.first < b.first;});
+    sort(nums.begin(), nums.end(), [] (pair<int, int>& a, pair<int, int>& b) {return a.first < b.first;});
     for(int i = 0; i < n; i++){
         nums[i].first = i;
     }
-    sort(nums.begin(), nums.end(), [&](pair<ll, ll> a, pair<ll, ll> b) -> bool {return a.second < b.second;});
-    // for(int i = 0; i < nums.size(); i++){
-    //     //cout << nums[i].first << " " << nums[i].second << endl;
-    // }
-    //cout << endl;
-    // for(int j = 0; j < tree.size(); j++){
-    //     for(int k = 0; k < tree[j].size(); k++){
-    //         cout << tree[j][k] << " ";
-    //     }
-    //     cout << endl;
-    // }
+    sort(nums.begin(), nums.end(), [] (pair<int, int>& a, pair<int, int>& b) {return a.second < b.second;});
     ll ans = 0;
     for(int i = 0; i < n; i++){
-        ll next = nums[i].first;
-        ll firstSum = getSum(tree, next, n - 1);
-        ans += getSum(tree2, next, n - 1);
-        insert(tree, next, 1);
-        insert(tree2, next, firstSum);
+        int str = nums[i].first;
+        ll s1 = query(tree, str + 1, n, n);
+        ll s2 = query(tree2, str + 1, n, n);
+        modify(tree, str, 1, n);
+        modify(tree2, str, s1, n);
+        ans += s2;
     }
     cout << ans << endl;
-
+    
     return 0;
 }
-
-
-

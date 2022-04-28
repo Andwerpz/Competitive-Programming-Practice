@@ -10,6 +10,12 @@ typedef long ll;
 
 using namespace std;
 
+//CSES 1623
+
+//solved in java.
+
+//since n = 20, we can just try all bitstrings.
+
 int main() {
 
     int n;

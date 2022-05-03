@@ -4,103 +4,122 @@ using namespace std;
 
 //Codeforces - 786C
 
-//supposed to use a persistent seg tree instead of a mergesort tree to get rid of extra log factor.
+struct Vertex {
+    Vertex *l, *r;
+    int sum;
 
-vector<vector<int>> t(1e5 * 2, vector<int>(0));
-int n;
-
-void combine(const vector<int>& a, const vector<int>& b, vector<int>& dest){
-    int pa = 0;
-    int pb = 0;
-    dest = vector<int>(a.size() + b.size());
-    int c = 0;
-    while(pa != a.size() || pb != b.size()){
-        if(pb == b.size() || (pa != a.size() && a[pa] <= b[pb])){
-            dest[c] = a[pa];
-            pa ++;
-        }
-        else{
-            dest[c] = b[pb];
-            pb ++;
-        }
-        c ++;
+    Vertex(int val) : l(nullptr), r(nullptr), sum(val) {}
+    Vertex(Vertex *l, Vertex *r) : l(l), r(r), sum(0) {
+        if (l) sum += l->sum;
+        if (r) sum += r->sum;
     }
+};
+
+Vertex* build(vector<int>& a, int tl, int tr) {
+    if (tl == tr)
+        return new Vertex(a[tl]);
+    int tm = (tl + tr) / 2;
+    return new Vertex(build(a, tl, tm), build(a, tm+1, tr));
 }
 
-int amtGEQ(vector<int>& a, int x){ 
-    int low = 0;
-    int high = a.size() - 1;
-    int mid = low + (high - low) / 2;
-    int ans = 0;
-    while(low <= high){
-        if(a[mid] >= x){
-            ans = max(ans, (int) (a.size() - mid));
-            high = mid - 1;
-        }
-        else{
-            low = mid + 1;
-        }
-        mid = low + (high - low) / 2;
-    }
-    return ans;
+int get_sum(Vertex* v, int tl, int tr, int l, int r) {
+    if (l > r)
+        return 0;
+    if (l == tl && tr == r)
+        return v->sum;
+    int tm = (tl + tr) / 2;
+    return get_sum(v->l, tl, tm, l, min(r, tm))
+         + get_sum(v->r, tm+1, tr, max(l, tm+1), r);
 }
 
-int query(int l, int r, int x){
-    int ans = 0;
-    for(l += n, r += n; l < r; l /= 2, r /= 2){
-        if(l % 2 == 1) {ans += amtGEQ(t[l++], x);}
-        if(r % 2 == 1) {ans += amtGEQ(t[--r], x);}
+int kth_one(Vertex* v, int tl, int tr, int l, int r, int k){
+    //cout << "START SEARCH" << endl;
+    int pfxSum = get_sum(v, tl, tr, 0, l - 1);
+    l = tl;
+    r = tr;
+    k += pfxSum;
+    while(l != r){
+        int mid = (l + r) / 2;
+        //cout << l << " " << r << " " << mid << endl;
+        if(v -> l -> sum >= k){
+            v = v -> l;
+            r = mid;
+        }
+        else{
+            k -= v -> l -> sum;
+            v = v -> r;
+            l = mid + 1;
+        }
+        //cout << "BASE" << endl;
     }
-    return ans;
+    return r;
+}
+
+Vertex* update(Vertex* v, int tl, int tr, int pos, int new_val) {
+    if (tl == tr)
+        return new Vertex(new_val);
+    int tm = (tl + tr) / 2;
+    if (pos <= tm)
+        return new Vertex(update(v->l, tl, tm, pos, new_val), v->r);
+    else
+        return new Vertex(v->l, update(v->r, tm+1, tr, pos, new_val));
 }
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
+    int n;
     cin >> n;
     vector<int> nums(n);
     for(int i = 0; i < n; i++){
         cin >> nums[i];
     }
+    vector<int> b(n);
     map<int, int> m;
+    vector<int> a(n);
     for(int i = n - 1; i >= 0; i--){
-        if(m.find(nums[i]) == m.end()){
-            t[i + n].push_back(1e9);
-            m.insert({nums[i], i});
-        }
-        else{
-            t[i + n].push_back(m.find(nums[i]) -> second);
+        if(m.find(nums[i]) != m.end()){
+            b[i] = m.find(nums[i]) -> second;
             m.find(nums[i]) -> second = i;
         }
+        else{
+            b[i] = 1e9;
+            m.insert({nums[i], i});
+        }
     }
-    for(int i = n - 1; i > 0; i--){
-        combine(t[i * 2], t[i * 2 + 1], t[i]);
+    set<int> s;
+    for(int i = 0; i < n; i++){
+        if(s.find(nums[i]) == s.end()){
+            a[i] = 1;
+            s.insert(nums[i]);
+        }
     }
-    //cout << "Q: " << query(1, 4, 4) << endl;
-    for(int i = 1; i <= n; i++){
-        //cout << "I : " << i << endl;
+    vector<Vertex*> v(0);
+    v.push_back(build(a, 0, n - 1));
+    for(int i = 1; i < n; i++){
+        if(b[i - 1] != 1e9){
+            v.push_back(update(v[i - 1], 0, n - 1, b[i - 1], 1));
+        }
+        else{
+            v.push_back(v[i - 1]);
+        }   
+    }
+    for(int k = 1; k <= n; k++){
         int ans = 0;
         int left = 0;
+        //cout << "START K: " << k << endl;
         while(true){
-            //cout << "LEFT: " << left << endl;
             ans ++;
-            int low = left;
-            int high = n; 
-            int mid = low + (high - low) / 2;
-            int index = low;
-            while(low <= high){
-                if(query(left, mid, mid) <= i){
-                    index = max(index, mid);
-                    low = mid + 1;
-                }
-                else {
-                    high = mid - 1;
-                }
-                mid = low + (high - low) / 2;
+            int sum = get_sum(v[left], 0, n - 1, left, n - 1);
+            //cout << "LEFT: " << left << " " << sum << endl;
+            if(sum <= k){
+                break;
             }
+            int index = kth_one(v[left], 0, n - 1, left, n - 1, k + 1);
+            //cout << "FOUND: " << index << endl;
             left = index;
-            if(left >= n){
+            if(left == n){
                 break;
             }
         }

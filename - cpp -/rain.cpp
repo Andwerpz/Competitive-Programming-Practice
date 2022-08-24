@@ -14,7 +14,7 @@ using namespace std;
 //checking each x[i] still will result in n^2 time complexity, so the optimization here is to save the maximum 
 //x[i] to the left, and right, making it so you only need to check 2 x[i] every time. 
 
-// - Calculate the final distribution
+// - Calculate the final distribution at every x[i]
 
 // - Calculate for each x[i], the maximum dist + height from left and right. 
 

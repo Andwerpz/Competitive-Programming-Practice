@@ -2,16 +2,34 @@
 typedef long long ll;
 using namespace std;
 
-//range sum query single modify seg tree
+//range sum query range modify lazy seg tree
 
 //note that t[0] is not used
 const int N = 1e5;  //limit for segtree size
 int n;
 int t[2 * N];
+int lazy[2 * N];
 
 void build() { // build the tree
     for (int i = n - 1; i > 0; i--) {   
         t[i] = t[i * 2] + t[i * 2 + 1];
+    }
+}
+
+void modify(int l, int r, int value){   //add value to all on interval [l, r)
+    int left = 0;
+    int right = n;
+    
+    //go top down. 
+    for(l += n, r += n; l < r; l /= 2, r /= 2) {
+        if(l % 2 == 1){
+            lazy
+        }
+    }
+    int p = l;
+    int amt = r - l;
+    for (; p > 0; p /= 2) {
+        t[p] = t[p * 2] + t[p * 2 + 1];
     }
 }
 

@@ -2,8 +2,6 @@
 typedef long long ll;
 using namespace std;
 
-//range sum query, range assignment modify lazy seg tree
-
 const int N = 2e5 + 100;  //+100 since there might be duplicate a[i]
 int t[2 * N];
 int h = sizeof(int) * 8 - __builtin_clz(N); //height of tree
@@ -76,25 +74,81 @@ int query(int l, int r) {
     return res;
 }
 
+void add(int i){    //adds a 1 at position i
+    int low = i;
+    int high = N;
+    int mid = low + (high - low) / 2;
+    int ans = low;
+    while(low <= high){
+        if(query(i, mid) == mid - i){
+            ans = max(ans, mid);
+            low = mid + 1;
+        }
+        else{
+            high = mid - 1;
+        }
+        mid = low + (high - low) / 2;
+    }
+    modify(i, ans, 0);
+    modify(ans, ans + 1, 1);
+}
+
+void sub(int i){    //removes a 1 from position i
+    int low = i + 1;
+    int high = N;
+    int mid = low + (high - low) / 2;
+    int ans = high;
+    while(low <= high){
+        if(query(i, mid) >= 1){
+            ans = min(ans, mid);
+            high = mid - 1;
+        }
+        else {
+            low = mid + 1;
+        }
+        mid = low + (high - low) / 2;
+    }
+    modify(ans - 1, ans, 0);
+    modify(i, ans - 1, 1);
+}
+
+int findMax(){  //find maximum position of 1
+    int low = 0;
+    int high = N - 1;
+    int mid = low + (high - low) / 2;
+    int ans = low;
+    while(low <= high){
+        if(query(mid, N) >= 1){
+            ans = max(ans, mid);
+            low = mid + 1;
+        }
+        else{
+            high = mid - 1;
+        }
+        mid = low + (high - low) / 2;
+    }
+    return ans;
+}
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int n;
-    cin >> n;
+    int n, q;
+    cin >> n >> q;
+    vector<int> a(n);
     for(int i = 0; i < n; i++){
-        int next;
-        cin >> next;
-        modify(i, i + 1, next);
+        cin >> a[i];
+        add(a[i]);
     }
-    cout << query(5, n) << "\n";
-    modify(1, 5, 4);
-    for(int i = 0; i < n; i++){
-        cout << query(i, i + 1) << " ";
+    for(int i = 0; i < q; i++){
+        int k, l;
+        cin >> k >> l;
+        sub(a[--k]);
+        add(l);
+        a[k] = l;
+        cout << findMax() << "\n";
     }
-    cout << "\n";
-
+    
     return 0;
 }
-
-

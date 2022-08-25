@@ -2,7 +2,7 @@
 typedef long long ll;
 using namespace std;
 
-//range sum query single modify seg tree
+//range sum query, single assignment modify seg tree
 
 //note that t[0] is not used
 const int N = 1e5;  //limit for segtree size

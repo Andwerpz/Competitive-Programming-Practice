@@ -4,11 +4,11 @@ using namespace std;
 
 //range sum query, range assignment modify lazy seg tree
 
-const int N = 2e5 + 100;  //+100 since there might be duplicate a[i]
+const int N = 16;
 int t[2 * N];
 int h = sizeof(int) * 8 - __builtin_clz(N); //height of tree
 int d[N];   //lazy tree
-int upd[N]; //to support assigning 0
+int upd[N]; //upd[i] = true if t[i] needs to be updated
 
 void calc(int p, int k) {   //accounting for length of segment 
     if (!upd[p]) {
@@ -80,19 +80,8 @@ int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int n;
-    cin >> n;
-    for(int i = 0; i < n; i++){
-        int next;
-        cin >> next;
-        modify(i, i + 1, next);
-    }
-    cout << query(5, n) << "\n";
-    modify(1, 5, 4);
-    for(int i = 0; i < n; i++){
-        cout << query(i, i + 1) << " ";
-    }
-    cout << "\n";
+    modify(3, 13, 1);
+    query(6, 7);
 
     return 0;
 }

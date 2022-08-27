@@ -2,6 +2,11 @@
 typedef long long ll;
 using namespace std;
 
+//Codeforces - 1705E
+
+//lazy prop seg tree and naive binary search is too slow. Try to integrate bsearch into
+//the tree ds to make it faster. 
+
 const int N = 2e5 + 100;  //+100 since there might be duplicate a[i]
 int t[2 * N];
 int h = sizeof(int) * 8 - __builtin_clz(N); //height of tree

@@ -2,6 +2,16 @@
 typedef long long ll;
 using namespace std;
 
+//Codeforces - 1721D
+
+//the idea is to try to calculate the answer bit by bit. You can test given 'a' and 'b' whether or not a 
+//it is possible that a certain bit is present in the final answer by counting the amount of times it
+//shows up in 'a' and 'b'. If the amount of times it shows up is equal to |a|, then it is possible to 
+//rearrange 'b' to make it appear in f(a, b). 
+
+//Notice that larger bits will have more value than all of the smaller bits combined, so the solution is
+//to greedily add the largest bits to the answer. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

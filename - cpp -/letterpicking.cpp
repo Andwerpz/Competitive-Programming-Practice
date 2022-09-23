@@ -4,6 +4,8 @@ using namespace std;
 
 //Codeforces - 1728D
 
+//aughfhasd
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

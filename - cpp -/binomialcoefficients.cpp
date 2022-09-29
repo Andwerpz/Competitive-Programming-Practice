@@ -2,6 +2,10 @@
 typedef long long ll;
 using namespace std;
 
+//ACPC Weekly Problemset 2F
+
+//something to do with stacking prefix sums and pascal triangle. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

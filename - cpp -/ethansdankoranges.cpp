@@ -2,6 +2,13 @@
 typedef long long ll;
 using namespace std;
 
+//A&M Fall 2022 E
+
+//notice that the water levels 'change' only 2m times. The water will not change between them, so you just have to consider
+//the 2m segments created. 
+
+//watch out for counting stuff that is outside the garden in the range [1, n]. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

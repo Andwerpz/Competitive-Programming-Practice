@@ -2,6 +2,10 @@
 typedef long long ll;
 using namespace std;
 
+//A&M Fall 2022 J
+
+//something to do with combinatorics. 
+
 const ll mod = 998244353;
 
 ll mul(ll a, ll b){

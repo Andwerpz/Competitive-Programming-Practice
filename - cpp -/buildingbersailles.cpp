@@ -2,6 +2,11 @@
 typedef long long ll;
 using namespace std;
 
+//A&M Fall 2022
+
+//since the painting sequences don't share any paintings, just print the painting sequences out when you get them, 
+//then print the rest in any order. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

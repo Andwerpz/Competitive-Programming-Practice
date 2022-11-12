@@ -2,6 +2,10 @@
 typedef long long ll;
 using namespace std;
 
+//A&M Fall 2022 F
+
+//implementation
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

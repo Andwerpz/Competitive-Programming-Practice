@@ -5,6 +5,13 @@ using namespace std;
 
 const ld pi = 3.141592653589;
 
+//A&M Fall 2022 C
+
+//first, construct an array storing the areas for each slice. Then find the maximum
+//subarray sum of length k. 
+
+//use sliding window. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

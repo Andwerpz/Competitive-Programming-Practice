@@ -2,6 +2,14 @@
 typedef long long ll;
 using namespace std;
 
+//A&M Fall 2022 H
+
+//2 pointer. Use a map multiset to store all elements that are less than k. 
+
+//notice that since you want the mex to be k, any subarray that has k is invalid. 
+
+//if the size of the map is equal to k, then you know that the mex is equal to k. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

@@ -2,6 +2,12 @@
 typedef long long ll;
 using namespace std;
 
+//A&M Fall 2022 K
+
+//this problem is like a parenthesis problem. Use a stack. 
+
+//each different difficulty is a different type of parenthesis.
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

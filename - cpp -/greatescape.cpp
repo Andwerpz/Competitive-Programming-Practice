@@ -2,6 +2,13 @@
 typedef long long ll;
 using namespace std;
 
+//A&M Fall 2022 G
+
+//it's just dfs D:
+//why this no work
+
+//the first node can be exit D:
+
 vector<string> getLandmarks() {
     int n;
     cin >> n;
@@ -20,6 +27,10 @@ int main() {
     set<string> v;
     string cur = getLandmarks()[0];
     v.insert(cur);
+    if(cur == "exit"){
+        cout << cur << endl;
+        return 0;
+    }
     cout << cur << endl;
     while(true) {
         vector<string> a = getLandmarks();

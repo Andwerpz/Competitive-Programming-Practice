@@ -4,6 +4,8 @@ using namespace std;
 
 //Codeforces - 1767A
 
+//you just have to make sure that the triangle isn't aligned with both the x and y axis. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

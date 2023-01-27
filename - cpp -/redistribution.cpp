@@ -2,6 +2,11 @@
 typedef long long ll;
 using namespace std;
 
+//ACPC Weekly Problem Set #1 (Spring 2023) B
+
+//since s is small, we can do a O(s^2) solution. 
+//basically the coins problem, but with s coins. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

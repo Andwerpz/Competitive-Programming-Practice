@@ -2,6 +2,12 @@
 typedef long long ll;
 using namespace std;
 
+//ACPC Weekly Problem Set #1 (Spring 2023) A
+
+//basic dp problem. 
+
+//is this 0-1 knapsack? no, right? because it also wants to get the minimum. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

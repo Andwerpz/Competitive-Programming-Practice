@@ -2,6 +2,20 @@
 typedef long long ll;
 using namespace std;
 
+//ACPC Weekly Problem Set #1 (Spring 2023) C
+
+//i really liked this one. Combining pfx sums and dp is neat
+
+//basically like the coins problem, but instead of choosing a specific value to increment the state, we can 
+//choose the value that is in any of 10 disjoint ranges. The number of values can be very large, so we can't treat
+//it like we have a bunch of different coins. 
+
+//the answer is to notice that instead of simulating all of the values within the ranges, we can instead update the dp
+//array as if it were a pfx sum array, making use of the range edit pfx sum technique. Then we keep a sum variable, and
+//just add to it every time we come across a new state. 
+
+//this works since we only edit ranges that we are going to visit in the future, and never ones that we've already visited. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

@@ -13,13 +13,8 @@ using namespace std;
 //the only way you can get information is by going from the least significant bit. The best way to get information is
 //to set x equal to a power of two, thus when n - x, you subtract 1 bit. 
 
-//if n has one more bit than n - x, it means that n contains the x bit. 
-
-//else, n - x has to have more bits than n. This means that n doesn't contain the x bit, and you've just created a bunch of
-//new bits due to a more significant bit being flipped to 0. 
-
 //notice that if x is one bit, then subtracting n from x will always turn one bit in n to 0. That bit is always the least significant
-//bit that is more significant than the x bit. 
+//bit that is more significant than the x bit. Looking at the difference between 
 
 int main() {
     ios_base::sync_with_stdio(false);

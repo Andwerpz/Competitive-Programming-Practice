@@ -2,6 +2,17 @@
 typedef long long ll;
 using namespace std;
 
+//ACPC Weekly Problem Set #1 (Spring 2023) D
+
+//normal dp. 
+
+//dp[i][j][k]:
+//i : which row
+//j : which column
+//k : how many goods have you picked from the ith row. 
+
+//k can be up to 3. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

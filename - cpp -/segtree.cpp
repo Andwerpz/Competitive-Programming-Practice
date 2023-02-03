@@ -18,7 +18,7 @@ void build() { // build the tree
 void modify(int p, int value) { // set value at position p
     p += n;
     t[p] = value;
-    for (; p > 0; p /= 2) {
+    for (p /= 2; p > 0; p /= 2) {
         t[p] = t[p * 2] + t[p * 2 + 1];
     }
 }

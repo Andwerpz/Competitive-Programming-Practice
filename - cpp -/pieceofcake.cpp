@@ -10,12 +10,18 @@ int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    ll n, h, v;
-    cin >> n >> h >> v;
-    ll d = 4;
-    ll w = max(n - h, h);
-    ll l = max(n - v, v);
-    cout << d * w * l << "\n";
-    
+    int n; cin >> n;
+    ll d; cin >> d;
+    ll a[n];
+    for (int i = 0; i < n; ++i) cin >> a[i];
+    map<ll, ll> freq;
+    for (auto x : a) {
+        freq[x / d]++;
+    }
+    ll ans = 0;
+    for (auto p : freq) {
+        ans += p.second * (p.second - 1) / 2;
+    }
+    cout << ans << endl;
     return 0;
 }

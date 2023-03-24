@@ -10,12 +10,12 @@ int main() {
     int t;
     cin >> t;
     while(t-- > 0){
-        string s;
-        cin >> s;
-        int n = s.size();
-        vector<int> c(26);
-        for(int i = 0; i < n; i++){
-            c[s[i] - '0'] ++;
+        int n;
+        cin >> n;
+        for(int i = 1; i <= n; i++){
+            for(int j = 0; j < i; j++){
+                cout << (j == 0 || j == i - 1? 1 : 0) << " \n"[j == i - 1];
+            }
         }
     }
     

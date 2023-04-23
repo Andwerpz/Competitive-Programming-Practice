@@ -3,21 +3,13 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-//CSCE 430 Spring 2023 - Problem Set 11 D
+//TAMU Spring 2023 Programming Contest O
 
-//max flow, but with a twist: we don't want to calculate the instantaneous flow of the system, but the maximum
-//amount over a period of time. 
+//if there is a candle that doesn't need to be moved, we can disregard it. 
 
-//to do this, instead of having two dimensions, we add another one for time, so now we have a 3D grid of cells, 
-//where g[i][j][k] is row i, column j, and at time k. 
+//we can then use max flow to find the maximum amount of candles that can be moved using 1 move. 
 
-//since each person counts as 1, all edges in this graph should have capacity 1. 
-
-//the sources are going to be all the starting positions of the people at t = 0, and the sinks are going to be 
-//cells where a[i][j] = 'E', regardless of time; it doesn't matter at what time you reach an exit. 
-
-//to enforce that only one person can be in a tile at one time, we split each node into an in node and an out node, and
-//draw an edge of capacity 1 between them
+//the remaining candles have to be moved using 2 moves. 
 
 ll dinic(int n, vector<vector<pair<int, ll>>> c, int source, int sink) {
     ll ans = 0;
@@ -138,63 +130,54 @@ int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int n, m, t;
-    cin >> n >> m >> t;
-    t ++;
-    vector<string> g(n);
-    for(int i = 0; i < n; i++){
-        cin >> g[i];
-    }
-    vector<vector<vector<pair<int, int>>>> id(n, vector<vector<pair<int, int>>>(m, vector<pair<int, int>>(t, {0, 0})));
+    int n;
+    cin >> n;
+    vector<vector<int>> a(n, vector<int>(n, 0));
+    vector<vector<int>> b(n, vector<int>(n, 0));
+    vector<vector<int>> aid(n, vector<int>(n, 0));
+    vector<vector<int>> bid(n, vector<int>(n, 0));
     int ptr = 0;
+    ll sum = 0;
     for(int i = 0; i < n; i++){
-        for(int j = 0; j < m; j++){
-            for(int k = 0; k < t; k++){
-                id[i][j][k].first = ptr ++;
-                id[i][j][k].second = ptr ++;
-            }
+        for(int j = 0; j < n; j++){
+            cin >> a[i][j];
+            aid[i][j] = ptr ++;
+            sum += a[i][j];
+        }
+    }
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < n; j++){
+            cin >> b[i][j];
+            bid[i][j] = ptr ++;
+            int sub = min(b[i][j], a[i][j]);
+            b[i][j] -= sub;
+            a[i][j] -= sub;
+            sum -= sub;
         }
     }
     int source = ptr ++;
     int sink = ptr ++;
-    vector<vector<pair<int, ll>>> c(ptr, vector<pair<int, ll>>(0));
     vector<int> dr = {-1, 1, 0, 0};
     vector<int> dc = {0, 0, -1, 1};
-    for(int i = 0; i < n; i++) {
-        for(int j = 0; j < m; j++){
-            for(int k = 0; k < t; k++){
-                int curIn = id[i][j][k].first;
-                int curOut = id[i][j][k].second;
-                //link in node to out node
-                c[curIn].push_back({curOut, 1});
-                if(k != t - 1) {
-                    //stay still
-                    c[curOut].push_back({id[i][j][k + 1].first, 1});  
-                    //move
-                    for(int l = 0; l < 4; l++){
-                        int nr = i + dr[l];
-                        int nc = j + dc[l];
-                        if(nr < 0 || nc < 0 || nr >= n || nc >= m){
-                            continue;
-                        }
-                        if(g[nr][nc] == '#') {
-                            continue;
-                        }
-                        c[curOut].push_back({id[nr][nc][k + 1].first, 1});
-                    }
-                }
-                if(g[i][j] == 'P' && k == 0) {
-                    //connect to source
-                    c[source].push_back({curIn, 1});
-                }
-                if(g[i][j] == 'E') {
-                    //connect to sink
-                    c[curOut].push_back({sink, 1});
-                }
+    vector<vector<pair<int, ll>>> c(ptr, vector<pair<int, ll>>(0));
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < n; j++){
+            //cout << "FROM SOURCE : " << source << " " << aid[i][j] << "\n";
+            c[source].push_back({aid[i][j], a[i][j]});
+            for(int k = 0; k < n; k++){
+                //cout << "SHARE COL : " << aid[i][j] << " " << bid[k][j] << "\n";
+                //cout << "SHARE ROW : " << aid[i][j] << " " << bid[i][k] << "\n";
+                c[aid[i][j]].push_back({bid[k][j], a[i][j]});
+                c[aid[i][j]].push_back({bid[i][k], a[i][j]});
             }
+            //cout << "TO SINK : " << bid[i][j] << " " << sink << "\n";
+            c[bid[i][j]].push_back({sink, b[i][j]});
         }
     }
-    cout << dinic(ptr, c, source, sink) << "\n";
+    ll single = dinic(ptr, c, source, sink);
+    ll ans = single + (sum - single) * 2;
+    cout << ans << "\n";
+    //cout << single << "\n";
     
     return 0;
 }

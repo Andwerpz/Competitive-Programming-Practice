@@ -1,12 +1,18 @@
 #include <bits/stdc++.h>
 typedef long long ll;
-using namespace std;
+using namespace std; 
 
-//Kattis anti11hard
+//CSCE 430 Spring 2023 - Lab 12 F
 
-//my thought was to use dp to solve. 
+//dp[n][b.size()];
 
-//the problem is my solution is counting invalid bitstrings as valid. 
+//dp[i][j] = number of strings of length i where the suffix of length j is equal to prefix of b of length j. 
+
+//for each dp[i][j], you can either add the b[j] to the end of the string, transitioning to dp[i + 1][j + 1], or 
+//you can add the opposite of b[j] to the end. 
+
+//if you add the wrong character, then you need to figure out the maximum j where the suffix of length j is equal to
+//the prefix of b of length j. This can be precomputed before the dp. 
 
 int main() {
     ios_base::sync_with_stdio(false);
@@ -18,60 +24,54 @@ int main() {
     while(t-- > 0){
         int n;
         cin >> n;
-        string b;
-        cin >> b;
-        if(b.size() == 1){
-            cout << "1\n";
-            continue;
+        vector<int> b;
+        string s;
+        cin >> s;
+        for(int i = 0; i < s.size(); i++){
+            b.push_back(s[i] - '0');
         }
-        vector<ll> zdp(n);
-        vector<ll> odp(n);
-        zdp[0] = 1;
-        odp[0] = 1;
-        for(int i = 1; i < n; i++){
-            ll add = (zdp[i - 1] + odp[i - 1]) % mod;
-            if(i < b.size() - 1) {
-                zdp[i] = add;
-                odp[i] = add;
-                continue;
+        vector<int> t(b.size(), 0);
+        for(int i = 0; i < b.size(); i++){
+            vector<int> tmp;
+            for(int j = 0; j < i; j++){
+                tmp.push_back(b[j]);
             }
-            if(b[b.size() - 1] == '0') {
-                odp[i] = add;
-                for(int j = 1; j < b.size(); j++){
-                    if(b[b.size() - j - 1] == '0'){
-                        zdp[i] += odp[i - j];
+            tmp.push_back(b[i] == 0? 1 : 0);
+            int maxPre = 0;
+            for(int j = tmp.size(); j >= 0; j--){
+                bool isValid = true;
+                for(int k = 0; k < j; k++){
+                    if(tmp[tmp.size() - k - 1] != b[j - k - 1]){
+                        isValid = false;
+                        break;
                     }
-                    else{
-                        zdp[i] += zdp[i - j];
-                    }
-                    zdp[i] %= mod;
                 }
-                //zdp[i] += zdp[i - b.size()] + odp[i - b.size()];
-            }
-            else {
-                zdp[i] = add;
-                for(int j = 1; j < b.size(); j++){
-                    if(b[b.size() - j - 1] == '0'){
-                        odp[i] += odp[i - j];
-                    }
-                    else{
-                        odp[i] += zdp[i - j];
-                    }
-                    odp[i] %= mod;
+                if(isValid) {
+                    maxPre = j;
+                    break;
                 }
-                //odp[i] += zdp[i - b.size()] + odp[i - b.size()];
+            }
+            t[i] = maxPre;
+        }
+        vector<vector<ll>> dp(n + 1, vector<ll>(b.size() + 1, 0));
+        dp[0][0] = 1;
+        for(int i = 0; i < n; i++){
+            for(int j = 0; j < b.size(); j++){
+                //right char
+                dp[i + 1][j + 1] += dp[i][j];
+                dp[i + 1][j + 1] %= mod;
+                //wrong char
+                dp[i + 1][t[j]] += dp[i][j];
+                dp[i + 1][t[j]] %= mod;
             }
         }
-        for(int i : zdp) {
-            cout << i << " ";
+        ll ans = 0;
+        for(int i = 0; i < b.size(); i++){
+            ans += dp[n][i];
+            ans %= mod;
         }
-        cout << "\n";
-        for(int i : odp){
-            cout << i << " ";
-        }
-        cout << "\n";
-        cout << (zdp[n - 1] + odp[n - 1]) % mod << "\n";
+        cout << ans << "\n";
     }
-    
+
     return 0;
 }

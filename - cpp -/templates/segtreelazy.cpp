@@ -2,106 +2,254 @@
 typedef long long ll;
 using namespace std;
 
-//range sum query, range assignment modify lazy seg tree
-
-//start by modifying from 0 to n to 0.
+//range increment, range min
 struct SegtreeLazy {
-    int n;
-    int* t;
-    int h;      //height of tree
-    int* d;     //lazy tree
-    int* upd;   //upd[i] = true if t[i] needs to be updated
+    public:
+        int n;
+        int* t;    //stores product of range
+        int* d;    //lazy tree
+        bool* upd;   //upd[i] = true if t[i] needs to be updated
+        int uneut, qneut;
 
-    SegtreeLazy(int maxSize) {
-        t = new int[maxSize * 2];
-        h = sizeof(int) * 8 - __builtin_clz(maxSize);
-        d = new int[maxSize];
-        upd = new int[maxSize];
-        n = maxSize;
+        SegtreeLazy(int maxSize, int updateNeutral, int queryNeutral, int valInit) {
+            n = maxSize;
+            uneut = updateNeutral;
+            qneut = queryNeutral;
 
-        modify(0, maxSize, 0);
-    }
+            //raise n to nearest pow 2
+            int x = 1;
+            while(x < n) {
+                x <<= 1;
+            }
+            n = x;
 
-    ~SegtreeLazy() {
-        delete t;
-        delete d;
-        delete upd;
-    }
+            t = new int[n * 2];
+            d = new int[n * 2];
+            upd = new bool[n * 2];
 
-    void calc(int p, int k) {   //accounting for length of segment 
-        if (!upd[p]) {
-            t[p] = t[p * 2] + t[p * 2 + 1];
-        }
-        else {
-            t[p] = d[p] * k;
-        }
-    }
-
-    void apply(int p, int value, int k) {
-        t[p] = value * k;
-        if (p < n) {
-            d[p] = value;
-            upd[p] = true;
-        }
-    }
-
-    void build(int l, int r) {
-        l += n, r += n - 1;
-        int k = 2; 
-        for (; l > 1; k *= 2) {
-            l /= 2, r /= 2;
-            for (int i = r; i >= l; i--) {
-                calc(i, k);
+            //make sure to initialize values
+            for(int i = 0; i < n * 2; i++){
+                t[i] = valInit;
+            }
+            for(int i = 0; i < n * 2; i++){
+                d[i] = uneut;
+                upd[i] = false;
             }
         }
-    }
 
-    void push(int l, int r) {
-        l += n, r += n - 1;
-        int s = h, k = 1 << (h - 1);
-        for (; s > 0; s--, k /= 2) {
-            for (int i = l >> s; i <= r >> s; i++) {
-                if (upd[i]) {
-                    apply(i * 2, d[i], k);
-                    apply(i * 2 + 1, d[i], k);
-                    d[i] = 0;
-                    upd[i] = false;
-                }
+        ~SegtreeLazy() {
+            delete t;
+            delete d;
+            delete upd;
+        }
+
+        void modify(int l, int r, int val) {    //modifies the range [l, r)
+            _modify(l, r, val, 0, n, 1);
+        }
+
+        int query(int l, int r) {   //queries the range [l, r)
+            return _query(l, r, 0, n, 1);
+        }
+
+    private:
+        //single element modify
+        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return src + val;};
+
+        //k element modify
+        function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return src + val;};
+
+        //product of two elements for query
+        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
+
+        //calculates value of node based off of children
+        void combine(int ind, int k) {
+            if(ind >= n){
+                return;
             }
+            int l = ind * 2;
+            int r = ind * 2 + 1;
+            //make sure children are correct value before calculating
+            push(l, k);
+            push(r, k);
+            t[ind] = fcombine(t[l], t[r]);
         }
-    }
 
-    void modify(int l, int r, int value) {
-        push(l, l + 1);
-        push(r - 1, r);
-        int l0 = l, r0 = r, k = 1;
-        for (l += n, r += n; l < r; l /= 2, r /= 2, k *= 2) {
-            if (l % 2 == 1) apply(l++, value, k);
-            if (r % 2 == 1) apply(--r, value, k);
+        //registers a lazy change into this node
+        void apply(int ind, int val) {
+            upd[ind] = true;
+            d[ind] = fmodify(d[ind], val);
         }
-        build(l0, l0 + 1);
-        build(r0 - 1, r0);
-    }
 
-    int query(int l, int r) {
-        push(l, l + 1);
-        push(r - 1, r);
-        int res = 0;
-        for (l += n, r += n; l < r; l /= 2, r /= 2) {
-            if (l % 2 == 1) res += t[l++];
-            if (r % 2 == 1) res += t[--r];
+        //applies lazy change to this node
+        void push(int ind, int k) {
+            t[ind] = fmodifyk(t[ind], d[ind], k);
+            if(ind < n) {
+                int l = ind * 2;
+                int r = ind * 2 + 1;
+                apply(l, d[ind]);
+                apply(r, d[ind]);
+            }
+            upd[ind] = false;
+            d[ind] = uneut;
         }
-        return res;
-    }
+
+        void _modify(int l, int r, int val, int tl, int tr, int ind) {
+            if(l == r){
+                return;
+            }
+            if(upd[ind]){
+                push(ind, tr - tl);
+            }
+            if(l == tl && r == tr) {
+                apply(ind, val);
+                push(ind, tr - tl);
+                return;
+            }
+            int mid = tl + (tr - tl) / 2;
+            if(l < mid) {
+                _modify(l, min(r, mid), val, tl, mid, ind * 2);
+            }
+            if(r > mid) {
+                _modify(max(l, mid), r, val, mid, tr, ind * 2 + 1);
+            }
+            combine(ind, tr - tl);
+        }
+
+        int _query(int l, int r, int tl, int tr, int ind) {
+            if(l == r){
+                return qneut;
+            }  
+            if(upd[ind]) {
+                push(ind, tr - tl);
+            }
+            if(l == tl && r == tr){
+                return t[ind];
+            }
+            int mid = tl + (tr - tl) / 2;
+            int lans = qneut;
+            int rans = qneut;
+            if(l < mid) {
+                lans = _query(l, min(r, mid), tl, mid, ind * 2);
+            }
+            if(r > mid) {
+                rans = _query(max(l, mid), r, mid, tr, ind * 2 + 1);
+            }
+            return fcombine(lans, rans);
+        }
 };
+
+void print_segt(SegtreeLazy segt) {
+    cout << "PRINT SEGT : \n";
+    int inc = 1;
+    for(int i = 1; i < segt.n * 2;){
+        int j = i;
+        i += inc;
+        inc *= 2;
+        while(j < i){
+            cout << segt.t[j] << " ";
+            j ++;
+        }
+        cout << "\n";
+    }
+    cout << "\n";
+
+    inc = 1;
+    for(int i = 1; i < segt.n * 2;){
+        int j = i;
+        i += inc;
+        inc *= 2;
+        while(j < i){
+            cout << segt.upd[j] << " ";
+            j ++;
+        }
+        cout << "\n";
+    }
+    cout << "\n";
+
+    inc = 1;
+    for(int i = 1; i < segt.n * 2;){
+        int j = i;
+        i += inc;
+        inc *= 2;
+        while(j < i){
+            cout << segt.d[j] << " ";
+            j ++;
+        }
+        cout << "\n";
+    }
+    cout << "\n";
+}
+
+void modify(vector<int>& a, int l, int r, int val) {
+    for(int i = l; i < r; i++){
+        a[i] += val;
+    }
+}
+
+int query(vector<int>& a, int l, int r) {
+    int ans = 1e9;
+    for(int i = l; i < r; i++){
+        ans = min(ans, a[i]);
+    }
+    return ans;
+}
+
+bool test_segt(int n) {
+    SegtreeLazy segt(n, 0, 1e9, 0);
+    vector<int> arr(n, 0);
+    for(int i = 0; i < n; i++){
+        int l = rand() % n;
+        int r = rand() % n;
+        int val = 1;
+        if(l > r){
+            swap(l, r);
+        }
+        modify(arr, l, r, val);
+        cout << "MODIFY " << l << " " << r << "\n";
+        segt.modify(l, r, val);
+        //print_segt(segt);
+    }
+
+    for(int i = 0; i < n; i++){
+        cout << arr[i] << " \n"[i == n - 1];
+    }
+
+    bool isValid = true;
+    for(int i = 0; i < n; i++){
+        int l = rand() % n;
+        int r = rand() % n;
+        if(l > r){
+            swap(l, r);
+        }
+        int arrmin = query(arr, l, r);
+        int segtmin = segt.query(l, r);
+        cout << "QUERY " << l << " " << r << ", ARR : " << arrmin << " SEGT : " << segtmin << "\n";
+        if(arrmin != segtmin) {
+            isValid = false;
+        }
+    }
+    cout << "\n";
+    return isValid;
+}
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+
+    srand(time(0));
     
-    SegtreeLazy segt(16);
-    segt.modify(3, 13, 1);
-    cout << segt.query(5, 15) << "\n";
+    bool isValid = true;
+    for(int i = 0; i < 100; i++){
+        if(!test_segt(100)) {
+            isValid = false;
+        }
+    }
+    if(isValid){
+        cout << "TEST PASSED\n";
+    }
+    else {
+        cout << "TEST FAILED\n";
+    }
 
     return 0;
 }

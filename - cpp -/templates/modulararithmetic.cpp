@@ -3,16 +3,24 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
+// !!! REMEMBER !!!
+//power function is power(ll, ll), not pow(ll, ll). 
+
 ll mod = 1e9 + 7;
 vector<ll> fac;
+map<pair<ll, ll>, ll> nckdp;
 
 ll add(ll a, ll b) {
-    return (a + b) % mod;
+    ll ret = a + b;
+    while(ret >= mod) {
+        ret -= mod;
+    }
+    return ret;
 }
 
 ll sub(ll a, ll b) {
     ll ans = a - b;
-    if(ans < 0){
+    while(ans < 0){
         ans += mod;
     }
     return ans;
@@ -22,11 +30,11 @@ ll mul(ll a, ll b) {
     return (a * b) % mod;
 }
 
-ll pow(ll a, ll b) {
+ll power(ll a, ll b) {
     if(b == 0){
         return 1;
     }
-    ll ans = pow(a, b / 2);
+    ll ans = power(a, b / 2);
     ans = mul(ans, ans);
     if(b % 2 == 1) {
         ans = mul(ans, a);
@@ -35,7 +43,7 @@ ll pow(ll a, ll b) {
 }
 
 ll divide(ll a, ll b){
-    return mul(a, pow(b, mod - 2));
+    return mul(a, power(b, mod - 2));
 }
 
 void fac_init() {
@@ -46,5 +54,10 @@ void fac_init() {
 }
 
 ll nck(ll n, ll k) {
-    return divide(fac[n], mul(fac[k], fac[sub(n, k)]));
+    if(nckdp.find({n, k}) != nckdp.end()) {
+        return nckdp.find({n, k}) -> second;
+    }
+    ll ans = divide(fac[n], mul(fac[k], fac[sub(n, k)]));
+    nckdp.insert({{n, k}, ans});
+    return ans;
 }

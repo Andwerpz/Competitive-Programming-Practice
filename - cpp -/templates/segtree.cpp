@@ -2,65 +2,141 @@
 typedef long long ll;
 using namespace std;
 
-//range sum query, single assignment modify seg tree
+//single modify, range query
 struct Segtree {
     //note that t[0] is not used
     int n;
     int* t;
+    int uneut, qneut;
 
-    Segtree(int maxSize) {
-        t = new int[2 * maxSize];
+    //single element modification function
+    function<int(int, int)> fmodify;
 
-        for(int i = 0; i < 2 * maxSize; i++){
-            t[i] = 0;
+    //product of two elements for query and updating tree
+    function<int(int, int)> fcombine;
+
+    Segtree(int n, int updateNeutral, int queryNeutral, function<int(int, int)> fmodify, function<int(int, int)> fcombine) {
+        this -> n = n;
+        t = new int[2 * n];
+
+        this -> fmodify = fmodify;
+        this -> fcombine = fcombine;
+
+        uneut = updateNeutral;
+        qneut = queryNeutral;
+
+        for(int i = 0; i < 2 * n; i++){
+            t[i] = uneut;
         }
     }
 
-    ~Segtree() {
-        delete t;
-    }
-
-    void build() { // build the tree
+    void build() { // build the tree after manually assigning the values.
         for (int i = n - 1; i > 0; i--) {   
-            t[i] = t[i * 2] + t[i * 2 + 1];
+            t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
         }
     }
 
     void modify(int p, int value) { // set value at position p
         p += n;
-        t[p] = value;
+        t[p] = fmodify(t[p], value);
         for (p /= 2; p > 0; p /= 2) {
-            t[p] = t[p * 2] + t[p * 2 + 1];
+            t[p] = fcombine(t[p * 2], t[p * 2 + 1]);
         }
     }
 
     int query(int l, int r) { // sum on interval [l, r)
-        int res = 0;
+        int res = qneut;
         for (l += n, r += n; l < r; l /= 2, r /= 2) {
             if (l % 2 == 1) {
-                res += t[l];
+                res = fcombine(res, t[l]);
                 l++;
             }
             if (r % 2 == 1) {
                 r--;
-                res += t[r];
+                res = fcombine(res, t[r]);
             }
         }
         return res;
     }
 };
 
+void modify(vector<int>& a, int ind, int val, Segtree segt) {
+    a[ind] = segt.fmodify(a[ind], val);
+}
+
+int query(vector<int>& a, int l, int r, Segtree segt) {
+    int ans = segt.qneut;
+    for(int i = l; i < r; i++){
+        ans = segt.fcombine(ans, a[i]);
+    }
+    return ans;
+}
+
+bool test_segt(Segtree segt, int valInit) {
+    int n = segt.n;
+    vector<int> arr(n, valInit);
+    for(int i = 0; i < n; i++){
+        int ind = rand() % n;
+        int val = rand() % 10;
+        modify(arr, ind, val, segt);
+        cout << "MODIFY " << ind << " " << val << "\n";
+        segt.modify(ind, val);
+    }
+
+    for(int i = 0; i < n; i++){
+        cout << arr[i] << " \n"[i == n - 1];
+    }
+
+    for(int i = 0; i < n; i++){
+        int l = rand() % n;
+        int r = rand() % (n + 1);
+        if(l > r){
+            swap(l, r);
+        }
+        int arrans = query(arr, l, r, segt);
+        int segtans = segt.query(l, r);
+        cout << "QUERY " << l << " " << r << ", ARR : " << arrans << " SEGT : " << segtans << "\n";
+        if(arrans != segtans) {
+            return false;
+        }
+    }
+    cout << "\n";
+    return true;
+}
+
+void run_segt_tests(int maxSize, int updateNeutral, int queryNeutral, function<int(int, int)> fmodify, function<int(int, int)> fcombine) {
+    srand(time(0));
+    bool isValid = true;
+    for(int i = 0; i < 100; i++){
+        Segtree segt(maxSize, updateNeutral, queryNeutral, fmodify, fcombine);
+        if(!test_segt(segt, updateNeutral)) {
+            cout << "TEST FAILED\n";
+            return;
+        }
+    }
+    cout << "TEST PASSED\n";
+}
+
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int n;
-    cin >> n;
-    Segtree tree(1e6);
-    for(int i = 0; i < n; i++){ 
-        cin >> tree.t[i + n];   //input values into tree
+    int n = 100;
+
+    // -- INCREMENT MODIFY, SUM QUERY -- 
+    {
+        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return src + val;};
+        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return a + b;};
+        run_segt_tests(n, 0, 0, fmodify, fcombine); 
     }
-    tree.build();
+
+    // -- ASSIGNMENT MODIFY, MIN QUERY -- 
+    {
+        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
+        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
+        run_segt_tests(n, 0, 0, fmodify, fcombine); 
+    }
     
     return 0;
 }

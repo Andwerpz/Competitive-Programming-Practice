@@ -3,6 +3,15 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
+//Codeforces - 1799D2
+
+//for some reason, my lazy segment tree implementation is faulty. Look into that later. 
+
+//the idea is the same as the easy version, we use a 2d dp to calculate the answer. 
+
+//in order to speed it up to be fast enough, we apply a lazy segment tree to do the updates for each layer in
+//log(k) time. 
+
 struct SegtreeLazy {
     public:
         ll n;
@@ -167,16 +176,8 @@ int main() {
         function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return src + val;};
         function<ll(ll, ll, ll)> fmodifyk = [](const ll src, const ll val, const ll k) -> ll{return src + val;};
         function<ll(ll, ll)> fcombine = [](const ll a, const ll b) -> ll{return min(a, b);};
-        SegtreeLazy segt(3 * 1e5 + 100, 0, large, fmodify, fmodifyk, fcombine);
-        segt.modify(0, k + 1, large);
-        while(segt.query(0, 1) != 0){
-            segt.modify(0, 1, -segt.query(0, 1));
-        }
-        // for(int j = 0; j <= k; j++){
-        //     ll next = segt.query(j, j + 1);
-        //     cout << (next > 1e15? "." : to_string(next)) << " ";
-        // }
-        // cout << "\n";
+        SegtreeLazy segt(k + 1, 0, large, fmodify, fmodifyk, fcombine);
+        segt.modify(1, k + 1, large);
         for(int i = 0; i < n; i++){
             //run next program on cpu with a[i - 1]. 
             //if a[i - 1] == a[i], then everyone should use hot. 
@@ -187,61 +188,12 @@ int main() {
             segt.modify(0, k + 1, base_add);
             ll mamt = prev_w_val - segt.query(prev, prev + 1);
             mamt = min(mamt, 0ll);
-            //cout << mamt << " " << mamt + segt.query(prev, prev + 1) << "\n";
             while(segt.query(prev, prev + 1) != 0){
                 segt.modify(prev, prev + 1, -segt.query(prev, prev + 1));
             }
-            //cout << segt.query(prev, prev + 1) << "\n";
             segt.modify(prev, prev + 1, prev_w_val);
-            //segt.modify(prev, prev + 1, mamt);
-            
-            // cout << "BASE ADD : " << base_add << "\n";
-            // cout << "PREV_W_VAL : " << prev_w_val << " " << prev << " " << segt.query(prev, prev + 1) << "\n";
-            // for(int j = 0; j <= k; j++){
-            //     ll next = segt.query(j, j + 1);
-            //     cout << (next > 1e15? "." : to_string(next)) << " ";
-            // }
-            // cout << "\n";
         }
         cout << segt.query(0, k + 1) << "\n";
-
-
-        // ll unv = 1e18;
-        // vector<vector<ll>> dp(n + 1, vector<ll>(k + 1, unv));
-        // dp[0][0] = 0;
-        // for(int i = 0; i < n; i++){
-        //     for(int j = 0; j <= k; j++){
-        //         if(dp[i][j] == unv) {
-        //             continue;
-        //         }
-        //         int prev = i == 0? 0 : a[i - 1];
-        //         //run next program on cpu with j
-        //         if(a[i] == j) {
-        //             dp[i + 1][prev] = min(dp[i + 1][prev], dp[i][j] + hot[a[i] - 1]);
-        //         }
-        //         else {
-        //             dp[i + 1][prev] = min(dp[i + 1][prev], dp[i][j] + cold[a[i] - 1]);
-        //         }
-        //         //run next program on cpu with a[i - 1]
-        //         if(i != 0 && a[i] == prev) {
-        //             dp[i + 1][j] = min(dp[i + 1][j], dp[i][j] + hot[a[i] - 1]);
-        //         }
-        //         else {
-        //             dp[i + 1][j] = min(dp[i + 1][j], dp[i][j] + cold[a[i] - 1]);
-        //         }
-        //     }
-        // }
-        // for(int i = 0; i <= n; i++){
-        //     for(int j = 0; j <= k; j++){
-        //         cout << (dp[i][j] == unv? "." : to_string(dp[i][j])) << " ";
-        //     }
-        //     cout << "\n";
-        // }
-        // ll ans = 1e18;
-        // for(int i = 0; i <= k; i++){
-        //     ans = min(ans, dp[n][i]);
-        // }
-        // cout << ans << "\n";
     }
     
     return 0;

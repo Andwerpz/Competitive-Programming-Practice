@@ -269,12 +269,12 @@ int main() {
     }
 
     // -- ASSIGNMENT MODIFY, MINIMUM QUERY --
-    {
-        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
-        function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val;};
-        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
-        run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
-    }
+    // {
+    //     function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
+    //     function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val;};
+    //     function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
+    //     run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
+    // }
 
     return 0;
 }

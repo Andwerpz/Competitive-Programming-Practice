@@ -61,3 +61,8 @@ ll nck(ll n, ll k) {
     nckdp.insert({{n, k}, ans});
     return ans;
 }
+
+//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
+ll cantor(ll a, ll b, ll m) {
+    return ((a + b) * (a + b + 1) / 2 + b) % m;
+}

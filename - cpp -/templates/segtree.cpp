@@ -135,7 +135,7 @@ int main() {
     {
         function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
         function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
-        run_segt_tests(n, 0, 0, fmodify, fcombine); 
+        run_segt_tests(n, 0, 1e9, fmodify, fcombine); 
     }
     
     return 0;

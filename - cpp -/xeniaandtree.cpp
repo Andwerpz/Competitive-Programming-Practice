@@ -7,7 +7,23 @@ using namespace std;
 
 //classic centroid decomposition + lca path finding problem. 
 
-//TODO write this. 
+//we can query distance between two nodes using lca in log(n) time. Denote dist(a, b) as the distance between
+//nodes a and b.  
+
+//first, let's root the tree at an arbitrary node. 
+//lets say that min_dist[i] represents the minimum distance from node i to a red node in the subtree belonging to node i. 
+
+//we want to support two types of queries. One is to mark any node as red, the second is to query the minimum distance from
+//any node to the nearest red node. 
+
+//to mark the node i as red, we can simply update all the distances of the nodes in the path from i to the root. 
+
+//to query the closest distance to i, we can observe that the closest red node can either be in the subtree belonging to i, in which 
+//min_dist[i] is the answer, or it can be 'blocked' by an ancestor of i. 
+//thus, for each ancestor of i; j, including i, we update the answer with min_dist[j] + dist(i, j). 
+
+//the problem here is that the queries can run in worst case O(n) time, due to the structure of the given tree. 
+//this is where we use centroid decomposition to redo the tree structure. The maximum depth of the centroid tree is log(n). 
 
 struct CentroidDecomp {
     CentroidDecomp() {

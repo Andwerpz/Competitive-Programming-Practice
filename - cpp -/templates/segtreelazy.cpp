@@ -53,8 +53,16 @@ struct SegtreeLazy {
             _modify(l, r, val, 0, n, 1);
         }
 
+        void modify(int ind, int val) { //modifies the range [ind, ind + 1)
+            _modify(ind, ind + 1, val, 0, n, 1);
+        }
+
         int query(int l, int r) {   //queries the range [l, r)
             return _query(l, r, 0, n, 1);
+        }
+
+        int query(int ind) {    //queries the range [ind, ind + 1)
+            return _query(ind, ind + 1, 0, n, 1);
         }
 
     private:

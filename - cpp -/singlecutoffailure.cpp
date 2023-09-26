@@ -4,8 +4,152 @@ typedef long double ld;
 using namespace std;
 
 //ICPC World Finals 2018 H
-
+    
 //didn't have the right idea for this one. 
+
+vector<ld> solve(int n, int w, int h, vector<int> a) {
+    vector<tuple<ld, int, int, int>> ang(0);
+    for(int i = 0; i < n; i++){
+        int x1, y1, x2, y2;
+        x1 = a[i * 4 + 0];
+        y1 = a[i * 4 + 1];
+        x2 = a[i * 4 + 2];
+        y2 = a[i * 4 + 3];
+        //compute angle from origin for both 
+        ld ra = atan2((ld) y1 - (ld) h / 2.0, (ld) x1 - (ld) w / 2.0);
+        ld rb = atan2((ld) y2 - (ld) h / 2.0, (ld) x2 - (ld) w / 2.0);
+        //cout << ra << " " << x1 << " " << y1 << endl;
+        //cout << rb << " " << x2 << " " << y2 << endl;
+        ang.push_back({ra, i, x1, y1});
+        ang.push_back({rb, i, x2, y2});
+    }
+    //sort all of the angles. 
+    sort(ang.begin(), ang.end(), [](tuple<ld, int, int, int>& a, tuple<ld, int, int, int>& b) -> bool{
+        return get<0>(a) < get<0>(b);
+    });
+    bool isValid = false;
+    int p1 = 0;
+    int p2 = 0;
+    set<int> s;
+    int x1, y1, x2, y2;
+    bool rp1 = false;
+    bool rp2 = false;
+    while(p2 != ang.size() + 10) {
+        //increment p1 until there is a wire that is contained between p1 and p2
+        while(true){
+            //check if we can increment p1
+            if(s.find(get<1>(ang[(p1 + 1) % ang.size()])) != s.end()) {
+                break;
+            }
+            s.insert(get<1>(ang[(p1 + 1) % ang.size()]));
+            p1 ++;
+        }
+        //check if we can make the cut here
+        {
+            bool sameWall = false;
+            rp1 = false;
+            rp2 = false;
+            x1 = get<2>(ang[p1 % ang.size()]);
+            y1 = get<3>(ang[p1 % ang.size()]);
+            x2 = get<2>(ang[p2 % ang.size()]);
+            y2 = get<3>(ang[p2 % ang.size()]);
+            if((x1 == 0 && x2 == 0) || (x1 == w && x2 == w) || (y1 == 0 && y2 == 0) || (y1 == h && y2 == h)) {
+                sameWall = true;
+            }
+            if(s.size() == n && !sameWall){
+                isValid = true;
+                break;
+            }
+        }
+        {
+            bool sameWall = false;
+            rp1 = true;
+            rp2 = false;
+            x1 = get<2>(ang[(p1 + 1) % ang.size()]);
+            y1 = get<3>(ang[(p1 + 1) % ang.size()]);
+            x2 = get<2>(ang[p2 % ang.size()]);
+            y2 = get<3>(ang[p2 % ang.size()]);
+            if((x1 == 0 && x2 == 0) || (x1 == w && x2 == w) || (y1 == 0 && y2 == 0) || (y1 == h && y2 == h)) {
+                sameWall = true;
+            }
+            if(s.size() == n && !sameWall){
+                isValid = true;
+                break;
+            }
+        }
+        {
+            bool sameWall = false;
+            rp1 = false;
+            rp2 = true;
+            x1 = get<2>(ang[p1 % ang.size()]);
+            y1 = get<3>(ang[p1 % ang.size()]);
+            x2 = get<2>(ang[(p2 + 1) % ang.size()]);
+            y2 = get<3>(ang[(p2 + 1) % ang.size()]);
+            if((x1 == 0 && x2 == 0) || (x1 == w && x2 == w) || (y1 == 0 && y2 == 0) || (y1 == h && y2 == h)) {
+                sameWall = true;
+            }
+            if(s.size() == n && !sameWall){
+                isValid = true;
+                break;
+            }
+        }
+        {
+            bool sameWall = false;
+            rp1 = true;
+            rp2 = true;
+            x1 = get<2>(ang[(p1 + 1) % ang.size()]);
+            y1 = get<3>(ang[(p1 + 1) % ang.size()]);
+            x2 = get<2>(ang[(p2 + 1) % ang.size()]);
+            y2 = get<3>(ang[(p2 + 1) % ang.size()]);
+            if((x1 == 0 && x2 == 0) || (x1 == w && x2 == w) || (y1 == 0 && y2 == 0) || (y1 == h && y2 == h)) {
+                sameWall = true;
+            }
+            if(s.size() == n && !sameWall){
+                isValid = true;
+                break;
+            }
+        }
+        //increment p2
+        s.erase(get<1>(ang[(p2 + 1) % ang.size()]));
+        p2 ++;
+    }
+    if(!isValid) {
+        return {0, 0.01, (ld) w, h - 0.01, 0, h - 0.01, (ld) w, 0.01};
+    }
+    ld dx1 = x1;
+    ld dy1 = y1;
+    ld dx2 = x2;
+    ld dy2 = y2;
+    if(x1 == 0){
+        dy1 -= 0.01 * (rp1? -1 : 1);
+    }
+    else if(x1 == w){
+        dy1 += 0.01 * (rp1? -1 : 1);
+    }
+    else if(y1 == 0){
+        dx1 += 0.01 * (rp1? -1 : 1);
+    }
+    else if(y1 == h){
+        dx1 -= 0.01 * (rp1? -1 : 1);
+    }
+    if(x2 == 0){
+        dy2 -= 0.01 * (rp2? -1 : 1);
+    }
+    else if(x2 == w){
+        dy2 += 0.01 * (rp2? -1 : 1);
+    }
+    else if(y2 == 0){
+        dx2 += 0.01 * (rp2? -1 : 1);
+    }
+    else if(y2 == h){
+        dx2 -= 0.01 * (rp2? -1 : 1);
+    }
+    return {dx1, dy1, dx2, dy2};
+}
+
+bool check(int n, int w, int h, vector<int> a, vector<ld> ans) {
+    return true;
+}
 
 int main() {
     ios_base::sync_with_stdio(false);
@@ -13,314 +157,18 @@ int main() {
     
     int n, w, h;
     cin >> n >> w >> h;
-    //cout << "CREATING ARRAY" << endl;
-    vector<vector<int>> wires(n, vector<int>(4));
-    for(int i = 0; i < n; i++){
-        //cout << "READING STUFF" << endl;
-        cin >> wires[i][0] >> wires[i][1] >> wires[i][2] >> wires[i][3];
+    vector<int> a(n * 4);
+    for(int i = 0; i < a.size(); i++){
+        cin >> a[i];
     }
-    //vertical single wire
-    bool verticalValid = true;
-    {
-        int minTop = 0;
-        int maxTop = w;
-        int minBot = 0;
-        int maxBot = w;
-        map<int, vector<int>> topm;
-        map<int, vector<int>> botm;
-        for(int i = 0; i < n; i++){
-            int x1 = wires[i][0];
-            int y1 = wires[i][1];
-            int x2 = wires[i][2];
-            int y2 = wires[i][3];
-            if(y1 < y2) {
-                swap(x1, x2);
-                swap(y1, y2);
-            }
-            //y1 is top
-            if(topm.find(x1) == topm.end()) {
-                topm.insert({x1, vector<int>(0)});
-            }
-            topm[x1].push_back(i);
-            if(botm.find(x2) == botm.end()) {
-                botm.insert({x2, vector<int>(0)});
-            }
-            botm[x2].push_back(i);
-        }
-        while(true){
-            bool shrunk = false;
-            //top left
-            while(topm.size() != 0 && topm.begin() -> first <= minTop) {
-                vector<int> wireInd = topm.begin() -> second;
-                topm.erase(topm.begin());
-                for(int i = 0; i < wireInd.size(); i++){
-                    int x1 = wires[wireInd[i]][0];
-                    int y1 = wires[wireInd[i]][1];
-                    int x2 = wires[wireInd[i]][2];
-                    int y2 = wires[wireInd[i]][3];
-                    if(y1 < y2) {
-                        swap(x1, x2);
-                        swap(y1, y2);
-                    }
-                    //y1 is top
-                    if((x1 <= minTop && x2 <= minBot) || (x1 >= maxTop && x2 >= maxBot)) {
-                        verticalValid = false;
-                        continue;
-                    }
-                    if((x1 <= minTop && x2 >= maxBot) || (x1 >= maxTop && x2 <= minBot)) {
-                        continue;
-                    }
-                    //otherwise, we have to shrink the size
-                    maxBot = min(maxBot, x2);
-                    shrunk = true;
-                }
-            }
-            //top right
-            while(topm.size() != 0 && topm.rbegin() -> first >= maxTop) {
-                vector<int> wireInd = topm.rbegin() -> second;
-                topm.erase(--topm.end());
-                for(int i = 0; i < wireInd.size(); i++){
-                    int x1 = wires[wireInd[i]][0];
-                    int y1 = wires[wireInd[i]][1];
-                    int x2 = wires[wireInd[i]][2];
-                    int y2 = wires[wireInd[i]][3];
-                    if(y1 < y2) {
-                        swap(x1, x2);
-                        swap(y1, y2);
-                    }
-                    //y1 is top
-                    if((x1 <= minTop && x2 <= minBot) || (x1 >= maxTop && x2 >= maxBot)) {
-                        verticalValid = false;
-                        continue;
-                    }
-                    if((x1 <= minTop && x2 >= maxBot) || (x1 >= maxTop && x2 <= minBot)) {
-                        continue;
-                    }
-                    //otherwise, we have to shrink the size
-                    minBot = max(minBot, x2);
-                    shrunk = true;
-                }
-            }
-            //bottom left
-            while(botm.size() != 0 && botm.begin() -> first <= minBot) {
-                vector<int> wireInd = botm.begin() -> second;
-                botm.erase(botm.begin());
-                for(int i = 0; i < wireInd.size(); i++){
-                    int x1 = wires[wireInd[i]][0];
-                    int y1 = wires[wireInd[i]][1];
-                    int x2 = wires[wireInd[i]][2];
-                    int y2 = wires[wireInd[i]][3];
-                    if(y1 < y2) {
-                        swap(x1, x2);
-                        swap(y1, y2);
-                    }
-                    //y1 is top
-                    if((x1 <= minTop && x2 <= minBot) || (x1 >= maxTop && x2 >= maxBot)) {
-                        verticalValid = false;
-                        continue;
-                    }
-                    if((x1 <= minTop && x2 >= maxBot) || (x1 >= maxTop && x2 <= minBot)) {
-                        continue;
-                    }
-                    //otherwise, we have to shrink the size
-                    maxTop = min(maxTop, x1);
-                    shrunk = true;
-                }
-            }
-            //bottom right
-            while(botm.size() != 0 && botm.rbegin() -> first >= maxBot) {
-                vector<int> wireInd = botm.rbegin() -> second;
-                botm.erase(--botm.end());
-                for(int i = 0; i < wireInd.size(); i++){
-                    int x1 = wires[wireInd[i]][0];
-                    int y1 = wires[wireInd[i]][1];
-                    int x2 = wires[wireInd[i]][2];
-                    int y2 = wires[wireInd[i]][3];
-                    if(y1 < y2) {
-                        swap(x1, x2);
-                        swap(y1, y2);
-                    }
-                    //y1 is top
-                    if((x1 <= minTop && x2 <= minBot) || (x1 >= maxTop && x2 >= maxBot)) {
-                        verticalValid = false;
-                        continue;
-                    }
-                    if((x1 <= minTop && x2 >= maxBot) || (x1 >= maxTop && x2 <= minBot)) {
-                        continue;
-                    }
-                    //otherwise, we have to shrink the size
-                    minTop = max(minTop, x1);
-                    shrunk = true;
-                }
-            }
-            if(!shrunk) {
-                break;
-            }
-        }
-        if(verticalValid) {
-            cout << "1\n";
-            cout << ((ld) maxTop - 0.01) << " " << ((ld) h) << " " << ((ld) minBot + 0.01) << " " << 0 << "\n";
-            return 0;
+    vector<ld> ans = solve(n, w, h, a);
+    cout << ans.size() / 4 << "\n";
+    for(int i = 0; i < ans.size(); i++){
+        cout << ans[i] << " ";
+        if((i + 1) % 4 == 0){
+            cout << "\n";
         }
     }
-    for(int i = 0; i < n; i++){
-        swap(wires[i][0], wires[i][1]);
-        swap(wires[i][2], wires[i][3]);
-    }
-    swap(w, h);
-    verticalValid = true;
-    {
-        int minTop = 0;
-        int maxTop = w;
-        int minBot = 0;
-        int maxBot = w;
-        map<int, vector<int>> topm;
-        map<int, vector<int>> botm;
-        for(int i = 0; i < n; i++){
-            int x1 = wires[i][0];
-            int y1 = wires[i][1];
-            int x2 = wires[i][2];
-            int y2 = wires[i][3];
-            if(y1 < y2) {
-                swap(x1, x2);
-                swap(y1, y2);
-            }
-            //y1 is top
-            if(topm.find(x1) == topm.end()) {
-                topm.insert({x1, vector<int>(0)});
-            }
-            topm[x1].push_back(i);
-            if(botm.find(x2) == botm.end()) {
-                botm.insert({x2, vector<int>(0)});
-            }
-            botm[x2].push_back(i);
-        }
-        while(true){
-            bool shrunk = false;
-            //top left
-            while(topm.size() != 0 && topm.begin() -> first <= minTop) {
-                vector<int> wireInd = topm.begin() -> second;
-                topm.erase(topm.begin());
-                for(int i = 0; i < wireInd.size(); i++){
-                    int x1 = wires[wireInd[i]][0];
-                    int y1 = wires[wireInd[i]][1];
-                    int x2 = wires[wireInd[i]][2];
-                    int y2 = wires[wireInd[i]][3];
-                    if(y1 < y2) {
-                        swap(x1, x2);
-                        swap(y1, y2);
-                    }
-                    //y1 is top
-                    if((x1 <= minTop && x2 <= minBot) || (x1 >= maxTop && x2 >= maxBot)) {
-                        verticalValid = false;
-                        continue;
-                    }
-                    if((x1 <= minTop && x2 >= maxBot) || (x1 >= maxTop && x2 <= minBot)) {
-                        continue;
-                    }
-                    //otherwise, we have to shrink the size
-                    maxBot = min(maxBot, x2);
-                    shrunk = true;
-                }
-            }
-            //top right
-            while(topm.size() != 0 && topm.rbegin() -> first >= maxTop) {
-                vector<int> wireInd = topm.rbegin() -> second;
-                topm.erase(--topm.end());
-                for(int i = 0; i < wireInd.size(); i++){
-                    int x1 = wires[wireInd[i]][0];
-                    int y1 = wires[wireInd[i]][1];
-                    int x2 = wires[wireInd[i]][2];
-                    int y2 = wires[wireInd[i]][3];
-                    if(y1 < y2) {
-                        swap(x1, x2);
-                        swap(y1, y2);
-                    }
-                    //y1 is top
-                    if((x1 <= minTop && x2 <= minBot) || (x1 >= maxTop && x2 >= maxBot)) {
-                        verticalValid = false;
-                        continue;
-                    }
-                    if((x1 <= minTop && x2 >= maxBot) || (x1 >= maxTop && x2 <= minBot)) {
-                        continue;
-                    }
-                    //otherwise, we have to shrink the size
-                    minBot = max(minBot, x2);
-                    shrunk = true;
-                }
-            }
-            //bottom left
-            while(botm.size() != 0 && botm.begin() -> first <= minBot) {
-                vector<int> wireInd = botm.begin() -> second;
-                botm.erase(botm.begin());
-                for(int i = 0; i < wireInd.size(); i++){
-                    int x1 = wires[wireInd[i]][0];
-                    int y1 = wires[wireInd[i]][1];
-                    int x2 = wires[wireInd[i]][2];
-                    int y2 = wires[wireInd[i]][3];
-                    if(y1 < y2) {
-                        swap(x1, x2);
-                        swap(y1, y2);
-                    }
-                    //y1 is top
-                    if((x1 <= minTop && x2 <= minBot) || (x1 >= maxTop && x2 >= maxBot)) {
-                        verticalValid = false;
-                        continue;
-                    }
-                    if((x1 <= minTop && x2 >= maxBot) || (x1 >= maxTop && x2 <= minBot)) {
-                        continue;
-                    }
-                    //otherwise, we have to shrink the size
-                    maxTop = min(maxTop, x1);
-                    shrunk = true;
-                }
-            }
-            //bottom right
-            while(botm.size() != 0 && botm.rbegin() -> first >= maxBot) {
-                vector<int> wireInd = botm.rbegin() -> second;
-                botm.erase(--botm.end());
-                for(int i = 0; i < wireInd.size(); i++){
-                    int x1 = wires[wireInd[i]][0];
-                    int y1 = wires[wireInd[i]][1];
-                    int x2 = wires[wireInd[i]][2];
-                    int y2 = wires[wireInd[i]][3];
-                    if(y1 < y2) {
-                        swap(x1, x2);
-                        swap(y1, y2);
-                    }
-                    //y1 is top
-                    if((x1 <= minTop && x2 <= minBot) || (x1 >= maxTop && x2 >= maxBot)) {
-                        verticalValid = false;
-                        continue;
-                    }
-                    if((x1 <= minTop && x2 >= maxBot) || (x1 >= maxTop && x2 <= minBot)) {
-                        continue;
-                    }
-                    //otherwise, we have to shrink the size
-                    minTop = max(minTop, x1);
-                    shrunk = true;
-                }
-            }
-            if(!shrunk) {
-                break;
-            }
-        }
-        if(verticalValid) {
-            ld x1 = maxTop - 0.01;
-            ld y1 = h;
-            ld x2 = minBot + 0.01;
-            ld y2 = 0;
-            swap(x1, y1);
-            swap(x2, y2);
-            cout << "1\n";
-            cout << x1 << " " << y1 << " " << x2 << " " << y2 << "\n";
-            return 0;
-        }
-    }
-    swap(w, h);
-    cout << "2\n";
-    cout << "0 0.01 " << w << " " << ((ld) h - 0.01) << "\n";
-    cout << "0 " << ((ld) h - 0.01) << " " << w << " 0.01\n";
     
     return 0;
 }

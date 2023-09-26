@@ -3,9 +3,6 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-// !!! REMEMBER !!!
-//power function is power(ll, ll), not pow(ll, ll). 
-
 ll mod = 1e9 + 7;
 vector<ll> fac;
 map<pair<ll, ll>, ll> nckdp;
@@ -108,8 +105,54 @@ ll chinese_remainder_theorem(vector<ll>& modulo, vector<ll>& remainder) {
     for(int i = 0; i < modulo.size(); i++){
         ll a_i = remainder[i];
         ll M_i = M / modulo[i];
-        ll N_i = mod_inv(M_i, modulo[i]);
+        ll N_i = mod_inv(modulo[i], M_i);
         solution = (solution + (a_i * M_i) % M * N_i) % M;
     }
     return solution;
+}
+
+void make_co(ll& a, ll& b) {
+    ll g = gcd(a, b);
+    a /= g;
+    b /= g;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    ll a, b, c, d, e, f, g;
+    cin >> a >> b >> c >> d >> e >> f >> g;
+    //find the largest volumes
+    vector<ll> v(0);
+    for(ll i = 1; i < min(a / 2, b / 2); i++){
+        ll l = a - i * 2;
+        ll w = b - i * 2;
+        ll h = i;
+        cout << l << " " << w << " " << h << endl;
+        v.push_back(l * w * h);
+    }
+    sort(v.begin(), v.end());
+    reverse(v.begin(), v.end());
+    vector<ll> modulo = {v[0], v[1], v[2]};
+    vector<ll> remainder = {c, d, e};
+    make_co(modulo[0], modulo[1]);
+    make_co(modulo[1], modulo[2]);
+    make_co(modulo[2], modulo[0]);
+    remainder[0] %= modulo[0];
+    remainder[1] %= modulo[1];
+    remainder[2] %= modulo[2];
+    ll crem = chinese_remainder_theorem(modulo, remainder);
+    ll M = modulo[0] * modulo[1] * modulo[2];
+    cout << "M : " << M << "\n";
+    cout << "CREM : " << crem << "\n";
+    cout << "MOD : " << modulo[0] << " " << modulo[1] << " " << modulo[2] << "\n";
+    ll ans = (f / M) * M;
+    ans += M + crem;
+    if(ans > g){
+        ans -= M;
+    }
+    cout << ans << "\n";
+    
+    return 0;
 }

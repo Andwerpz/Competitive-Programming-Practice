@@ -74,31 +74,39 @@ ll cantor(ll a, ll b, ll m) {
     return ((a + b) * (a + b + 1) / 2 + b) % m;
 }
 
-//returns the number of integers in the range [1, n] that are coprime with n. 
-//runs in O(sqrt(n))
-ll euler_phi(ll n) {
-    ll result = n;
-    for (int i = 2; i * i <= n; i++) {
-        if (n % i == 0) {
-            while (n % i == 0)
-                n /= i;
-            result -= result / i;
-        }
+ll extended_euclidean(ll a, ll b, ll& x, ll& y) {
+    x = 1, y = 0;
+    ll x1 = 0, y1 = 1, a1 = a, b1 = b;
+    while (b1) {
+        ll q = a1 / b1;
+        tie(x, x1) = make_tuple(x1, x - q * x1);
+        tie(y, y1) = make_tuple(y1, y - q * y1);
+        tie(a1, b1) = make_tuple(b1, a1 - q * b1);
     }
-    if (n > 1)
-        result -= result / n;
-    return result;
+    return a1;
 }
 
 //modular inverse of a for any mod m. 
+//if -1 is returned, then there is no solution. 
 ll mod_inv(ll a, ll m) {
-    return power(a, euler_phi(m) - 1);
+    ll x, y;
+    ll g = extended_euclidean(a, m, x, y);
+    if (g != 1) {
+        return -1;
+    }
+    else {
+        x = (x % m + m) % m;
+        return x;
+    }
 }
 
-//
+//only works when all modulo is coprime. 
+//if you want to do this with non-coprime modulos, then you need to factor all of the modulos, 
+//and resolve the factors independently; converting them back to coprime. 
+//it is not guaranteed that there is a solution if the modulos are not coprime. 
 ll chinese_remainder_theorem(vector<ll>& modulo, vector<ll>& remainder) {
     if(modulo.size() != remainder.size()) {
-        throw invalid_argument("modulo and remainder must be the same size");
+        return -1;
     }
     ll M = 1;
     for(int i = 0; i < modulo.size(); i++){
@@ -109,7 +117,7 @@ ll chinese_remainder_theorem(vector<ll>& modulo, vector<ll>& remainder) {
         ll a_i = remainder[i];
         ll M_i = M / modulo[i];
         ll N_i = mod_inv(M_i, modulo[i]);
-        solution = (solution + (a_i * M_i) % M * N_i) % M;
+        solution = (solution + a_i * M_i % M * N_i) % M;
     }
     return solution;
 }

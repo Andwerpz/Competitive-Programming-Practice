@@ -11,8 +11,7 @@ using namespace std;
 
 //just go backwards. 
 
-int main()
-{
+int main() {
     
     int t, n;
     

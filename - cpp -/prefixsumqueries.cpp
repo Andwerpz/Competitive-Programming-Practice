@@ -1,6 +1,12 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
+typedef long double ld;
 using namespace std;
+
+//CSES - 2166
+
+//we can simulate these updating prefix sums using a lazy segment tree. 
 
 template <typename T>
 struct SegtreeLazy {
@@ -143,142 +149,39 @@ struct SegtreeLazy {
             return fcombine(lans, rans);
         }
 };
-
-void print_segt(SegtreeLazy<int> segt) {
-    cout << "PRINT SEGT : \n";
-    int inc = 1;
-    for(int i = 1; i < segt.n * 2;){
-        int j = i;
-        i += inc;
-        inc *= 2;
-        while(j < i){
-            cout << segt.t[j] << " ";
-            j ++;
-        }
-        cout << "\n";
-    }
-    cout << "\n";
-
-    inc = 1;
-    for(int i = 1; i < segt.n * 2;){
-        int j = i;
-        i += inc;
-        inc *= 2;
-        while(j < i){
-            cout << segt.d[j] << " ";
-            j ++;
-        }
-        cout << "\n";
-    }
-    cout << "\n";
-}
-
-void modify(vector<int>& a, int l, int r, int val, SegtreeLazy<int> segt) {
-    for(int i = l; i < r; i++){
-        a[i] = segt.fmodify(a[i], val);
-    }
-}
-
-int query(vector<int>& a, int l, int r, SegtreeLazy<int> segt) {
-    int ans = segt.qneut;
-    for(int i = l; i < r; i++){
-        ans = segt.fcombine(ans, a[i]);
-    }
-    return ans;
-}
-
-bool test_segt(SegtreeLazy<int> segt, int valInit) {
-    int n = segt.n;
-    vector<int> arr(n, valInit);
-    for(int i = 0; i < n; i++){
-        int l = rand() % n;
-        int r = rand() % (n + 1);
-        int val = rand() % 10;
-        if(rand() % 2 == 1){
-            val *= -1;
-        }
-        if(l > r){
-            swap(l, r);
-        }
-        modify(arr, l, r, val, segt);
-        cout << "MODIFY " << l << " " << r << " " << val << "\n";
-        segt.modify(l, r, val);
-
-        if(rand() % 10 == 0){
-            int ind = rand() % n;
-            int val = segt.query(ind, ind + 1);
-            modify(arr, ind, ind + 1, -val, segt);
-            segt.modify(ind, ind + 1, -val);
-            cout << "MODIFY " << ind << " " << ind + 1 << " " << -val << "\n";
-        }
-    }
-
-    for(int i = 0; i < n; i++){
-        cout << arr[i] << " \n"[i == n - 1];
-    }
-
-    for(int i = 0; i < n; i++){
-        int l = rand() % n;
-        int r = rand() % (n + 1);
-        if(l > r){
-            swap(l, r);
-        }
-        int arrans = query(arr, l, r, segt);
-        int segtans = segt.query(l, r);
-        cout << "QUERY " << l << " " << r << ", ARR : " << arrans << " SEGT : " << segtans << "\n";
-        if(arrans != segtans) {
-            print_segt(segt);
-            return false;
-        }
-    }
-    cout << "\n";
-    return true;
-}
-
-void run_segt_tests(int maxSize, int updateNeutral, int queryNeutral, function<int(int, int)> fmodify, function<int(int, int, int)> fmodifyk, function<int(int, int)> fcombine) {
-    srand(time(0));
-    bool isValid = true;
-    for(int i = 0; i < 100; i++){
-        SegtreeLazy<int> segt(maxSize, updateNeutral, queryNeutral, fmodify, fmodifyk, fcombine);
-        if(!test_segt(segt, updateNeutral)) {
-            cout << "TEST FAILED\n";
-            return;
-        }
-    }
-    cout << "TEST PASSED\n";
-}
-
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
     
-    int n = 100;
-
-    // -- ASSIGNMENT MODIFY, SUM QUERY --
-    // {
-    //     function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
-    //     function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val * k;};
-    //     function<int(int, int)> fcombine = [](const int a, const int b) -> int{return a + b;};
-    //     run_segt_tests(n, 0, 0, fmodify, fmodifyk, fcombine);
-    // }
-
-    // -- INCREMENT MODIFY, MINIMUM QUERY --
-    {
-        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return src + val;};
-        function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return src + val;};
-        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
-        run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
+    int n, q;
+    cin >> n >> q;
+    function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return src + val;};
+    function<ll(ll, ll, ll)> fmodifyk = [](const ll src, const ll val, const ll k) -> ll{return src + val;};
+    function<ll(ll, ll)> fcombine = [](const ll a, const ll b) -> ll{return max(a, b);};
+    SegtreeLazy<ll> segt(n, 0, -1e18, fmodify, fmodifyk, fcombine);
+    vector<ll> arr(n, 0);
+    for(int i = 0; i < n; i++){
+        cin >> arr[i];
+        segt.modify(i, n, arr[i]);
     }
-
-    // -- ASSIGNMENT MODIFY, MINIMUM QUERY --
-    // {
-    //     function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
-    //     function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val;};
-    //     function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
-    //     run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
-    // }
-
+    for(int i = 0; i < q; i++){
+        int type;
+        cin >> type;
+        if(type == 1){
+            ll k, u;
+            cin >> k >> u;
+            k --;
+            ll diff = u - arr[k];
+            segt.modify(k, n, diff);
+            arr[k] = u;
+        }
+        else if(type == 2){
+            ll a, b;
+            cin >> a >> b;
+            a --;
+            cout << max(0ll, segt.query(a, b) - (a == 0? 0 : segt.query(a - 1))) << "\n";
+        }
+    }
+    
     return 0;
 }
-
-

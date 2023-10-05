@@ -3,21 +3,22 @@ typedef long long ll;
 using namespace std;
 
 //single modify, range query
+template <typename T>
 struct Segtree {
     //note that t[0] is not used
-    int n;
-    int* t;
-    int uneut, qneut;
+    T n;
+    T* t;
+    T uneut, qneut;
 
     //single element modification function
-    function<int(int, int)> fmodify;
+    function<T(T, T)> fmodify;
 
     //product of two elements for query and updating tree
-    function<int(int, int)> fcombine;
+    function<T(T, T)> fcombine;
 
-    Segtree(int n, int updateNeutral, int queryNeutral, function<int(int, int)> fmodify, function<int(int, int)> fcombine) {
+    Segtree(T n, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T)> fcombine) {
         this -> n = n;
-        t = new int[2 * n];
+        t = new T[2 * n];
 
         this -> fmodify = fmodify;
         this -> fcombine = fcombine;
@@ -36,7 +37,7 @@ struct Segtree {
         }
     }
 
-    void modify(int p, int value) { // set value at position p
+    void modify(int p, T value) { // set value at position p
         p += n;
         t[p] = fmodify(t[p], value);
         for (p /= 2; p > 0; p /= 2) {
@@ -44,8 +45,8 @@ struct Segtree {
         }
     }
 
-    int query(int l, int r) { // sum on interval [l, r)
-        int res = qneut;
+    T query(int l, int r) { // sum on interval [l, r)
+        T res = qneut;
         for (l += n, r += n; l < r; l /= 2, r /= 2) {
             if (l % 2 == 1) {
                 res = fcombine(res, t[l]);
@@ -60,11 +61,11 @@ struct Segtree {
     }
 };
 
-void modify(vector<int>& a, int ind, int val, Segtree segt) {
+void modify(vector<int>& a, int ind, int val, Segtree<int> segt) {
     a[ind] = segt.fmodify(a[ind], val);
 }
 
-int query(vector<int>& a, int l, int r, Segtree segt) {
+int query(vector<int>& a, int l, int r, Segtree<int> segt) {
     int ans = segt.qneut;
     for(int i = l; i < r; i++){
         ans = segt.fcombine(ans, a[i]);
@@ -72,7 +73,7 @@ int query(vector<int>& a, int l, int r, Segtree segt) {
     return ans;
 }
 
-bool test_segt(Segtree segt, int valInit) {
+bool test_segt(Segtree<int> segt, int valInit) {
     int n = segt.n;
     vector<int> arr(n, valInit);
     for(int i = 0; i < n; i++){
@@ -108,7 +109,7 @@ void run_segt_tests(int maxSize, int updateNeutral, int queryNeutral, function<i
     srand(time(0));
     bool isValid = true;
     for(int i = 0; i < 100; i++){
-        Segtree segt(maxSize, updateNeutral, queryNeutral, fmodify, fcombine);
+        Segtree<int> segt(maxSize, updateNeutral, queryNeutral, fmodify, fcombine);
         if(!test_segt(segt, updateNeutral)) {
             cout << "TEST FAILED\n";
             return;

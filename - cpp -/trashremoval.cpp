@@ -1,7 +1,24 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
 typedef long double ld;
 using namespace std;
+
+//ICPC World Finals 2011 K
+
+//note that the question this problem poses is equivalent to trying to minimize the projection of the
+//polygon onto the x-axis by rotating it. 
+
+//first, let's take the convex hull of the shape. 
+
+//next, we notice that at least two points need to be on the 'outside' of the projection. Let's make two points
+//always on the opposite side. Then, to minimize the projection area, we want to 'tilt' the two points as much as
+//possible. Notice at maximum tilt, there will always end up being one edge on the left or right side. 
+
+//since there must be two points on the outside, and the smallest area always happens at the maximum tilt, it means
+//that the smallest area must happen when there is a vertical edge. 
+
+//thus, we can try one by one to make all the edges vertical. 
 
 struct vec2 {
     ld x, y;
@@ -77,7 +94,7 @@ ld rayCircleIntersect(vec2 ray_a, vec2 ray_b, vec2 center, ld radius) {
     return dot(ray_dir, to_center) - int_depth;
 }
 
-ld pi = 3.14159265;
+ld pi = acos(-1);
 ld epsilon = 1e-9;
 
 //sector area of circle 
@@ -153,6 +170,22 @@ vec2 polygon_centroid(vector<vec2>& poly) {
     return c;
 }
 
+vec2 rotateCCW(vec2 v, ld theta) {
+    vec2 ret;
+    ret.x = v.x * cos(theta) - v.y * sin(theta);
+    ret.y = v.x * sin(theta) + v.y * cos(theta);
+    return ret;
+}
+
+ld round_up(ld a) {
+    a *= 100.0;
+    ld ret = floor(a);
+    if(a - ((int) a) > epsilon) {
+        ret += 1;
+    }
+    return ret / 100.0;
+}
+
 vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     function<int(vec2, vec2, vec2)> orientation = [](vec2 a, vec2 b, vec2 c) -> int {
         ld v = a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y);
@@ -207,11 +240,60 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     return ans;
 }
 
+void solve(int n, int caseno) {
+    vector<vec2> poly(0);
+    for(int i = 0; i < n; i++){
+        vec2 v;
+        cin >> v.x >> v.y;
+        poly.push_back(v);
+    }
+    poly = convex_hull(poly);
+    n = poly.size();
+    ld ans = 1e18;
+    for(int i = 0; i < poly.size(); i++){
+        //cout << "POINT : " << poly[i].x << " " << poly[i].y << "\n";
+        //for each line, find the maximum projection. 
+        vec2 v0 = poly[i];
+        vec2 v1 = poly[(i + 1) % poly.size()];
+        vec2 l = normalize(sub(v1, v0));
+        vec2 perp = rotateCCW(l, pi / 2);
+        // cout << "LINE : " << l.x << " " << l.y << "\n";
+        // cout << "PERP : " << perp.x << " " << perp.y << "\n";
+        // cout << "DOT : " << dot(l, perp) << "\n";
+        ld max_proj = 0;
+        ld min_proj = 0;
+        for(int j = 0; j < poly.size(); j++){
+            if(j == i || j == (i + 1) % poly.size()) {
+                continue;
+            }
+            vec2 dir = sub(poly[j], v0);
+            ld proj = dot(perp, dir);
+            min_proj = min(min_proj, proj);
+            max_proj = max(max_proj, proj);
+            //cout << "PROJ : " << proj << "\n";
+        }
+        ans = min(ans, max_proj - min_proj);
+        //cout << "MAX PROJ : " << max_proj << "\n";
+    }
+    cout << "Case " << caseno << ": " << fixed << setprecision(2) << round_up(ans) << endl;
+}
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+
+    // std::ifstream in("trash.in");
+    // std::streambuf *cinbuf = std::cin.rdbuf(); //save old buf
+    // std::cin.rdbuf(in.rdbuf()); //redirect std::cin to in.txt!
     
-    
+    int n;
+    cin >> n;
+    int caseno = 0;
+    while(n != 0){
+        caseno ++;
+        solve(n, caseno);
+        cin >> n;
+    }
     
     return 0;
 }

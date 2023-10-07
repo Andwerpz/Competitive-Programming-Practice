@@ -11,7 +11,7 @@ void euler_path(vector<vector<int>>& c, vector<int>& ptr, vector<int>& ans, int 
     ans.push_back(i);
 }
 
-//an euler cycle only exists if the degrees of all vertices are even
+//an euler tour only exists if the degrees of all vertices are even
 //an euler path only exists if the number of vertices with odd degrees are two, or zero, in which case an euler cycle exists. 
 //and of course, the graph is sufficiently connected. 
 

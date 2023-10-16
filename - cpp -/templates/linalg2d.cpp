@@ -3,6 +3,9 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
+ld pi = acos(-1);
+ld epsilon = 1e-9;
+
 struct vec2 {
     ld x, y;
     vec2() {this->x = 0; this->y = 0;}
@@ -49,6 +52,13 @@ vec2 normalize(vec2 a){
     return ret;
 }
 
+vec2 rotateCCW(vec2 a, ld theta) {
+    vec2 ret(0, 0);
+    ret.x = a.x * cos(theta) - a.y * sin(theta);
+    ret.y = a.x * sin(theta) + a.y * cos(theta);
+    return ret;
+}
+
 //returns the coefficients s and t, where p1 + v1 * s = p2 + v2 * t
 vector<ld> lineLineIntersect(vec2 p1, vec2 v1, vec2 p2, vec2 v2) {
     if(cross(v1, v2) == 0){
@@ -76,9 +86,6 @@ ld rayCircleIntersect(vec2 ray_a, vec2 ray_b, vec2 center, ld radius) {
     ld int_depth = sqrt(radius * radius - center_proj_len * center_proj_len);
     return dot(ray_dir, to_center) - int_depth;
 }
-
-ld pi = 3.14159265;
-ld epsilon = 1e-9;
 
 //sector area of circle 
 ld sector_area(ld theta, ld radius) {

@@ -5,21 +5,22 @@ using namespace std;
 template <typename T>
 struct SegtreeLazy {
     public:
-        T n;
+        int n;
         T* t;    //stores product of range
         T* d;    //lazy tree
+        bool* upd;  //marks whether or not a lazy change is here
         T uneut, qneut;
 
         //single element modify
         function<T(T, T)> fmodify;
 
         //k element modify
-        function<T(T, T, T)> fmodifyk;
+        function<T(T, T, int)> fmodifyk;
 
         //product of two elements for query
         function<T(T, T)> fcombine;
 
-        SegtreeLazy(int maxSize, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T, T)> fmodifyk, function<T(T, T)> fcombine) {
+        SegtreeLazy(int maxSize, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T, int)> fmodifyk, function<T(T, T)> fcombine) {
             n = maxSize;
             uneut = updateNeutral;
             qneut = queryNeutral;
@@ -37,13 +38,15 @@ struct SegtreeLazy {
 
             t = new T[n * 2];
             d = new T[n * 2];
+            upd = new bool[n * 2];
 
             //make sure to initialize values
-            for(T i = 0; i < n * 2; i++){
+            for(int i = 0; i < n * 2; i++){
                 t[i] = uneut;
             }
-            for(T i = 0; i < n * 2; i++){
+            for(int i = 0; i < n * 2; i++){
                 d[i] = uneut;
+                upd[i] = false;
             }
         }
 
@@ -66,7 +69,7 @@ struct SegtreeLazy {
     private:
         //calculates value of node based off of children
         //k is the amount of values that this node represents. 
-        void combine(int ind, T k) {
+        void combine(int ind, int k) {
             if(ind >= n){
                 return;
             }
@@ -80,13 +83,14 @@ struct SegtreeLazy {
 
         //registers a lazy change llo this node
         void apply(int ind, T val) {
+            upd[ind] = true;
             d[ind] = fmodify(d[ind], val);
         }
 
         //applies lazy change to this node
         //k is the amount of values that this node represents. 
-        void push(int ind, T k) {
-            if(d[ind] == uneut) {
+        void push(int ind, int k) {
+            if(!upd[ind]) {
                 return;
             }
             t[ind] = fmodifyk(t[ind], d[ind], k);
@@ -96,6 +100,7 @@ struct SegtreeLazy {
                 apply(l, d[ind]);
                 apply(r, d[ind]);
             }
+            upd[ind] = false;
             d[ind] = uneut;
         }
 
@@ -103,7 +108,7 @@ struct SegtreeLazy {
             if(l == r){
                 return;
             }
-            if(d[ind] != uneut) {
+            if(upd[ind]) {
                 push(ind, tr - tl);
             }
             if(l == tl && r == tr) {
@@ -121,11 +126,11 @@ struct SegtreeLazy {
             combine(ind, tr - tl);
         }
 
-        T _query(int l, int r, int tl, int tr, T ind) {
+        T _query(int l, int r, int tl, int tr, int ind) {
             if(l == r){
                 return qneut;
             }  
-            if(d[ind] != uneut) {
+            if(upd[ind]) {
                 push(ind, tr - tl);
             }
             if(l == tl && r == tr){
@@ -255,20 +260,20 @@ int main() {
     int n = 100;
 
     // -- ASSIGNMENT MODIFY, SUM QUERY --
-    // {
-    //     function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
-    //     function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val * k;};
-    //     function<int(int, int)> fcombine = [](const int a, const int b) -> int{return a + b;};
-    //     run_segt_tests(n, 0, 0, fmodify, fmodifyk, fcombine);
-    // }
+    {
+        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
+        function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val * k;};
+        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return a + b;};
+        run_segt_tests(n, 0, 0, fmodify, fmodifyk, fcombine);
+    }
 
     // -- INCREMENT MODIFY, MINIMUM QUERY --
-    {
-        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return src + val;};
-        function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return src + val;};
-        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
-        run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
-    }
+    // {
+    //     function<int(int, int)> fmodify = [](const int src, const int val) -> int{return src + val;};
+    //     function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return src + val;};
+    //     function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
+    //     run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
+    // }
 
     // -- ASSIGNMENT MODIFY, MINIMUM QUERY --
     // {

@@ -69,6 +69,10 @@ ll nck(ll n, ll k) {
     return ans;
 }
 
+ll catalan(ll n){
+    return sub(nck(2 * n, n), nck(2 * n, n + 1));
+}
+
 //cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
 ll cantor(ll a, ll b, ll m) {
     return ((a + b) * (a + b + 1) / 2 + b) % m;

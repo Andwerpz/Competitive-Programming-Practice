@@ -3,7 +3,7 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-//ICPC Finals 2014
+//ICPC World Finals 2014 C
 
 struct vec2 {
     ld x, y;
@@ -96,61 +96,56 @@ bool isCCW(vector<vec2>& a){
     return sum > 0;
 }
 
-vector<vector<vec2>> calc_tri(vector<vec2> a) {
-    bool ccw = isCCW(a);
-    vector<vector<vec2>> ret(0);
-    while(a.size() > 3) {
-        //cout << "FINDING TRIANGLE" << endl;
-        for(ll i = 0; i < a.size(); i++){
-            vec2 t1 = a[(i + 0) % a.size()];
-            vec2 t2 = a[(i + 1) % a.size()];
-            vec2 t3 = a[(i + 2) % a.size()];
-            vec2 v1 = normalize(sub(t2, t1));
-            vec2 v2 = normalize(sub(t3, t2));
-            //cout << cross(v1, v2) << endl;
-            if(!ccw && cross(v1, v2) > epsilon) {
-                //cout << "WRONG ANGLE 1" << endl;
-                continue;
-            }
-            if(ccw && cross(v1, v2) < -epsilon) {
-                //cout << "WRONG ANGLE 2" << endl;
-                continue;
-            }
-            //might be a valid triangle, go check
-            bool isValid = true;
-            for(ll j = 0; j < a.size(); j++){
-                vec2 l1 = a[(j + 0) % a.size()];
-                vec2 l2 = a[(j + 1) % a.size()];
-                if(length(sub(l1, t1)) < epsilon || length(sub(l2, t1)) < epsilon || length(sub(l1, t3)) < epsilon || length(sub(l2, t3)) < epsilon) {
-                    continue;
-                }
-
-                if(calc_llersect(t1, t3, l1, l2)) {
-                    isValid = false;
-                    break;
-                }
-            }
-            if(isValid) {
-                //cout << "FOUND TRIANGLE : " << t1.x << " " << t1.y << " " << t2.x << " " << t2.y << " " << t3.x << " " << t3.y << endl;
-                ret.push_back({t1, t2, t3});
-                a.erase(a.begin() + ((i + 1) % a.size()));
-                break;
-            }
-        }
+//returns the area of the polygon. 
+//winding direction doesn't matter
+//polygon can be self intersecting i think...
+ld polygon_area(vector<vec2>& poly) {
+    ld area = 0;
+    for(int i = 0; i < poly.size(); i++){
+        vec2 v0 = poly[i];
+        vec2 v1 = poly[(i + 1) % poly.size()];
+        area += cross(v0, v1);
     }
-    ret.push_back(a);
-    return ret;
+    return abs(area / 2.0);
 }
 
-ld calc_torque(vector<vec2>& tri, vec2 pivot) {
-    vec2 ab = sub(tri[0], tri[1]);
-    vec2 ac = sub(tri[0], tri[2]);
-    ld area = abs(cross(ab, ac)) / 2;
-    vec2 centroid = add(tri[0], add(tri[1], tri[2]));
-    centroid = mul(centroid, 1.0 / 3.0);
-    vec2 to_pivot = sub(pivot, centroid);
-    vec2 gravity = mul(vec2(0, -1), area);
-    return cross(to_pivot, gravity);
+//assuming that the density of the polygon is uniform, the centroid is the center of mass.
+//winding direction matters...
+vec2 polygon_centroid(vector<vec2>& poly) {
+    vec2 c = vec2();
+    for(int i = 0; i < poly.size(); i++){
+        vec2 v0 = poly[i];
+        vec2 v1 = poly[(i + 1) % poly.size()];
+        ld p = cross(v0, v1);
+        c.x += (v0.x + v1.x) * p;
+        c.y += (v0.y + v1.y) * p;
+    }
+    ld area = polygon_area(poly);
+    c.x /= (6.0 * area);
+    c.y /= (6.0 * area);
+    return c;
+}
+
+ld calc_torque(vector<vec2>& poly, ld pivot) {
+
+    ld mass = polygon_area(poly);
+    vec2 center_mass = polygon_centroid(poly);
+
+    //cout << "CENTER  MASS : " << center_mass.x << " " << center_mass.y << "\n";
+    if(center_mass.y < 0){
+        center_mass.x = abs(center_mass.x);
+    }
+
+    return (pivot - center_mass.x) * mass;
+
+    // vec2 ab = sub(tri[0], tri[1]);
+    // vec2 ac = sub(tri[0], tri[2]);
+    // ld area = abs(cross(ab, ac)) / 2;
+    // vec2 centroid = add(tri[0], add(tri[1], tri[2]));
+    // centroid = mul(centroid, 1.0 / 3.0);
+    // vec2 to_pivot = sub(pivot, centroid);
+    // vec2 gravity = mul(vec2(0, -1), area);
+    // return cross(to_pivot, gravity);
 }
 
 int main() {
@@ -169,13 +164,8 @@ int main() {
             max_x = max(max_x, a[i].x);
         }
     }
-    vector<vector<vec2>> t = calc_tri(a);
-    ld left_torque = 0;
-    ld right_torque = 0;
-    for(ll i = 0; i < t.size(); i++){
-        left_torque -= calc_torque(t[i], vec2(min_x, 0));
-        right_torque -= calc_torque(t[i], vec2(max_x, 0));
-    }
+    ld left_torque = calc_torque(a, min_x);
+    ld right_torque = calc_torque(a, max_x);
     //cout << left_torque << " " << right_torque << "\n";
     vec2 weight_pos = a[0];
     bool inf = true; 
@@ -228,7 +218,7 @@ int main() {
         cout << ((ll) floor(min_weight)) << " .. " << "inf" << "\n";
         return 0;
     }
-    cout << ((ll) floor(min_weight)) << " .. " << ((ll) ceil(max_weight)) << "\n";
+    cout << ((ll) floor(min_weight)) << " .. " << ((ll) ceil(max_weight - 1e-9)) << "\n";
     
     return 0;
 }

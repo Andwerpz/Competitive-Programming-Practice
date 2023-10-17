@@ -145,6 +145,7 @@ ld polygon_area(vector<vec2>& poly) {
 }
 
 //assuming that the density of the polygon is uniform, the centroid is the center of mass.
+//winding direction matters...
 vec2 polygon_centroid(vector<vec2>& poly) {
     vec2 c = vec2();
     for(int i = 0; i < poly.size(); i++){

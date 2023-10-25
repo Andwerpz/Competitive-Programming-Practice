@@ -4,7 +4,7 @@ typedef __int128 lll;
 typedef long double ld;
 using namespace std;
 
-//Meta Hacker Cup 2023 C1
+//Meta Hacker Cup 2023 Round 1 C1
 
 //if you press a button twice, it's just like you didn't press it at all, so when finding the state of the buttons
 //after your brother has pressed them, just count how many times he pressed each index, then mod by 2. 

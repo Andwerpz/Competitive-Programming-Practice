@@ -3,13 +3,13 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-struct TrieNode {
-    vector<TrieNode*> c = vector<TrieNode*>(26, nullptr);
-    bool isWord = false;    //true if a word ends on this node
-    int numWords = 0;   //counts how many words use this node as prefix
-};
-
 struct Trie {
+    struct TrieNode {
+        vector<TrieNode*> c = vector<TrieNode*>(26, nullptr);
+        bool isWord = false;    //true if a word ends on this node
+        int numWords = 0;   //counts how many words use this node as prefix
+    };
+
     TrieNode head;
 
     Trie() {
@@ -42,12 +42,3 @@ struct Trie {
         return ptr;
     }
 };
-
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-    
-    
-    
-    return 0;
-}

@@ -54,11 +54,3 @@ vector<vector<int>> find_scc(int n, vector<vector<int>>& adj) {
     return ans;
 }
 
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-    
-    
-    
-    return 0;
-}

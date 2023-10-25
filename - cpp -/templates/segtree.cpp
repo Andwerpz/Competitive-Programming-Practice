@@ -6,7 +6,7 @@ using namespace std;
 template <typename T>
 struct Segtree {
     //note that t[0] is not used
-    T n;
+    int n;
     T* t;
     T uneut, qneut;
 
@@ -16,7 +16,7 @@ struct Segtree {
     //product of two elements for query and updating tree
     function<T(T, T)> fcombine;
 
-    Segtree(T n, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T)> fcombine) {
+    Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T)> fcombine) {
         this -> n = n;
         t = new T[2 * n];
 

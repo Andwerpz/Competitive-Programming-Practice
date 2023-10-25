@@ -4,9 +4,7 @@ typedef __int128 lll;
 typedef long double ld;
 using namespace std;
 
-// -- REMINDER --
-//make sure to modify the terminator character if '$' is used as a character in the input. 
-//terminator character is to 'flush' the buffered changes so that all suffixes are in the tree. 
+//Codeforces EDU - https://codeforces.com/edu/course/2/lesson/2/4/practice/status
 
 struct SuffixTree {
     public:
@@ -103,6 +101,11 @@ struct SuffixTree {
             return this->lcp_rmq.query(a_ind, b_ind);
         }
 
+        vector<int> suf_arr;    //suffix array
+        vector<int> suf_to_suf_ind; //maps suffix indices to their locations in the suffix array. 
+        vector<int> leaf_cnt;   //number of leaves in subtree
+        vector<int> lcp;    //longest common prefix between adjacent suffixes in suffix array.
+
     private:
         template <typename T>
         struct Segtree {
@@ -165,12 +168,7 @@ struct SuffixTree {
                 return res;
             }
         };
-        Segtree<int> lcp_rmq;
-
-        vector<int> suf_arr;    //suffix array
-        vector<int> suf_to_suf_ind; //maps suffix indices to their locations in the suffix array. 
-        vector<int> leaf_cnt;   //number of leaves in subtree
-        vector<int> lcp;    //longest common prefix between adjacent suffixes in suffix array. 
+        Segtree<int> lcp_rmq; 
 
         //uses kasai's algorithm to compute lcp array in O(n). 
         //lcp stands for longest common prefix.
@@ -328,3 +326,19 @@ struct SuffixTree {
         }
 };
 
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    string s;
+    cin >> s;
+    SuffixTree suft(s);
+    for(int i = 0; i < suft.suf_arr.size(); i++){
+        cout << suft.suf_arr[i] << " \n"[i == suft.suf_arr.size() - 1];
+    }
+    for(int i = 0; i < suft.lcp.size() - 1; i++){
+        cout << suft.lcp[i] << " \n"[i == suft.lcp.size() - 2];
+    }
+    
+    return 0;
+}

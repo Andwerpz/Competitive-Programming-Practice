@@ -23,12 +23,3 @@ vector<int> euler_path(vector<vector<int>>& c, int i) {
     euler_path(c, ptr, ans, i);
     return ans;
 }
-
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-    
-    
-    
-    return 0;
-}

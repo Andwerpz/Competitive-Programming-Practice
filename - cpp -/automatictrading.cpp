@@ -4,6 +4,10 @@ typedef __int128 lll;
 typedef long double ld;
 using namespace std;
 
+//Kattis - automatictrading
+
+//classic suffix tree problem. 
+
 struct SuffixTree {
     public:
         struct SuffixNode {
@@ -34,10 +38,6 @@ struct SuffixTree {
         int n;
         vector<char> chars;
         vector<SuffixNode*> nodes;
-        
-        vector<int> suf_arr;    //suffix array
-        vector<int> leaf_cnt;   //number of leaves in subtree
-        vector<int> lcp;    //longest common prefix between adjacent suffixes in suffix array. 
 
         SuffixTree(string s) {
             //add terminator char
@@ -91,7 +91,87 @@ struct SuffixTree {
             return this->suf_arr;
         }
 
+        int get_lcp(int a, int b) {
+            if(a == b){
+                return this->n - a - 1;
+            }
+            int a_ind = this->suf_to_suf_ind[a];
+            int b_ind = this->suf_to_suf_ind[b];
+            if(a_ind > b_ind) {
+                swap(a_ind, b_ind);
+            }
+            return this->lcp_rmq.query(a_ind, b_ind);
+        }
+
     private:
+        template <typename T>
+        struct Segtree {
+            //note that t[0] is not used
+            int n;
+            T* t;
+            T uneut, qneut;
+
+            //single element modification function
+            function<T(T, T)> fmodify;
+
+            //product of two elements for query and updating tree
+            function<T(T, T)> fcombine;
+
+            Segtree() {
+                //do nothing. 
+            }
+
+            Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T)> fcombine) {
+                this -> n = n;
+                t = new T[2 * n];
+
+                this -> fmodify = fmodify;
+                this -> fcombine = fcombine;
+
+                uneut = updateNeutral;
+                qneut = queryNeutral;
+
+                for(int i = 0; i < 2 * n; i++){
+                    t[i] = uneut;
+                }
+            }
+
+            void build() { // build the tree after manually assigning the values.
+                for (int i = n - 1; i > 0; i--) {   
+                    t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
+                }
+            }
+
+            void modify(int p, T value) { // set value at position p
+                p += n;
+                t[p] = fmodify(t[p], value);
+                for (p /= 2; p > 0; p /= 2) {
+                    t[p] = fcombine(t[p * 2], t[p * 2 + 1]);
+                }
+            }
+
+            T query(int l, int r) { // sum on interval [l, r)
+                T res = qneut;
+                for (l += n, r += n; l < r; l /= 2, r /= 2) {
+                    if (l % 2 == 1) {
+                        res = fcombine(res, t[l]);
+                        l++;
+                    }
+                    if (r % 2 == 1) {
+                        r--;
+                        res = fcombine(res, t[r]);
+                    }
+                }
+                return res;
+            }
+        };
+        Segtree<int> lcp_rmq;
+
+        vector<int> suf_arr;    //suffix array
+        vector<int> suf_to_suf_ind; //maps suffix indices to their locations in the suffix array. 
+        vector<int> leaf_cnt;   //number of leaves in subtree
+        vector<int> lcp;    //longest common prefix between adjacent suffixes in suffix array. 
+
         //uses kasai's algorithm to compute lcp array in O(n). 
         //lcp stands for longest common prefix.
         void calc_lcp() {
@@ -114,6 +194,14 @@ struct SuffixTree {
                 lcp[rank[i]] = k;
             }
             this->lcp = lcp;
+            //create lcp_rmq segtree
+            function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
+            function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
+            this->lcp_rmq = Segtree<int>(n, 0, 1e9, fmodify, fcombine);
+            for(int i = 0; i < n; i++){
+                this->lcp_rmq.t[n + i] = lcp[i];
+            }
+            this->lcp_rmq.build();
         }
 
         void calc_leaf_cnt() {
@@ -148,6 +236,11 @@ struct SuffixTree {
             };
             dfs(this->nodes[0], 0);
             this->suf_arr = ans;
+            //compute mapping from indices to suffix array
+            this->suf_to_suf_ind = vector<int>(n, 0);
+            for(int i = 0; i < n; i++){
+                this->suf_to_suf_ind[this->suf_arr[i]] = i;
+            }
         }
 
         struct SuffixState {
@@ -242,27 +335,13 @@ int main() {
     string s;
     cin >> s;
     SuffixTree suft(s);
-    queue<SuffixTree::SuffixNode*> q;
-    q.push(suft.nodes[0]);
-    while(q.size() != 0){
-        SuffixTree::SuffixNode* cur = q.front();
-        q.pop();
-        cout << "LR : " << cur -> l << " " << cur -> r << "\n";
-        for(auto i = cur -> children.begin(); i != cur -> children.end(); i++){
-            q.push(i -> second);
-        }
-    }
-    cout << "CONTAINS nana : " << suft.contains_string("nana") << "\n";
-    cout << "SUF ARR : " << "\n";
-    for(int i = 0; i < suft.suf_arr.size(); i++){
-        cout << suft.suf_arr[i] << " ";
-    }
-    cout << "\n";
-    cout << "LCP : " << "\n";
-    for(int i = 0; i < suft.lcp.size(); i++){
-        cout << suft.lcp[i] << " ";
-    }
-    cout << "\n";
+    int q;
+	cin >> q;
+	for(int i = 0; i < q; i++){
+		int l, r;
+		cin >> l >> r;
+		cout << suft.get_lcp(l, r) << "\n";
+	}
     
     return 0;
 }

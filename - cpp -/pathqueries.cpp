@@ -1,13 +1,12 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
 typedef long double ld;
 using namespace std;
 
-//a relatively dumb implementation of heavy-light decomposition. 
-//note that this implementation is not very optimized; you'll probably TLE on tight time constraints. 
-//O(log^2(n)) query and modify any path along the tree. 
+//CSES - 1138
 
-//if you want to modify this to modify and query across edges, then 
+//classic heavy light decomposition problem. 
 
 struct HLD {
     struct LCA {
@@ -371,6 +370,8 @@ struct HLD {
         this->calcSubtreeSize(root);
         this->calcHLD(root);
 
+        //cout << "CALCULATED HLD" << endl;
+
         //create the segment tree needed to do the range updates. 
         function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return val;};
         function<ll(ll, ll, int)> fmodifyk = [](const ll src, const ll val, const int k) -> ll{return val * k;};
@@ -380,6 +381,8 @@ struct HLD {
         this->segParent = vector<int>(n, -1);
         this->segPos = vector<int>(n, -1);
 
+        //cout << "CREATED SEGTREE" << endl;
+
         //find the positions of the nodes in the segment tree. 
         int posPtr = 0;
         for(int i = 0; i < n; i++){
@@ -387,6 +390,7 @@ struct HLD {
                 //we want to have each heavy path be contiguous in the segment tree, so we want to start at the beginning. 
                 continue;
             }
+            //cout << "PATH ROOT : " << i << "\n";
             int cur = i;
             vector<int> heavyPath(0);
             heavyPath.push_back(cur);
@@ -397,10 +401,14 @@ struct HLD {
                 this->segPos[cur] = posPtr ++;
             }
             cur = parent[cur];
+            //cout << "HEAVY PATH : ";
             for(int j = 0; j < heavyPath.size(); j++){
+                //cout << heavyPath[j] << " ";
+                //cout << "SET PARENT : " << heavyPath[j] << " " << cur << "\n";
                 this->segEndInd[heavyPath[j]] = posPtr;
                 this->segParent[heavyPath[j]] = cur;
             }
+            //cout << "\n";
         }
     }
 
@@ -416,8 +424,10 @@ struct HLD {
     }
 
     ll query(int a, int b) {
+        //cout << "QUERY : " << a << " " << b << endl;
         int _lca = this->lca.lca(a, b);
         ll ret = this->segt.qneut;
+        //cout << _lca << " " << ret << endl;
         ret = this->segt.fcombine(ret, _query(a, _lca));
         ret = this->segt.fcombine(ret, _query(b, _lca));
         ret = this->segt.fcombine(ret, this->segt.query(this->segPos[_lca]));
@@ -441,8 +451,12 @@ struct HLD {
         }
 
         ll _query(int a, int _lca) {
+            //cout << "_QUERY : " << a << " " << _lca << endl;
             ll ret = this->segt.qneut;
             while(this->segEndInd[a] != this->segEndInd[_lca]) {
+                //cout << this->segEndInd[a] << " " << this->segEndInd[_lca] << endl;
+                //cout << "A : " << a << endl;
+                //cout << this->segPos[a] << " " << this->segEndInd[a] << endl;
                 ret = this->segt.fcombine(ret, this->segt.query(this->segPos[a], this->segEndInd[a]));
                 a = this->segParent[a];
             }
@@ -450,3 +464,47 @@ struct HLD {
             return ret;
         }
 };
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n, q;
+    cin >> n >> q;
+    vector<int> val(n);
+    for(int i = 0; i < n; i++){
+        cin >> val[i];
+    }
+    vector<vector<int>> c(n, vector<int>(0));
+    for(int i = 0; i < n - 1; i++){
+        int a, b;
+        cin >> a >> b;
+        a --;
+        b --;
+        c[a].push_back(b);
+        c[b].push_back(a);
+    }
+    HLD hld(n, 0, c);
+    for(int i = 0; i < n; i++){
+        hld.modify(i, val[i]);
+    }
+    for(int i = 0; i < q; i++){
+        int t;
+        cin >> t;
+        if(t == 1){
+            int s, x;
+            cin >> s >> x;
+            s --;
+            hld.modify(s, x);
+        }
+        else {
+            int a;
+            cin >> a;
+            a --;
+            cout << hld.query(0, a) << "\n";
+        }
+    }
+    cout << "\n";
+    
+    return 0;
+}

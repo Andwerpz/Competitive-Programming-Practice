@@ -1,13 +1,10 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
 typedef long double ld;
 using namespace std;
 
-//a relatively dumb implementation of heavy-light decomposition. 
-//note that this implementation is not very optimized; you'll probably TLE on tight time constraints. 
-//O(log^2(n)) query and modify any path along the tree. 
-
-//if you want to modify this to modify and query across edges, then 
+//CSES - 2134
 
 struct HLD {
     struct LCA {
@@ -172,27 +169,24 @@ struct HLD {
 
     };
 
-    template <typename T>
     struct SegtreeLazy {
         public:
             int n;
-            T* t;    //stores product of range
-            T* d;    //lazy tree
-            bool* upd;  //marks whether or not a lazy change is here
-            T uneut, qneut;
+            int* t;    //stores product of range
+            int* d;    //lazy tree
+            bool* upd;   //upd[i] = true if t[i] needs to be updated
+            int uneut, qneut;
 
             //single element modify
-            function<T(T, T)> fmodify;
+            function<int(int, int)> fmodify;
 
             //k element modify
-            function<T(T, T, int)> fmodifyk;
+            function<int(int, int, int)> fmodifyk;
 
             //product of two elements for query
-            function<T(T, T)> fcombine;
+            function<int(int, int)> fcombine;
 
-            SegtreeLazy() {}
-
-            SegtreeLazy(int maxSize, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T, int)> fmodifyk, function<T(T, T)> fcombine) {
+            SegtreeLazy(int maxSize, int updateNeutral, int queryNeutral, function<int(int, int)> fmodify, function<int(int, int, int)> fmodifyk, function<int(int, int)> fcombine) {
                 n = maxSize;
                 uneut = updateNeutral;
                 qneut = queryNeutral;
@@ -208,8 +202,8 @@ struct HLD {
                 }
                 n = x;
 
-                t = new T[n * 2];
-                d = new T[n * 2];
+                t = new int[n * 2];
+                d = new int[n * 2];
                 upd = new bool[n * 2];
 
                 //make sure to initialize values
@@ -222,19 +216,23 @@ struct HLD {
                 }
             }
 
-            void modify(int l, int r, T val) {    //modifies the range [l, r)
+            SegtreeLazy() {
+                //do nothing. 
+            }
+
+            void modify(int l, int r, int val) {    //modifies the range [l, r)
                 _modify(l, r, val, 0, n, 1);
             }
 
-            void modify(int ind, T val) { //modifies the range [ind, ind + 1)
+            void modify(int ind, int val) { //modifies the range [ind, ind + 1)
                 _modify(ind, ind + 1, val, 0, n, 1);
             }
 
-            T query(int l, int r) {   //queries the range [l, r)
+            int query(int l, int r) {   //queries the range [l, r)
                 return _query(l, r, 0, n, 1);
             }
 
-            T query(int ind) {    //queries the range [ind, ind + 1)
+            int query(int ind) {    //queries the range [ind, ind + 1)
                 return _query(ind, ind + 1, 0, n, 1);
             }
 
@@ -253,8 +251,8 @@ struct HLD {
                 t[ind] = fcombine(t[l], t[r]);
             }
 
-            //registers a lazy change llo this node
-            void apply(int ind, T val) {
+            //registers a lazy change into this node
+            void apply(int ind, int val) {
                 upd[ind] = true;
                 d[ind] = fmodify(d[ind], val);
             }
@@ -276,11 +274,11 @@ struct HLD {
                 d[ind] = uneut;
             }
 
-            void _modify(int l, int r, T val, int tl, int tr, int ind) {
+            void _modify(int l, int r, int val, int tl, int tr, int ind) {
                 if(l == r){
                     return;
                 }
-                if(upd[ind]) {
+                if(upd[ind]){
                     push(ind, tr - tl);
                 }
                 if(l == tl && r == tr) {
@@ -298,7 +296,7 @@ struct HLD {
                 combine(ind, tr - tl);
             }
 
-            T _query(int l, int r, int tl, int tr, int ind) {
+            int _query(int l, int r, int tl, int tr, int ind) {
                 if(l == r){
                     return qneut;
                 }  
@@ -309,8 +307,8 @@ struct HLD {
                     return t[ind];
                 }
                 int mid = tl + (tr - tl) / 2;
-                T lans = qneut;
-                T rans = qneut;
+                int lans = qneut;
+                int rans = qneut;
                 if(l < mid) {
                     lans = _query(l, min(r, mid), tl, mid, ind * 2);
                 }
@@ -328,7 +326,7 @@ struct HLD {
     vector<int> parent;
     vector<int> subtreeSize;
 
-    SegtreeLazy<ll> segt;
+    SegtreeLazy segt;
     vector<int> segEndInd; //stores the index at which this heavy path ends. 
     vector<int> segParent; //what is the parent node of this heavy path?
     vector<int> segPos;    //stores the index of each node within the segment tree. 
@@ -372,10 +370,11 @@ struct HLD {
         this->calcHLD(root);
 
         //create the segment tree needed to do the range updates. 
-        function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return val;};
-        function<ll(ll, ll, int)> fmodifyk = [](const ll src, const ll val, const int k) -> ll{return val * k;};
-        function<ll(ll, ll)> fcombine = [](const ll a, const ll b) -> ll{return a + b;};
-        this->segt = SegtreeLazy<ll>(n, 0, 0, fmodify, fmodifyk, fcombine);
+        //assignment modify, max query
+        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
+        function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val;};
+        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return max(a, b);};
+        this->segt = SegtreeLazy(n, -1e9, -1e9, fmodify, fmodifyk, fcombine);
         this->segEndInd = vector<int>(n, -1);
         this->segParent = vector<int>(n, -1);
         this->segPos = vector<int>(n, -1);
@@ -415,9 +414,9 @@ struct HLD {
         this->segt.modify(this->segPos[a], val);
     }
 
-    ll query(int a, int b) {
+    int query(int a, int b) {
         int _lca = this->lca.lca(a, b);
-        ll ret = this->segt.qneut;
+        int ret = this->segt.qneut;
         ret = this->segt.fcombine(ret, _query(a, _lca));
         ret = this->segt.fcombine(ret, _query(b, _lca));
         ret = this->segt.fcombine(ret, this->segt.query(this->segPos[_lca]));
@@ -440,8 +439,8 @@ struct HLD {
             this->segt.modify(this->segPos[a], this->segPos[_lca], val);
         }
 
-        ll _query(int a, int _lca) {
-            ll ret = this->segt.qneut;
+        int _query(int a, int _lca) {
+            int ret = this->segt.qneut;
             while(this->segEndInd[a] != this->segEndInd[_lca]) {
                 ret = this->segt.fcombine(ret, this->segt.query(this->segPos[a], this->segEndInd[a]));
                 a = this->segParent[a];
@@ -450,3 +449,48 @@ struct HLD {
             return ret;
         }
 };
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n, q;
+    cin >> n >> q;
+    vector<int> val(n);
+    for(int i = 0; i < n; i++){
+        cin >> val[i];
+    }
+    vector<vector<int>> c(n, vector<int>(0));
+    for(int i = 0; i < n - 1; i++){
+        int a, b;
+        cin >> a >> b;
+        a --;
+        b --;
+        c[a].push_back(b);
+        c[b].push_back(a);
+    }
+    HLD hld(n, 0, c);
+    for(int i = 0; i < n; i++){
+        hld.modify(i, val[i]);
+    }
+    for(int i = 0; i < q; i++){
+        int t;
+        cin >> t;
+        if(t == 1){
+            int s, x;
+            cin >> s >> x;
+            s --;
+            hld.modify(s, x);
+        }
+        else {
+            int a, b;
+            cin >> a >> b;
+            a --;
+            b --;
+            cout << hld.query(a, b) << " ";
+        }
+    }
+    cout << "\n";
+    
+    return 0;
+}

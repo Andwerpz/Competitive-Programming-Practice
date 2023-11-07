@@ -69,6 +69,11 @@ ll nck(ll n, ll k) {
     return ans;
 }
 
+//true if odd, false if even. 
+bool nck_parity(ll n, ll k) {   
+    return (n & (n - k)) == 0;
+}
+
 ll catalan(ll n){
     return sub(nck(2 * n, n), nck(2 * n, n + 1));
 }

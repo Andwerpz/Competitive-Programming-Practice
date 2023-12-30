@@ -1,10 +1,17 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
 typedef long double ld;
 using namespace std;
 
+//ICPC World Finals 2020 - F
+
+//there must exist an optimal line where exactly two points lie on the boundary. 
+
+//we can set one point, and do sweepline to test all the other points, given that one point is locked to the boundary. 
+
 ld pi = acos(-1);
-ld epsilon = 1e-9;
+ld epsilon = 1e-10;
 
 struct vec2 {
     ld x, y;
@@ -38,11 +45,6 @@ ld length(vec2 a) {
     return sqrt(a.x * a.x + a.y * a.y);
 }
 
-ld lerp(ld t0, ld t1, ld x0, ld x1, ld t) {
-    ld slope = (x1 - x0) / (t1 - t0);
-    return x0 + slope * (t - t0);
-}
-
 vec2 mul(vec2 a, ld s) {
     a.x *= s;
     a.y *= s;
@@ -55,13 +57,6 @@ vec2 normalize(vec2 a){
     ret.x = a.x / len;
     ret.y = a.y / len;
     return ret;
-}
-
-//project a onto b
-vec2 project(vec2 a, vec2 b) {
-    b = normalize(b);
-    ld proj_mag = dot(a, b);
-    return mul(b, proj_mag);
 }
 
 vec2 rotateCCW(vec2 a, ld theta) {
@@ -225,4 +220,93 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     }
 
     return ans;
+}
+
+int solve(vector<vec2>& p, int ind, ld width) {
+    vector<pair<ld, pair<int, int>>> events(0); //angle, {event type, index}
+    int ans = 1;
+    for(int i = 0; i < p.size(); i++){
+        if(i == ind) {
+            continue;
+        }
+        vec2 pt = sub(p[i], p[ind]);
+        if(length(pt) <= width + epsilon) {
+            ld angle = atan2(pt.y, pt.x);
+            //enter event
+            events.push_back({angle, {1, i}});
+            //exit event
+            events.push_back({angle + pi + epsilon, {-1, i}});
+            //cout << "ENTER ANGLE : " << angle << " " << i << "\n";
+        } 
+        else {
+            ld angle = atan2(pt.y, pt.x);
+            //cout << "ENTER ANGLE : " << angle << " " << i << "\n";
+            //enter event
+            events.push_back({angle, {1, i}});
+            //exit event
+            ld h = length(pt);
+            ld phi = asin(width / h);
+            events.push_back({phi + angle + epsilon, {-1, i}});
+
+            //enter event
+            events.push_back({angle + pi - phi, {1, i}});
+            //exit event
+            events.push_back({angle + pi + epsilon, {-1, i}});
+            //cout << "PHI : " << phi << "\n";
+
+            //cout << angle << " " << phi + angle + epsilon << " " << angle + pi - phi << " " << angle + pi + epsilon << "\n";
+        }
+    }
+    for(int i = 0; i < events.size(); i++){
+        if(events[i].first < 0) {
+            events[i].first += 2.0 * pi;
+        }
+        while(events[i].first > 2.0 * pi) {
+            events[i].first -= 2.0 * pi;
+        }
+    }
+    sort(events.begin(), events.end());
+    set<int> in;
+    //cout << "TESTING : " << ind << endl;
+    for(int i = 0; i < events.size() * 2; i++){
+        int ind = events[i % events.size()].second.second;
+        bool enter = events[i % events.size()].second.first == 1;
+        //cout << events[i].first << " " << ind << " " << enter << "\n";
+        if(enter) {
+            in.insert(ind);
+        }
+        else {
+            in.erase(ind);
+        }
+        //cout << in.size() << "\n";
+        ans = max(ans, 1 + (int) in.size());
+    }
+    //cout << "ANSWER : " << ans << "\n";
+    return ans;
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n;
+    ld t;
+    cin >> n >> t;
+    vector<vec2> p(0);
+    for(int i = 0; i < n; i++){
+        vec2 v;
+        cin >> v.x >> v.y;
+        p.push_back(v);
+    }
+    if(t == 0){
+        cout << "2\n";
+        return 0;
+    }
+    int ans = 0;
+    for(int i = 0; i < n; i++){
+        ans = max(ans, solve(p, i, t));
+    }
+    cout << ans << "\n";
+    
+    return 0;
 }

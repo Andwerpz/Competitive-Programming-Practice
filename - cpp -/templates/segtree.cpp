@@ -46,18 +46,41 @@ struct Segtree {
     }
 
     T query(int l, int r) { // sum on interval [l, r)
-        T res = qneut;
+        T l_res = qneut, r_res = qneut;
+        bool l_none = true, r_none = true;
         for (l += n, r += n; l < r; l /= 2, r /= 2) {
             if (l % 2 == 1) {
-                res = fcombine(res, t[l]);
+                if(l_none) {
+                    l_none = false;
+                    l_res = t[l];
+                }
+                else {
+                    l_res = fcombine(l_res, t[l]);
+                }
                 l++;
             }
             if (r % 2 == 1) {
                 r--;
-                res = fcombine(res, t[r]);
+                if(r_none) {
+                    r_none = false;
+                    r_res = t[r];
+                }
+                else {
+                    r_res = fcombine(t[r], r_res);
+                }
             }
         }
-        return res;
+        if(l_none) {
+            return r_res;
+        }
+        if(r_none) {
+            return l_res;
+        }
+        return fcombine(l_res, r_res);
+    }
+
+    T query(int ind) {
+        return this->query(ind, ind + 1);
     }
 };
 
@@ -118,7 +141,6 @@ void run_segt_tests(int maxSize, int updateNeutral, int queryNeutral, function<i
     cout << "TEST PASSED\n";
 }
 
-
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
@@ -137,6 +159,40 @@ int main() {
         function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
         function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
         run_segt_tests(n, 0, 1e9, fmodify, fcombine); 
+    }
+
+    // -- INCREMENT MODIFY, MAX SUBARRAY SUM QUERY --
+    {   
+        struct seg {
+            ll max_pfx, max_sfx, max_sum, sum;
+            seg() {};
+            seg(ll sum) {
+                this->sum = sum;
+            }
+            seg(ll max_pfx, ll max_sfx, ll max_sum, ll sum) {
+                this->max_pfx = max_pfx;
+                this->max_sfx = max_sfx;
+                this->max_sum = max_sum;
+                this->sum = sum;
+            }
+        };
+        function<seg(seg, seg)> fmodify = [](const seg src, const seg val) -> seg{
+            seg next;
+            next.max_pfx = src.max_pfx + val.sum;
+            next.max_sfx = src.max_sfx + val.sum;
+            next.max_sum = src.max_sum + val.sum;
+            next.sum = src.sum + val.sum;
+            return next;
+        };
+        function<seg(seg, seg)> fcombine = [](const seg lhs, const seg rhs) -> seg{
+            seg next;
+            next.max_pfx = max(lhs.max_pfx, lhs.sum + rhs.max_pfx);
+            next.max_sfx = max(rhs.max_sfx, rhs.sum + lhs.max_sfx);
+            next.max_sum = max({lhs.max_sum, rhs.max_sum, lhs.max_sfx + rhs.max_pfx});
+            next.sum = lhs.sum + rhs.sum;
+            return next;
+        };
+        Segtree<seg> segt(n, {0, 0, 0, 0}, {0, 0, 0, 0}, fmodify, fcombine);
     }
     
     return 0;

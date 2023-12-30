@@ -4,27 +4,9 @@ typedef __int128 lll;
 typedef long double ld;
 using namespace std;
 
-void find_scc_dfs1(int v, vector<bool>& used, vector<vector<int>>& adj, vector<int>& order) {
-    used[v] = true;
-
-    for (auto u : adj[v])
-        if (!used[u])
-            find_scc_dfs1(u, used, adj, order);
-
-    order.push_back(v);
-}
-
-void find_scc_dfs2(int v, vector<bool>& used, vector<vector<int>>& adj_rev, vector<int>& component) {
-    used[v] = true;
-    component.push_back(v);
-
-    for (auto u : adj_rev[v])
-        if (!used[u])
-            find_scc_dfs2(u, used, adj_rev, component);
-}
-
 //implementation of kosajaru's algorithm. 
 //runs in linear time with respect to the sum of nodes and edges. 
+//returns multiple lists of node ids, each list being a scc
 vector<vector<int>> find_scc(int n, vector<vector<int>>& adj) {
     vector<vector<int>> adj_rev(n, vector<int>(0));
     vector<bool> used(n, false);
@@ -34,21 +16,39 @@ vector<vector<int>> find_scc(int n, vector<vector<int>>& adj) {
             adj_rev[adj[i][j]].push_back(i);
         }
     }
+    function<void(int)> dfs1 = [&used, &adj, &order, &dfs1](int v) -> void {
+        used[v] = true;
+        for (auto u : adj[v]) {
+            if (!used[u]) {
+                dfs1(u);
+            }
+        }
+        order.push_back(v);
+    };
     for(int i = 0; i < n; i++){
         if(used[i]) {
             continue;
         }
-        find_scc_dfs1(i, used, adj, order);
+        dfs1(i);
     }
     fill(used.begin(), used.end(), false);
     reverse(order.begin(), order.end());
+    function<void(int, vector<int>&)> dfs2 = [&used, &adj_rev, &dfs2](int v, vector<int>& component) -> void {
+        used[v] = true;
+        component.push_back(v);
+        for (auto u : adj_rev[v]) {
+            if (!used[u]) {
+                dfs2(u, component);
+            }
+        }
+    };
     vector<vector<int>> ans(0);
     for(int i = 0; i < n; i++){
         if(used[order[i]]){
             continue;
         }
         vector<int> component(0);
-        find_scc_dfs2(order[i], used, adj_rev, component);
+        dfs2(order[i], component);
         ans.push_back(component);
     }
     return ans;

@@ -1,7 +1,24 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
 typedef long double ld;
 using namespace std;
+
+//Kattis - starnotatree
+
+//we can use gradient descent to progressively improve our solution. 
+
+//let's create a function f(x, y) that takes in a point, and outputs the amount of cable required given that
+//the hub is placed at (x, y). 
+
+//note that the function is just going to be the sum of all distances to (x, y) from each of the computers. 
+
+//now, the tricky part is showing that there are no local minima for our descent to get stuck in. For the sake of 
+//intuition, we can look at the 1D analogy to this situation, where we have a bunch of points on the number line, 
+//and we take the distance from all of those points. 
+
+//note that the sum of absolute value functions should never have any local minima, and the only flat point
+//should occur at the global minimum. 
 
 ld pi = acos(-1);
 ld epsilon = 1e-9;
@@ -51,6 +68,9 @@ vec2 mul(vec2 a, ld s) {
 
 vec2 normalize(vec2 a){
     ld len = length(a);
+    if(len < epsilon) {
+        return vec2();
+    }
     vec2 ret;
     ret.x = a.x / len;
     ret.y = a.y / len;
@@ -225,4 +245,42 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     }
 
     return ans;
+}
+
+vec2 descend(vec2 guess, ld interval, vector<vec2>& a) {
+    vec2 dir;
+    for(int i = 0; i < a.size(); i++){
+        vec2 n_dir = sub(a[i], guess);
+        dir = add(dir, normalize(n_dir));
+    }
+    return add(guess, mul(dir, interval));
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n;
+    cin >> n;
+    vector<vec2> a(n);
+    vec2 guess;
+    for(int i = 0; i < n; i++){
+        cin >> a[i].x >> a[i].y;
+        guess = add(guess, a[i]);
+    }
+    guess = mul(guess, 1.0 / (ld) n);
+    ld interval = 1;
+    for(int i = 0; i < 6; i++){
+        for(int j = 0; j < 100000; j++){
+            guess = descend(guess, interval, a);
+        }
+        interval /= 10.0;
+    }
+    ld ans = 0;
+    for(int i = 0; i < n; i++){
+        ans += length(sub(guess, a[i]));
+    }
+    cout << fixed << setprecision(10) << ans << "\n";
+
+    return 0;
 }

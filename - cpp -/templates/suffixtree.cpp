@@ -55,12 +55,6 @@ struct SuffixTree {
             this->calc_lcp();
         }
 
-        //runs in amortized O(1) time
-        void add_char(char c) {
-            this -> chars.push_back(c);
-            this -> tree_extend((int) this->chars.size() - 1);
-        }
-
         //runs in O(|s|) time. 
         bool contains_string(string s) {
             return count_occurrences(s);
@@ -250,6 +244,12 @@ struct SuffixTree {
         };
 
         SuffixState ptr = SuffixState(nullptr, 0);
+
+        //runs in amortized O(1) time
+        void add_char(char c) {
+            this->chars.push_back(c);
+            this->tree_extend((int) this->chars.size() - 1);
+        }
 
         void tree_extend(int pos) {
             if(pos == 0){

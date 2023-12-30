@@ -1,17 +1,19 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
 typedef long double ld;
 using namespace std;
 
-// -- REMEMBER -- 
-//always check that the lazysegtree settings are exactly what you need. 
-//don't forget to modify the range combine function. 
+//Codeforces - 383C
 
-//a relatively dumb implementation of heavy-light decomposition. 
-//note that this implementation is not very optimized; you'll probably TLE on tight time constraints. 
-//O(log^2(n)) query and modify any path along the tree. 
+//classic HLD problem. Root the tree at vertex 0, and determine the depth of each node. 
+//what's important here is the parity of the depth; even or odd. 
 
-//if you want to modify this to modify and query across edges, then 
+//then, construct two HLD datastructures, one for even depth and one for odd depth nodes. When doing 
+//operations of type 1, first determine the depth of the node, and then add to the corresponding HLD struct.
+
+//to process queries of type 2, we take the path sum from the root, 0, to x, the query node, of the even
+//HLD, and subtract the path sum of the odd HLD. If the depth of x is odd, then we negate the answer. 
 
 struct HLD {
     struct LCA {
@@ -376,9 +378,8 @@ struct HLD {
         this->calcHLD(root);
 
         //create the segment tree needed to do the range updates. 
-        //currently set to assignment modify, sum query. 
-        function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return val;};
-        function<ll(ll, ll, int)> fmodifyk = [](const ll src, const ll val, const int k) -> ll{return val * k;};
+        function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return src + val;};
+        function<ll(ll, ll, int)> fmodifyk = [](const ll src, const ll val, const int k) -> ll{return src + val * k;};
         function<ll(ll, ll)> fcombine = [](const ll a, const ll b) -> ll{return a + b;};
         this->segt = SegtreeLazy<ll>(n, 0, 0, fmodify, fmodifyk, fcombine);
         this->segEndInd = vector<int>(n, -1);
@@ -455,3 +456,71 @@ struct HLD {
             return ret;
         }
 };
+
+void calcDepth(int cur, int p, vector<vector<int>>& c, vector<int>& depth) {
+    if(p == -1){
+        depth[cur] = 0;
+    }
+    else {
+        depth[cur] = depth[p] + 1;
+    }
+    for(int i = 0; i < c[cur].size(); i++){
+        int next = c[cur][i];
+        if(next == p){
+            continue;
+        }
+        calcDepth(next, cur, c, depth);
+    }
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n, m;
+    cin >> n >> m;
+    vector<int> a(n);
+    for(int i = 0; i < n; i++){
+        cin >> a[i];
+    }
+    vector<vector<int>> adjList(n, vector<int>(0));
+    for(int i = 0; i < n - 1; i++){
+        int u, v;
+        cin >> u >> v;
+        u --;
+        v --;
+        adjList[u].push_back(v);
+        adjList[v].push_back(u);
+    }
+    HLD hld_even(n, 0, adjList), hld_odd(n, 0, adjList);
+    vector<int> depth(n, -1);
+    calcDepth(0, -1, adjList, depth);
+    for(int i = 0; i < m; i++){
+        int type;
+        cin >> type;
+        if(type == 1){
+            int x, val;
+            cin >> x >> val;
+            x --;
+            if(depth[x] % 2 == 0){
+                hld_even.modify(x, val);
+            }
+            else {
+                hld_odd.modify(x, val);
+            }
+        }
+        else {
+            int x;
+            cin >> x;
+            x --;
+            ll ans = hld_even.query(0, x) - hld_odd.query(0, x);
+            if(depth[x] % 2 == 1){
+                ans *= -1;
+            }
+            ans += (ll) a[x];
+            cout << ans << "\n";
+        }
+    }
+    
+    return 0;
+}

@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+typedef long long ll;
 using namespace std;
 
 //given a target flow, what is the minimum cost to acheive that flow?
@@ -8,20 +9,21 @@ using namespace std;
 //between two nodes, there must be exactly 1 edge. 
 
 struct Edge {
-    int from, to, capacity, cost;
-    Edge(int from, int to, int capacity, int cost) {
+    ll from, to, capacity, cost;
+    Edge(int from, int to, ll capacity, ll cost) {
         this->from = from;
         this->to = to;
         this->capacity = capacity;
         this->cost = cost;
     }
+    Edge() {}
 };
 
-vector<vector<int>> adj, cost, capacity;
+vector<vector<ll>> adj, cost, capacity;
 
 const int INF = 1e9;
 
-void shortest_paths(int n, int v0, vector<int>& d, vector<int>& p) {
+void shortest_paths(int n, int v0, vector<ll>& d, vector<ll>& p) {
     d.assign(n, INF);
     d[v0] = 0;
     vector<bool> inq(n, false);
@@ -49,11 +51,11 @@ void shortest_paths(int n, int v0, vector<int>& d, vector<int>& p) {
 //N = node amt
 //s = source
 //t = sink
-//K = target flow
-int min_cost_flow(int N, vector<Edge> edges, int K, int s, int t) {
-    adj.assign(N, vector<int>());
-    cost.assign(N, vector<int>(N, 0));
-    capacity.assign(N, vector<int>(N, 0));
+//K = target flow; if set to infinity, then will find min cost of max flow. 
+ll min_cost_flow(int N, vector<Edge> edges, int s, int t, ll K = 1e18) {
+    adj.assign(N, vector<ll>());
+    cost.assign(N, vector<ll>(N, 0));
+    capacity.assign(N, vector<ll>(N, 0));
     for (Edge e : edges) {
         adj[e.from].push_back(e.to);
         adj[e.to].push_back(e.from);
@@ -62,16 +64,16 @@ int min_cost_flow(int N, vector<Edge> edges, int K, int s, int t) {
         capacity[e.from][e.to] = e.capacity;
     }
 
-    int flow = 0;
-    int cost = 0;
-    vector<int> d, p;
+    ll flow = 0;
+    ll cost = 0;
+    vector<ll> d, p;
     while (flow < K) {
         shortest_paths(N, s, d, p);
         if (d[t] == INF)
             break;
 
         // find max flow on that path
-        int f = K - flow;
+        ll f = K - flow;
         int cur = t;
         while (cur != s) {
             f = min(f, capacity[p[cur]][cur]);
@@ -89,8 +91,8 @@ int min_cost_flow(int N, vector<Edge> edges, int K, int s, int t) {
         }
     }
 
-    if (flow < K)
-        return -1;
-    else
+    if(flow == K || K == 1e18) {
         return cost;
+    }
+    return -1;
 }

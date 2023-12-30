@@ -1,10 +1,17 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
 typedef long double ld;
 using namespace std;
 
+//ICPC World Finals 2021 - F
+
+//for a given theta value, we can brute force check whether or not all islands are covered. 
+
+//then, we just binary search across theta from pi / 2 to 0. 
+
 ld pi = acos(-1);
-ld epsilon = 1e-9;
+ld epsilon = 1e-11;
 
 struct vec2 {
     ld x, y;
@@ -38,11 +45,6 @@ ld length(vec2 a) {
     return sqrt(a.x * a.x + a.y * a.y);
 }
 
-ld lerp(ld t0, ld t1, ld x0, ld x1, ld t) {
-    ld slope = (x1 - x0) / (t1 - t0);
-    return x0 + slope * (t - t0);
-}
-
 vec2 mul(vec2 a, ld s) {
     a.x *= s;
     a.y *= s;
@@ -55,13 +57,6 @@ vec2 normalize(vec2 a){
     ret.x = a.x / len;
     ret.y = a.y / len;
     return ret;
-}
-
-//project a onto b
-vec2 project(vec2 a, vec2 b) {
-    b = normalize(b);
-    ld proj_mag = dot(a, b);
-    return mul(b, proj_mag);
 }
 
 vec2 rotateCCW(vec2 a, ld theta) {
@@ -225,4 +220,101 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     }
 
     return ans;
+}
+
+//project a onto b
+vec2 project(vec2 a, vec2 b) {
+    b = normalize(b);
+    ld proj_mag = dot(a, b);
+    return mul(b, proj_mag);
+}
+
+ld lerp(ld t0, ld t1, ld x0, ld x1, ld t) {
+    ld slope = (x1 - x0) / (t1 - t0);
+    return x0 + slope * (t - t0);
+}
+
+bool isCovered(vector<vec2>& poly, vector<ld>& path, ld theta) {
+    ld z0 = path[2];
+    ld z1 = path[5];
+    vec2 p0(path[0], path[1]);
+    vec2 p1(path[3], path[4]);
+    ld path_dist = length(sub(p0, p1));
+    for(int i = 0; i < poly.size(); i++){
+        vec2 pt = poly[i];
+        //project pt onto the path
+        vec2 pt_proj = add(p0, project(sub(pt, p0), sub(p1, p0)));
+        //make sure projected point isn't outside of endpoints
+        ld pt_proj_dist = dot(normalize(sub(p1, p0)), sub(pt_proj, p0));
+        if(pt_proj_dist < -epsilon || pt_proj_dist > path_dist + epsilon) {
+            return false;
+        }
+        //make sure projected point theta is within bounds
+        ld pt_proj_z = lerp(0, path_dist, z0, z1, pt_proj_dist);
+        ld side_a = length(sub(pt, pt_proj));
+        ld side_b = pt_proj_z;
+        ld proj_theta = atan(side_a / side_b);
+        if(proj_theta > theta + epsilon) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool isValid(vector<vector<vec2>>& poly, vector<vector<ld>>& paths, ld theta) {
+    for(int i = 0; i < poly.size(); i++){
+        bool found = false;
+        for(int j = 0; j < paths.size(); j++){
+            if(isCovered(poly[i], paths[j], theta)) {
+                found = true;
+                break;
+            }
+        }
+        if(!found) {
+            return false;
+        }
+    }
+    return true;
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n, m;
+    cin >> n >> m;
+    vector<vector<vec2>> poly(n, vector<vec2>());
+    for(int i = 0; i < n; i++){
+        int cnt;
+        cin >> cnt;
+        for(int j = 0; j < cnt; j++){
+            vec2 v;
+            cin >> v.x >> v.y;
+            poly[i].push_back(v);
+        }
+    }
+    vector<vector<ld>> paths(m, vector<ld>(6, 0));
+    for(int i = 0; i < m; i++){
+        cin >> paths[i][0] >> paths[i][1] >> paths[i][2] >> paths[i][3] >> paths[i][4] >> paths[i][5];
+    }
+    if(!isValid(poly, paths, pi / 2.0)) {
+        cout << "impossible" << "\n";
+        return 0;
+    }
+    ld low = 0;
+    ld high = pi / 2.0;
+    ld ans = high;
+    while(high - low > epsilon) {
+        ld mid = low + (high - low) / 2;
+        if(isValid(poly, paths, mid)) {
+            ans = min(ans, mid);
+            high = mid;
+        }
+        else {
+            low = mid;
+        }
+    }
+    cout << fixed << setprecision(10) << (ans / pi * 180.0) << "\n";
+    
+    return 0;
 }

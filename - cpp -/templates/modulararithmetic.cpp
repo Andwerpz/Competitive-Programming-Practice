@@ -31,13 +31,14 @@ ll mul(ll a, ll b) {
 }
 
 ll power(ll a, ll b) {
-    if(b == 0){
-        return 1;
-    }
-    ll ans = power(a, b / 2);
-    ans = mul(ans, ans);
-    if(b % 2 == 1) {
-        ans = mul(ans, a);
+    ll ans = 1;
+    ll p = a;
+    while(b != 0){
+        if(b % 2 == 1){
+            ans = mul(ans, p);
+        }
+        p = mul(p, p);
+        b /= 2;
     }
     return ans;
 }

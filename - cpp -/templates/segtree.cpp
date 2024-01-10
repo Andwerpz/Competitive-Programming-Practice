@@ -26,9 +26,10 @@ struct Segtree {
         uneut = updateNeutral;
         qneut = queryNeutral;
 
-        for(int i = 0; i < 2 * n; i++){
-            t[i] = uneut;
+        for(int i = 0; i < n; i++){
+            t[i + n] = uneut;
         }
+        build();
     }
 
     void build() { // build the tree after manually assigning the values.
@@ -162,6 +163,7 @@ int main() {
     }
 
     // -- INCREMENT MODIFY, MAX SUBARRAY SUM QUERY --
+    //subarray has to contain at least 1 element. 
     {   
         struct seg {
             ll max_pfx, max_sfx, max_sum, sum;
@@ -195,5 +197,57 @@ int main() {
         Segtree<seg> segt(n, {0, 0, 0, 0}, {0, 0, 0, 0}, fmodify, fcombine);
     }
     
+    // -- ASSIGNMENT MODIFY, XOR BASIS QUERY --
+    //returns the xor basis of a range. Refer to https://codeforces.com/blog/entry/68953
+    {   
+        struct seg{
+            int basis[20];
+            int nr_b = 0;
+            seg(int val) {
+                fill(basis, basis + 20, -1);
+                nr_b += basisAdd(val);
+            }
+            seg() {
+                fill(basis, basis + 20, -1);
+            }
+            bool basisAdd(int val, int start = 0) {
+                for(int i = start; i < 20; i++){
+                    if((val & 1 << i) == 0){
+                        continue;
+                    }
+                    if(basis[i] == -1){
+                        basis[i] = val;
+                        return true;
+                    }
+                    val ^= basis[i];
+                }
+                return false;
+            }
+        };
+        function<seg(seg, seg)> fmodify = [](const seg src, const seg val) -> seg{
+            return val;
+        };
+        function<seg(seg, seg)> fcombine = [](const seg a, const seg b) -> seg{
+            if(a.nr_b == 20){
+                return a;
+            }
+            if(b.nr_b == 20){
+                return b;
+            }
+            seg next;
+            for(int i = 0; i < 20; i++){
+                next.basis[i] = a.basis[i];
+            }
+            next.nr_b = a.nr_b;
+            for(int i = 19; i >= 0; i--){
+                if(b.basis[i] != -1){
+                    next.basisAdd(b.basis[i], i);
+                }
+            }
+            return next;
+        };
+        Segtree<seg> segt(n, {}, {}, fmodify, fcombine);
+    }
+
     return 0;
 }

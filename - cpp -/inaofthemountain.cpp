@@ -3,6 +3,30 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
+//Codeforces - 1852C
+
+//i read the editorial, and idk why and how this works D:
+
+//let's say that we know how many times each octopus regenerates. Then, we can denote each
+//of their total healths in the array 'c', where c[i] = a[i] + r[i] * k, where r
+//is the amount of times each one regenerates. 
+
+//in this case, the answer is simply all the positive differences of c[i + 1] - c[i]. 
+
+//how can we efficiently determine the values in c? First, notice that any two adjacent
+//values in c have to differ by less than k. If they differ by more, we could just always make a 
+//better answer by subtracting k from some range. 
+
+//so, if we determined c[i], then there are at most 2 choices for c[i + 1], either going 'up', or
+//'down'. We can employ a greedy method to then solve this problem:
+
+//we keep track of where we currently are in 'cur'. Initially, cur := a[0]. Then, for each i from
+//1 to n - 1, we try to make it so that we move 'down' from cur to c[i]. If a[i] < (cur % k), then
+//we can already just move down from cur to c[i]. Otherwise, we must change some other transition before
+//i, so that it moves upwards. We always want to change the one that will add the minimum, so we maintain
+//a priority queue to tell us what's the transition that when changed to move upwards will add the 
+//minimum to the answer. 
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
@@ -18,28 +42,27 @@ int main() {
             cin >> a[i];
             a[i] %= k;
         }
-        int x = 80;
-        vector<vector<ll>> dp(n, vector<ll>(x, 1e18));
-        for(int i = 0; i < x; i++){
-            dp[0][i] = a[0] + k * (ll) i;   
-        }
-        for(int i = 0; i < n - 1; i++){
-            for(int y = 0; y < x; y++){
-                ll cur = a[i] + k * (ll) y;
-                for(int z = 0; z < x; z++){
-                    ll next = a[i + 1] + k * (ll) z;
-                    dp[i + 1][z] = min(dp[i + 1][z], dp[i][y] + max(next - cur, 0ll));
-                }
+        priority_queue<ll> add;
+        ll ans = a[0];
+        ll cur = a[0];
+        for(int i = 1; i < n; i++){
+            ll next = a[i];
+            if(next < cur) {
+                ll diff = cur - next;
+                next += (diff / k) * k;
             }
-
-            // for(int j = 0; j < x; j++){
-            //     cout << dp[i][j] << " ";
-            // }
-            // cout << "\n";
-        }
-        ll ans = 1e18;
-        for(int i = 0; i < x; i++){
-            ans = min(ans, dp[n - 1][i]);
+            if(next <= cur) {
+                //we can just go down
+                ll diff = cur - next;
+                add.push(-(k - diff));
+            }
+            else {
+                //we have to go up
+                add.push(-(next - cur));
+                ans += -add.top();
+                add.pop();
+            }
+            cur = next;
         }
         cout << ans << "\n";
     }

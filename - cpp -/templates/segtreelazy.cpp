@@ -20,7 +20,7 @@ struct SegtreeLazy {
         //product of two elements for query
         function<T(T, T)> fcombine;
 
-        SegtreeLazy(int maxSize, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T, int)> fmodifyk, function<T(T, T)> fcombine) {
+        SegtreeLazy(int maxSize, T updateNeutral, T queryNeutral, T initVal, function<T(T, T)> fmodify, function<T(T, T, int)> fmodifyk, function<T(T, T)> fcombine) {
             n = maxSize;
             uneut = updateNeutral;
             qneut = queryNeutral;
@@ -41,8 +41,11 @@ struct SegtreeLazy {
             upd = new bool[n * 2];
 
             //make sure to initialize values
-            for(int i = 0; i < n * 2; i++){
-                t[i] = uneut;
+            for(int i = 0; i < n; i++){
+                t[i + n] = initVal;
+            }
+            for(int i = n - 1; i > 0; i--){
+                t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
             }
             for(int i = 0; i < n * 2; i++){
                 d[i] = uneut;
@@ -244,7 +247,7 @@ void run_segt_tests(int maxSize, int updateNeutral, int queryNeutral, function<i
     srand(time(0));
     bool isValid = true;
     for(int i = 0; i < 100; i++){
-        SegtreeLazy<int> segt(maxSize, updateNeutral, queryNeutral, fmodify, fmodifyk, fcombine);
+        SegtreeLazy<int> segt(maxSize, updateNeutral, queryNeutral, updateNeutral, fmodify, fmodifyk, fcombine);
         if(!test_segt(segt, updateNeutral)) {
             cout << "TEST FAILED\n";
             return;
@@ -268,20 +271,78 @@ int main() {
     }
 
     // -- INCREMENT MODIFY, MINIMUM QUERY --
-    // {
-    //     function<int(int, int)> fmodify = [](const int src, const int val) -> int{return src + val;};
-    //     function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return src + val;};
-    //     function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
-    //     run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
-    // }
+    {
+        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return src + val;};
+        function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return src + val;};
+        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
+        run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
+    }
 
     // -- ASSIGNMENT MODIFY, MINIMUM QUERY --
-    // {
-    //     function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
-    //     function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val;};
-    //     function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
-    //     run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
-    // }
+    {
+        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
+        function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val;};
+        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
+        run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
+    }
+
+    // -- 01 ASSIGNMENT MODIFY, FIRST LAST INDEX 01 QUERY -- 
+    // when querying, returns a struct that tells you the first and last indices of 0 and 1
+    // in the range that you queried. 
+    {
+        struct seg {
+            int size;
+            bool has_one, has_zero;
+            int pfx_one, sfx_one;   //distance from beginning and end of closest 1
+            int pfx_zero, sfx_zero; 
+            seg(int size, bool which) { //sets the entire segment the same value
+                this->size = size;
+                has_one = which;
+                has_zero = !which;
+                pfx_one = 0;
+                sfx_one = 1;
+                pfx_zero = 0;
+                sfx_zero = 1;
+            }
+            seg(int size){
+                this->size = size;
+                has_one = false;
+                has_zero = false;
+            }
+            seg() {}
+        };
+        //assignment modify, range 'seg' query. 
+        function<seg(seg, seg)> fmodify = [](const seg src, const seg val) -> seg{
+            //set this element to 0 or 1
+            seg next(src.size, val.has_one);
+            return next;
+        };
+        function<seg(seg, seg, int)> fmodifyk = [](const seg src, const seg val, const int k) -> seg{
+            //set the entire range to 0 or 1
+            seg next(src.size, val.has_one);
+            return next;
+        };
+        function<seg(seg, seg)> fcombine = [](const seg lhs, const seg rhs) -> seg{
+            //combines lhs and rhs into one segment
+            seg next(lhs.size + rhs.size, false);
+            next.has_one = lhs.has_one || rhs.has_one;
+            next.has_zero = lhs.has_zero || rhs.has_zero;
+            if(next.has_one) {
+                next.pfx_one = lhs.has_one? lhs.pfx_one : lhs.size + rhs.pfx_one;
+                next.sfx_one = rhs.has_one? rhs.sfx_one : rhs.size + lhs.sfx_one;
+            }
+            if(next.has_zero) {
+                next.pfx_zero = lhs.has_zero? lhs.pfx_zero : lhs.size + rhs.pfx_zero;
+                next.sfx_zero = rhs.has_zero? rhs.sfx_zero : rhs.size + lhs.sfx_zero;
+            }
+            return next;
+        };
+        SegtreeLazy<seg> segt(n, {0}, {0}, {1, false}, fmodify, fmodifyk, fcombine);
+        //example use
+        segt.modify(0, {0, false}); //set range to 0
+        segt.modify(1, 5, {0, true});   //set range to 1
+        seg a = segt.query(5, 10);  //get attr over range
+    }
 
     return 0;
 }

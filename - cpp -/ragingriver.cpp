@@ -1,15 +1,18 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
+typedef long double ld;
+typedef __float128 lld;
 using namespace std;
 
-//slightly modified MCMF template from KACTL
+//2018 South Central USA Regional - J
 
-//given a target flow, what is the minimum cost to acheive that flow?
-//each edge has some cost, which is the cost per unit of flow. 
+//notice that the maximum amount of people that can get from left to right bank is equal to the min cut, assuming that
+//the capacity of each edge is 1. This should be enough to clue you in that this problem is max flow. 
 
-//backedges between nodes are allowed. I think this works because in max flow, it only really makes sense to 
-//push flow one way through an edge, given that the capacity is symmetrical. 
+//given that we can get everyone across, we want to find the minimum cost. This is just min cost flow. 
 
+#include <ext/pb_ds/detail/standard_policies.hpp>
 #include <bits/extc++.h>
 #define all(x) begin(x), end(x)
 #define sz(x) (int) (x).size()
@@ -63,7 +66,7 @@ struct MCMF {
 		}
 		rep(i,0,N) pi[i] = min(pi[i] + dist[i], INF);
 	}
-    
+
 	pair<ll, ll> maxflow(int s, int t, ll max_flow = INF) {
 		ll totflow = 0, totcost = 0;
 		while (path(s), seen[t] && totflow < max_flow) {
@@ -93,3 +96,33 @@ struct MCMF {
 		assert(it >= 0); // negative cost cycle
 	}
 };
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int p, r, l;
+    cin >> p >> r >> l;
+    int source = r ++;
+    int sink = r ++;
+    MCMF mcmf(r);
+    for(int i = 0; i < l; i++){
+        int u, v;
+        cin >> u >> v;
+        u = u == -2? source : (u == -1? sink : u);
+        v = v == -2? source : (v == -1? sink : v);
+        mcmf.addEdge(u, v, 1, 1);
+        mcmf.addEdge(v, u, 1, 1);
+    }
+    pair<ll, ll> ans = mcmf.maxflow(source, sink, p);
+    ll flow = ans.first;
+    ll cost = ans.second;
+    if(flow != p){
+        cout << (p - flow) << " people left behind\n";
+    }
+    else {
+        cout << cost << "\n";
+    }
+    
+    return 0;
+}

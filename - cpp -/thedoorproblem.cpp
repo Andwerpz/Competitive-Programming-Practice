@@ -5,6 +5,14 @@ typedef long double ld;
 typedef __float128 lld;
 using namespace std;
 
+//Codeforces - 776D
+
+//standard 2SAT problem. Note that if a door is initially unlocked, we want to either trigger both or none
+//of the switches connected to it, and if it is locked, then we want to trigger exactly 1. 
+
+//we want to see if there exists a set of switches such that if we trigger them, all the doors will
+//unlock. 
+
 //kosajaru algorithm
 vector<vector<int>> find_scc(int n, vector<vector<int>>& adj) {
     vector<vector<int>> adj_rev(n, vector<int>(0));
@@ -114,84 +122,63 @@ struct TSAT {
         set(a, a_state);                    //make sure that a is good
     }
 
-    //if a solution exists, returns a possible configuration of the variables. 
-    //otherwise, returns an empty vector
-    vector<bool> generateSolution() {
+    bool solutionExists() {
         //first, split into sccs. 
         vector<vector<int>> scc = find_scc(n * 2, c);
         //check for contradictions, eg if a and !a are in the same scc
-        vector<int> node_scc(n * 2);
+        vector<vector<int>> node_scc(n, {0, 0});
         for(int i = 0; i < scc.size(); i++){
             for(int j = 0; j < scc[i].size(); j++){
                 int id = scc[i][j];
-                node_scc[id] = i;
+                node_scc[id / 2][id % 2] = i;
             }
         }
         for(int i = 0; i < n; i++){
-            if(node_scc[i * 2 + 0] == node_scc[i * 2 + 1]){
-                return {};
+            if(node_scc[i][0] == node_scc[i][1]) {
+                return false;
             }
         }
         //otherwise, a solution always exists
-        vector<bool> v(n, false);
-        vector<bool> ans(n, false);
-        //toposort scc
-        vector<vector<int>> scc_c(scc.size(), vector<int>(0));
-        for(int i = 0; i < node_scc.size(); i++){
-            int cur = i;
-            int cur_scc = node_scc[i];
-            for(int j = 0; j < this->c[cur].size(); j++){
-                int next = this->c[cur][j];
-                int next_scc = node_scc[next];
-                if(next_scc != cur_scc) {
-                    scc_c[cur_scc].push_back(next_scc);
-                }
-            }
-        }
-        vector<int> scc_indeg(scc.size(), 0);
-        for(int i = 0; i < scc_c.size(); i++){
-            for(int j = 0; j < scc_c[i].size(); j++){
-                int next_scc = scc_c[i][j];
-                scc_indeg[next_scc] ++;
-            }
-        }
-        queue<int> q;
-        for(int i = 0; i < scc_indeg.size(); i++){
-            if(scc_indeg[i] == 0){
-                q.push(i);
-            }
-        }
-        vector<int> toporder;
-        while(q.size() != 0){
-            int cur = q.front();
-            q.pop();
-            toporder.push_back(cur);
-            for(int i = 0; i < scc_c[cur].size(); i++){
-                int next = scc_c[cur][i];
-                scc_indeg[next] --;
-                if(scc_indeg[next] == 0){
-                    q.push(next);
-                }
-            }
-        }
-        //assign the answers in reverse topological order
-        for(int i = toporder.size() - 1; i >= 0; i--){
-            int cur_scc = toporder[i];
-            for(int j = 0; j < scc[cur_scc].size(); j++){
-                int cur = scc[cur_scc][j];
-                bool state = cur % 2;
-                cur /= 2;
-                if(v[cur]) {
-                    break;
-                }
-                v[cur] = true;
-                ans[cur] = state;
-            }
-        }
-        return ans;
+        return true;
     }
 
-    bool solutionExists() {
-        return generateSolution().size() != 0;
-    }
 };
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n, m;
+    cin >> n >> m;
+    vector<int> a(n);
+    for(int i = 0; i < n; i++){
+        cin >> a[i];
+    }
+    TSAT sat(m);
+    vector<vector<int>> switches(n, vector<int>(0));
+    for(int i = 0; i < m; i++){
+        int x;
+        cin >> x;
+        for(int j = 0; j < x; j++){
+            int door;
+            cin >> door;
+            door --;
+            switches[door].push_back(i);
+        }
+    }
+    for(int i = 0; i < n; i++){
+        int s0 = switches[i][0];
+        int s1 = switches[i][1];
+        if(a[i]) {
+            //door initially unlocked
+            sat.addXNOR(s0, true, s1, true);
+        }
+        else {
+            //door initially locked
+            sat.addXOR(s0, true, s1, true);
+        }
+    }
+    cout << (sat.solutionExists()? "YES" : "NO") << "\n";
+    
+    return 0;
+}

@@ -38,6 +38,10 @@ ld length(vec2 a) {
     return sqrt(a.x * a.x + a.y * a.y);
 }
 
+ld distance(vec2 a, vec2 b){
+    return length(sub(a, b));
+}
+
 ld lerp(ld t0, ld t1, ld x0, ld x1, ld t) {
     ld slope = (x1 - x0) / (t1 - t0);
     return x0 + slope * (t - t0);
@@ -55,6 +59,11 @@ vec2 normalize(vec2 a){
     ret.x = a.x / len;
     ret.y = a.y / len;
     return ret;
+}
+
+//angle from the +x axis in range (-pi, pi)
+ld polar_angle(vec2 a) {
+    return atan2(a.y, a.x);
 }
 
 //project a onto b
@@ -125,6 +134,7 @@ ld chord_area_length(ld length, ld radius) {
 //given a point inside and outside a circle, find the point along the line that intersects the circle.
 vec2 find_circle_intersect(vec2 in, vec2 out, vec2 c_center, ld c_radius) {
     //just binary search :D
+    //i think we can reduce this to some sort of quadratic. 
     ld low = 0;
     ld high = 1;
     ld len = length(sub(in, out));
@@ -173,6 +183,7 @@ vec2 polygon_centroid(vector<vec2>& poly) {
     return c;
 }
 
+//i believe this gives in CCW order, have to verify though. 
 vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     function<int(vec2, vec2, vec2)> orientation = [](vec2 a, vec2 b, vec2 c) -> int {
         ld v = a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y);
@@ -224,5 +235,62 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
         ans.push_back(st[i]);
     }
 
+    return ans;
+}
+
+//checks if the area of the triangle is the same as the three triangle areas formed by drawing lines from pt to the vertices. 
+//i don't think triangle winding order matters
+bool point_inside_triangle(vec2 pt, vec2 t0, vec2 t1, vec2 t2) {
+    ld a1 = abs(cross(sub(t1, t0), sub(t2, t0)));
+    ld a2 = abs(cross(sub(t0, pt), sub(t1, pt))) + abs(cross(sub(t1, pt), sub(t2, pt))) + abs(cross(sub(t2, pt), sub(t0, pt)));
+    return abs(a1 - a2) < epsilon;
+}
+
+//runs in O(n * log(n)) time. 
+//has to do O(n * log(n)) preprocessing, but after preprocessing can answer queries online in O(log(n))
+vector<bool> points_inside_convex_hull(vector<vec2>& pts, vector<vec2>& hull) {
+    vector<bool> ans(pts.size(), false);
+    //edge case
+    if(hull.size() <= 2){
+        return ans;
+    }
+    //find point of hull that has minimum x coordinate
+    //if multiple elements have same x, then minimum y. 
+    int pivot_ind = 0;
+    for(int i = 1; i < hull.size(); i++){
+        if(hull[i].x < hull[pivot_ind].x || (hull[i].x == hull[pivot_ind].x && hull[i].y < hull[pivot_ind].y)) {
+            pivot_ind = i;
+        }
+    }
+    //sort all the remaining elements according to polar angle to the pivot
+    vector<vec2> h_pts(0);
+    vec2 pivot = hull[pivot_ind];
+    for(int i = 0; i < hull.size(); i++){
+        if(i != pivot_ind) {
+            h_pts.push_back(hull[i]);
+        }
+    }
+    sort(h_pts.begin(), h_pts.end(), [&pivot](vec2& a, vec2& b) -> bool {
+        return polar_angle(sub(a, pivot)) < polar_angle(sub(b, pivot));
+    });
+    //for each point we want to check, compute it's polar angle, then binary search for the sector that should contain it
+    for(int i = 0; i < pts.size(); i++){
+        vec2 pt = pts[i];
+        ld pt_ang = polar_angle(sub(pt, pivot));
+        int low = 0;
+        int high = h_pts.size() - 2;
+        int tri_ind = low;
+        while(low <= high) {
+            int mid = low + (high - low) / 2;
+            if(polar_angle(sub(h_pts[mid], pivot)) <= pt_ang) {
+                tri_ind = max(tri_ind, mid);
+                low = mid + 1;
+            }
+            else {
+                high = mid - 1;
+            }
+        }
+        ans[i] = point_inside_triangle(pt, pivot, h_pts[tri_ind], h_pts[tri_ind + 1]);
+    }
     return ans;
 }

@@ -131,3 +131,10 @@ ll chinese_remainder_theorem(vector<ll>& modulo, vector<ll>& remainder) {
     }
     return solution;
 }
+
+//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
+ll arith_sum(ll start, ll nr_elem, ll inc) {
+    ll ans = start * nr_elem;
+    ans += inc * nr_elem * (nr_elem - 1) / 2;
+    return ans;
+}

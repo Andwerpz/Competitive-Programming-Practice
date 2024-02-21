@@ -5,6 +5,10 @@ typedef long double ld;
 typedef __float128 lld;
 using namespace std;
 
+//CSES - 1684
+
+//standard 2SAT problem. 
+
 //kosajaru algorithm
 vector<vector<int>> find_scc(int n, vector<vector<int>>& adj) {
     vector<vector<int>> adj_rev(n, vector<int>(0));
@@ -195,3 +199,31 @@ struct TSAT {
         return generateSolution().size() != 0;
     }
 };
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n, m;
+    cin >> n >> m;
+    TSAT sat(m);
+    for(int i = 0; i < n; i++){
+        char c0, c1;
+        int t0, t1;
+        cin >> c0 >> t0 >> c1 >> t1;
+        t0 --;
+        t1 --;
+        sat.addOR(t0, c0 == '+', t1, c1 == '+');
+    }
+    vector<bool> ans = sat.generateSolution();
+    if(ans.size() == 0){
+        cout << "IMPOSSIBLE\n";
+        return 0;
+    }
+    for(int i = 0; i < m; i++){
+        cout << (ans[i]? "+" : "-") << " ";
+    }
+    cout << "\n";
+    
+    return 0;
+}

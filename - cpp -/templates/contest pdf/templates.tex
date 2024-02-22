@@ -1,7 +1,7 @@
-\documentclass[8pt, headheight=10pt]{scrartcl}
+\documentclass[8pt, headheight=10pt, a4paper]{article}
 \usepackage{my_style}	
 \usepackage{geometry}
-\geometry{legalpaper, landscape, margin=0.2in}
+\geometry{landscape, margin=0.2in}
 \usepackage{multicol}
 
 \usepackage{titling}
@@ -9,11 +9,18 @@
 \renewcommand\maketitlehookd{\vfill\null}
 
 \usepackage{authblk}
-
-
 \title{\scalebox{2}{\fontsize{32pt}{0pt}\selectfont \textbf{Goon}}}
 \author{\scalebox{1}{\fontsize{16pt}{0pt}\selectfont {Andwerp, dmot, Duckling}}}
 \affil{\scalebox{1}{\fontsize{12pt}{0pt}\selectfont {Texas A\&M University}}}
+
+\usepackage{lipsum}
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{0\baselineskip}{0\baselineskip}
+\titlespacing*{\subsection}{0pt}{0\baselineskip}{0\baselineskip}
+\titlespacing*{\subsubsection}{0pt}{0\baselineskip}{0\baselineskip}
+
+%\linespread{0.8}
+\lstset{basicstyle=\fontsize{8}{6}\ttfamily\selectfont}
 
 \begin{document}
 \begin{titlingpage}
@@ -41,6 +48,7 @@ signed main() {
 
 \section{Range Queries}
 \subsection{Segment Tree}
+Allows for single element modification, and range sum queries, for any binary commutative operation. 
 \begin{lstlisting}
 template <typename T>
 struct Segtree {
@@ -228,6 +236,7 @@ struct Segtree {
 \end{lstlisting}
 
 \subsection{Lazy Segment Tree}
+Allows for range modification, and range sum query for any binary commutative operation. 
 \begin{lstlisting}
 template <typename T>
 struct SegtreeLazy {
@@ -579,7 +588,49 @@ struct DSU {
 };
 \end{lstlisting}
 
-\subsection{Bridges and Articulations}
+\subsection{Bridges and Articulation Points}
+A bridge is an edge who's deletion will disconnect the graph. Articulation points are the same, but for nodes. The endpoints of a bridge are always articulation points (except in the case where an endpoint has degree 1), but it is possible for a non-bridge to have two articulation points as endpoints. 
+
+\subsubsection{Bridges}
+If edge (u, v) is a bridge, then the returned set should contain (u, v) and (v, u). 
+As of 2/22/2024, this is untested. 
+\begin{lstlisting}
+set<pair<int, int>> find_bridges(int n, vector<vector<int>>& adj) {
+    vector<bool> visited;
+    vector<int> tin, low;
+    int timer;
+    timer = 0;
+    visited.assign(n, false);
+    tin.assign(n, -1);
+    low.assign(n, -1);
+    set<pair<int, int>> ans;
+    function<void(int, int)> dfs = [&visited, &tin, &low, &timer, &dfs, &adj, &ans](int v, int p) -> void {
+        visited[v] = true;
+        tin[v] = low[v] = timer++;
+        for (int to : adj[v]) {
+            if (to == p) continue;
+            if (visited[to]) {
+                low[v] = min(low[v], tin[to]);
+            } else {
+                dfs(to, v);
+                low[v] = min(low[v], low[to]);
+                if (low[to] > tin[v]) {
+                    ans.insert({v, to});
+                    ans.insert({to, v});
+                }
+            }
+        }
+    };
+    for (int i = 0; i < n; ++i) {
+        if (!visited[i])
+            dfs(i, -1);
+    }
+    return ans;
+}
+\end{lstlisting}
+
+\subsubsection{Articulation Points}
+Returns a boolean array, \lstinline{a[i]} is \lstinline{true} if node \lstinline{i} is an articulation point. 
 \begin{lstlisting}
 vector<bool> find_articulation_points(int n, vector<vector<int>>& adj) {
     vector<bool> visited(n, false);
@@ -615,8 +666,8 @@ vector<bool> find_articulation_points(int n, vector<vector<int>>& adj) {
 \end{lstlisting}
 
 \subsection{Tarjan SCC}
+Returns multiple lists of node ids, each list being a SCC. 
 \begin{lstlisting}
-//returns multiple lists of node ids, each list being a scc
 vector<vector<int>> find_scc(int n, vector<vector<int>>& adj) {
     vector<vector<int>> adj_rev(n, vector<int>(0));
     vector<bool> used(n, false);
@@ -666,6 +717,7 @@ vector<vector<int>> find_scc(int n, vector<vector<int>>& adj) {
 \end{lstlisting}
 
 \subsection{LCA}
+Lets you find the Lowest Common Ancestor of two nodes in a rooted tree in $O(log(n))$ time. 
 Note that the segment tree used in this LCA is slightly modified. 
 \begin{lstlisting}
 struct LCA {
@@ -828,6 +880,8 @@ struct LCA {
 \end{lstlisting}
 
 \subsection{Centroid Decomposition}
+A Centroid of a tree is a node such that when the tree is rooted at it, no other nodes have a subtree of size greater than $\frac{N}{2}$. 
+Restructures the tree such that the maximum distance from root to leaf is $O(log(n))$. Useful for solving problems like answering queries that ask what's the closest white node in a white black tree online, with color updates. 
 \begin{lstlisting}
 struct CentroidDecomp {
     CentroidDecomp() {
@@ -891,8 +945,11 @@ struct CentroidDecomp {
         return centroid_parent;
     }
 };
+\end{lstlisting}
 
-//takes in adjacency list, returns a list of the centroids of the tree. 
+\subsubsection{Find Centroids}
+Takes in adjacency list, returns a list of the centroids of the tree. 
+\begin{lstlisting}
 vector<int> findCentroid(const vector<vector<int>> &g) {
     int n = g.size();
     vector<int> centroid;
@@ -1080,6 +1137,7 @@ struct HLD {
 \end{lstlisting}
 
 \subsection{Min Cost Flow}
+Given some amount of flow, what's the minimum cost required to achieve that flow? Can also be used to compute max flow if \lstinline{max_flow = INF}. 
 Slightly modified MCMF template from KACTL.
 \begin{lstlisting}
 #include <bits/extc++.h>
@@ -1168,6 +1226,7 @@ struct MCMF {
 \end{lstlisting}
 
 \subsection{2SAT}
+Given a boolean expression like $(a \lor b) \land (\lnot b \lor c) \land (c \land \lnot a)$, figures out whether there is a valid assignment to the variables, $a, b, c$. If a valid assignment exists, can produce an example. 
 Depends on \lstinline{find_scc} to work. 
 \begin{lstlisting}
 struct TSAT {
@@ -1316,6 +1375,8 @@ struct TSAT {
 
 \section{Strings}
 \subsection{Suffix Tree}
+Equivalent to a trie that contains all suffixes of a string $S$, but only uses $O(log(A)|S|)$ memory, where $A$ is the size of the alphabet. Can find the number of occurrences of $T$ in $S$, compute the suffix array of $S$, and compute the Longest Common Prefix between two indices in $S$. 
+
 Make sure to modify the terminator character if '\$' is used as a character in the input. Terminator character is to 'flush' the buffered changes so that all suffixes are in the tree. 
 \begin{lstlisting}
 struct SuffixTree {
@@ -1408,67 +1469,6 @@ struct SuffixTree {
         }
 
     private:
-        template <typename T>
-        struct Segtree {
-            //note that t[0] is not used
-            int n;
-            T* t;
-            T uneut, qneut;
-
-            //single element modification function
-            function<T(T, T)> fmodify;
-
-            //product of two elements for query and updating tree
-            function<T(T, T)> fcombine;
-
-            Segtree() {
-                //do nothing. 
-            }
-
-            Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T)> fcombine) {
-                this -> n = n;
-                t = new T[2 * n];
-
-                this -> fmodify = fmodify;
-                this -> fcombine = fcombine;
-
-                uneut = updateNeutral;
-                qneut = queryNeutral;
-
-                for(int i = 0; i < 2 * n; i++){
-                    t[i] = uneut;
-                }
-            }
-
-            void build() { // build the tree after manually assigning the values.
-                for (int i = n - 1; i > 0; i--) {   
-                    t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
-                }
-            }
-
-            void modify(int p, T value) { // set value at position p
-                p += n;
-                t[p] = fmodify(t[p], value);
-                for (p /= 2; p > 0; p /= 2) {
-                    t[p] = fcombine(t[p * 2], t[p * 2 + 1]);
-                }
-            }
-
-            T query(int l, int r) { // sum on interval [l, r)
-                T res = qneut;
-                for (l += n, r += n; l < r; l /= 2, r /= 2) {
-                    if (l % 2 == 1) {
-                        res = fcombine(res, t[l]);
-                        l++;
-                    }
-                    if (r % 2 == 1) {
-                        r--;
-                        res = fcombine(res, t[r]);
-                    }
-                }
-                return res;
-            }
-        };
         Segtree<int> lcp_rmq;
 
         vector<int> suf_arr;    //suffix array
@@ -1841,6 +1841,7 @@ vector<int> find_divisors(int val) {
 \end{lstlisting}
 
 \subsection{FFT}
+For our purposes, allows us to multiply two polynomials of length $N$ in $O(Nlog(N))$ time. Useful when we can convert a problem into polynomial multiplication. 
 \begin{lstlisting}
 const double PI = acos(-1);
 

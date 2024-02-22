@@ -37,7 +37,6 @@ struct DSU {
             return false;
         }
         dsu[rb] = ra;
-        
         return true;
     }
 };

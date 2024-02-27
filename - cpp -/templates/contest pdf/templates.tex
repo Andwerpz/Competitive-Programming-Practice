@@ -9,7 +9,7 @@
 \renewcommand\maketitlehookd{\vfill\null}
 
 \usepackage{authblk}
-\title{\scalebox{2}{\fontsize{32pt}{0pt}\selectfont \textbf{Goon}}}
+\title{\scalebox{2}{\fontsize{32pt}{0pt}\selectfont \textbf{goon}}}
 \author{\scalebox{1}{\fontsize{16pt}{0pt}\selectfont {Andwerp, dmot, Duckling}}}
 \affil{\scalebox{1}{\fontsize{12pt}{0pt}\selectfont {Texas A\&M University}}}
 
@@ -48,7 +48,7 @@ signed main() {
 
 \section{Range Queries}
 \subsection{Segment Tree}
-Allows for single element modification, and range sum queries, for any binary commutative operation. 
+Allows for single element modification, and range sum queries, for any binary associative operation. 
 \begin{lstlisting}
 template <typename T>
 struct Segtree {
@@ -236,7 +236,7 @@ struct Segtree {
 \end{lstlisting}
 
 \subsection{Lazy Segment Tree}
-Allows for range modification, and range sum query for any binary commutative operation. 
+Allows for range modification, and range sum query for any binary associative operation. 
 \begin{lstlisting}
 template <typename T>
 struct SegtreeLazy {

@@ -8,68 +8,6 @@ using namespace std;
 //make sure to modify the terminator character if '$' is used as a character in the input. 
 //terminator character is to 'flush' the buffered changes so that all suffixes are in the tree. 
 
-// template <typename T>
-// struct Segtree {
-//     //note that t[0] is not used
-//     int n;
-//     T* t;
-//     T uneut, qneut;
-
-//     //single element modification function
-//     function<T(T, T)> fmodify;
-
-//     //product of two elements for query and updating tree
-//     function<T(T, T)> fcombine;
-
-//     Segtree() {
-//         //do nothing. 
-//     }
-
-//     Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T)> fcombine) {
-//         this -> n = n;
-//         t = new T[2 * n];
-
-//         this -> fmodify = fmodify;
-//         this -> fcombine = fcombine;
-
-//         uneut = updateNeutral;
-//         qneut = queryNeutral;
-
-//         for(int i = 0; i < 2 * n; i++){
-//             t[i] = uneut;
-//         }
-//     }
-
-//     void build() { // build the tree after manually assigning the values.
-//         for (int i = n - 1; i > 0; i--) {   
-//             t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
-//         }
-//     }
-
-//     void modify(int p, T value) { // set value at position p
-//         p += n;
-//         t[p] = fmodify(t[p], value);
-//         for (p /= 2; p > 0; p /= 2) {
-//             t[p] = fcombine(t[p * 2], t[p * 2 + 1]);
-//         }
-//     }
-
-//     T query(int l, int r) { // sum on interval [l, r)
-//         T res = qneut;
-//         for (l += n, r += n; l < r; l /= 2, r /= 2) {
-//             if (l % 2 == 1) {
-//                 res = fcombine(res, t[l]);
-//                 l++;
-//             }
-//             if (r % 2 == 1) {
-//                 r--;
-//                 res = fcombine(res, t[r]);
-//             }
-//         }
-//         return res;
-//     }
-// };
-
 template <typename T>
 struct Segtree {
     //note that t[0] is not used

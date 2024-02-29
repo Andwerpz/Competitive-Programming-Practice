@@ -3,14 +3,31 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
+//TODO do operator overloading for vec2
+
 ld pi = acos(-1);
 ld epsilon = 1e-9;
 
 struct vec2 {
     ld x, y;
-    vec2() {this->x = 0; this->y = 0;}
-    vec2(ld x, ld y) {this->x = x; this->y = y;}
+    vec2(ld _x = 0, ld _y = 0) {x = _x; y = _y;}
+    vec2(const vec2& other) {x = other.x; y = other.y;}
+    vec2(const vec2& a, const vec2& b) {x = b.x - a.x; y = b.y - a.y;}
+    vec2& operator=(const vec2& other) {x = other.x; y = other.y; return *this;}
+    vec2 operator+(const vec2& other) const {return vec2(x + other.x, y + other.y);}
+    vec2 operator-(const vec2& other) const {return vec2(x - other.x, y - other.y);}
+    vec2 operator*(ld other) const {return vec2(x * other, y * other);}
+    vec2 operator/(ld other) const {return vec2(x / other, y / other);}
+
+    ld lengthSq() const {return x * x + y * y;}
+    ld length() const {return sqrt(lengthSq());}
+    void normalize() {x /= length(); y /= length();}
+
+    ld dot(const vec2& other) {
+        return x * other.x + y * other.y;
+    }
 };
+vec2 operator*(ld a, const vec2& b) {return vec2(a * b.x, a * b.y);}
 
 vec2 add(vec2 a, vec2 b){
     vec2 ret;

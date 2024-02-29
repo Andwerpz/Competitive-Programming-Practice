@@ -3,7 +3,7 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-//TODO do operator overloading for vec2
+//operator overloading for vec2 is done, have to verify everything works tho
 
 ld pi = acos(-1);
 ld epsilon = 1e-9;
@@ -12,36 +12,37 @@ struct vec2 {
     ld x, y;
     vec2(ld _x = 0, ld _y = 0) {x = _x; y = _y;}
     vec2(const vec2& other) {x = other.x; y = other.y;}
-    vec2(const vec2& a, const vec2& b) {x = b.x - a.x; y = b.y - a.y;}
+    vec2(const vec2& a, const vec2& b) {x = b.x - a.x; y = b.y - a.y;}  //creates A to B
     vec2& operator=(const vec2& other) {x = other.x; y = other.y; return *this;}
+    vec2 operator-() const {return vec2(-x, -y);}
     vec2 operator+(const vec2& other) const {return vec2(x + other.x, y + other.y);}
+    vec2& operator+=(const vec2& other) {*this = *this + other; return *this;}
     vec2 operator-(const vec2& other) const {return vec2(x - other.x, y - other.y);}
+    vec2& operator-=(const vec2& other) {*this = *this - other; return *this;}
     vec2 operator*(ld other) const {return vec2(x * other, y * other);}
+    vec2& operator*=(ld other) {*this = *this * other; return *this;}
     vec2 operator/(ld other) const {return vec2(x / other, y / other);}
+    vec2& operator/=(ld other) {*this = *this / other; return *this;}
 
     ld lengthSq() const {return x * x + y * y;}
     ld length() const {return sqrt(lengthSq());}
-    void normalize() {x /= length(); y /= length();}
+    vec2 get_normal() const {return *this / length();}
+    void normalize() {*this /= length();}   //actually normalizes this vector
+    ld distSq(const vec2& other) const {return vec2(*this, other).lengthSq();}
+    ld dist(const vec2& other) const {return sqrt(distSq(other));}
 
-    ld dot(const vec2& other) {
-        return x * other.x + y * other.y;
-    }
+    ld dot(const vec2& other) const {return x * other.x + y * other.y;}
+    ld cross(const vec2& other) const {return x * other.y - y * other.x;}
+    ld angle_to(const vec2& other) const {return acos(dot(other) / length() / other.length());}
+    vec2 rotate_CCW(ld theta) const {return vec2(x * cos(theta) - y * sin(theta), x * sin(theta) + y * cos(theta));}
+
+    //angle from x axis in range (-pi, pi)
+    ld polar_angle() {return atan2(y, x);}  
+
+    //projection of other onto this. TODO see if we can get rid of sqrt
+    vec2 project(const vec2& other) {vec2 t_n = get_normal(); return t_n * t_n.dot(other);}
 };
 vec2 operator*(ld a, const vec2& b) {return vec2(a * b.x, a * b.y);}
-
-vec2 add(vec2 a, vec2 b){
-    vec2 ret;
-    ret.x = a.x + b.x;
-    ret.y = a.y + b.y;
-    return ret;
-}
-
-vec2 sub(vec2 a, vec2 b) {
-    vec2 ret;
-    ret.x = a.x - b.x;
-    ret.y = a.y - b.y;
-    return ret;
-}
 
 ld cross(vec2 a, vec2 b) {
     return a.x * b.y - a.y * b.x;
@@ -51,50 +52,13 @@ ld dot(vec2 a, vec2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
-ld length(vec2 a) {
-    return sqrt(a.x * a.x + a.y * a.y);
-}
-
-ld distance(vec2 a, vec2 b){
-    return length(sub(a, b));
-}
-
 ld lerp(ld t0, ld t1, ld x0, ld x1, ld t) {
     ld slope = (x1 - x0) / (t1 - t0);
     return x0 + slope * (t - t0);
 }
 
-vec2 mul(vec2 a, ld s) {
-    a.x *= s;
-    a.y *= s;
-    return a;
-}
-
-vec2 normalize(vec2 a){
-    ld len = length(a);
-    vec2 ret;
-    ret.x = a.x / len;
-    ret.y = a.y / len;
-    return ret;
-}
-
-//angle from the +x axis in range (-pi, pi)
-ld polar_angle(vec2 a) {
-    return atan2(a.y, a.x);
-}
-
-//project a onto b
-vec2 project(vec2 a, vec2 b) {
-    b = normalize(b);
-    ld proj_mag = dot(a, b);
-    return mul(b, proj_mag);
-}
-
-vec2 rotateCCW(vec2 a, ld theta) {
-    vec2 ret(0, 0);
-    ret.x = a.x * cos(theta) - a.y * sin(theta);
-    ret.y = a.x * sin(theta) + a.y * cos(theta);
-    return ret;
+vec2 lerp(ld t0, ld t1, vec2 x0, vec2 x1, ld t) {
+    return vec2(lerp(t0, t1, x0.x, x1.x, t), lerp(t0, t1, x0.y, x1.y, t));
 }
 
 //returns the coefficients s and t, where p1 + v1 * s = p2 + v2 * t
@@ -102,23 +66,23 @@ vector<ld> lineLineIntersect(vec2 p1, vec2 v1, vec2 p2, vec2 v2) {
     if(cross(v1, v2) == 0){
         return {};
     }
-    ld s = cross(sub(p2, p1), v2) / cross(v1, v2);
-    ld t = cross(sub(p1, p2), v1) / cross(v2, v1);
+    ld s = cross(p2 - p1, v2) / cross(v1, v2);
+    ld t = cross(p1 - p2, v1) / cross(v2, v1);
     return {s, t};
 }
 
 ld tri_area(vec2 t1, vec2 t2, vec2 t3) {
-    vec2 v1 = sub(t1, t2);
-    vec2 v2 = sub(t2, t3);
+    vec2 v1 = t1 - t2;
+    vec2 v2 = t2 - t3;
     return abs(cross(v1, v2) / 2.0);
 }
 
 //returns the distance along the ray from ray_a to the nearest point on the circle. 
 ld rayCircleIntersect(vec2 ray_a, vec2 ray_b, vec2 center, ld radius) {
-    vec2 ray_dir = normalize(sub(ray_b, ray_a));
-    vec2 to_center = sub(center, ray_a);
-    vec2 center_proj = add(ray_a, mul(ray_dir, dot(ray_dir, to_center)));
-    ld center_proj_len = length(sub(center, center_proj));
+    vec2 ray_dir = (ray_b - ray_a).get_normal();
+    vec2 to_center = center - ray_a;
+    vec2 center_proj = ray_a + ray_dir * dot(ray_dir, to_center);
+    ld center_proj_len = (center - center_proj).length();
     //radius^2 = center_proj_len^2 + int_depth^2
     //int_depth = sqrt(radius^2 - center_proj_len^2)
     ld int_depth = sqrt(radius * radius - center_proj_len * center_proj_len);
@@ -154,12 +118,12 @@ vec2 find_circle_intersect(vec2 in, vec2 out, vec2 c_center, ld c_radius) {
     //i think we can reduce this to some sort of quadratic. 
     ld low = 0;
     ld high = 1;
-    ld len = length(sub(in, out));
-    vec2 norm = normalize(sub(out, in));
+    ld len = (in - out).length();
+    vec2 norm = (out - in).get_normal();
     while(abs(high - low) > epsilon) {
         ld mid = (high + low) / 2.0;
-        vec2 mid_pt = add(in, mul(norm, len * mid));
-        ld mid_dist = length(sub(mid_pt, c_center));
+        vec2 mid_pt = in + norm * (len * mid);
+        ld mid_dist = (mid_pt - c_center).length();
         if(mid_dist < c_radius) {
             low = mid;
         }
@@ -167,7 +131,7 @@ vec2 find_circle_intersect(vec2 in, vec2 out, vec2 c_center, ld c_radius) {
             high = mid;
         }
     }
-    return add(in, mul(norm, len * low));
+    return in + norm * (len * low);
 }
 
 //returns the area of the polygon. 
@@ -224,8 +188,7 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     sort(a.begin(), a.end(), [&p0, &orientation](const vec2& a, const vec2& b) {
         int o = orientation(p0, a, b);
         if (o == 0)
-            return (p0.x-a.x)*(p0.x-a.x) + (p0.y-a.y)*(p0.y-a.y)
-                < (p0.x-b.x)*(p0.x-b.x) + (p0.y-b.y)*(p0.y-b.y);
+            return (p0.x-a.x)*(p0.x-a.x) + (p0.y-a.y)*(p0.y-a.y) < (p0.x-b.x)*(p0.x-b.x) + (p0.y-b.y)*(p0.y-b.y);
         return o < 0;
     });
     if (include_collinear) {
@@ -258,8 +221,8 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
 //checks if the area of the triangle is the same as the three triangle areas formed by drawing lines from pt to the vertices. 
 //i don't think triangle winding order matters
 bool point_inside_triangle(vec2 pt, vec2 t0, vec2 t1, vec2 t2) {
-    ld a1 = abs(cross(sub(t1, t0), sub(t2, t0)));
-    ld a2 = abs(cross(sub(t0, pt), sub(t1, pt))) + abs(cross(sub(t1, pt), sub(t2, pt))) + abs(cross(sub(t2, pt), sub(t0, pt)));
+    ld a1 = abs(cross(t1 - t0, t2 - t0));
+    ld a2 = abs(cross(t0 - pt, t1 - pt)) + abs(cross(t1 - pt, t2 - pt)) + abs(cross(t2 - pt, t0 - pt));
     return abs(a1 - a2) < epsilon;
 }
 
@@ -288,18 +251,18 @@ vector<bool> points_inside_convex_hull(vector<vec2>& pts, vector<vec2>& hull) {
         }
     }
     sort(h_pts.begin(), h_pts.end(), [&pivot](vec2& a, vec2& b) -> bool {
-        return polar_angle(sub(a, pivot)) < polar_angle(sub(b, pivot));
+        return (a - pivot).polar_angle() < (b - pivot).polar_angle();
     });
     //for each point we want to check, compute it's polar angle, then binary search for the sector that should contain it
     for(int i = 0; i < pts.size(); i++){
         vec2 pt = pts[i];
-        ld pt_ang = polar_angle(sub(pt, pivot));
+        ld pt_ang = (pt - pivot).polar_angle();
         int low = 0;
         int high = h_pts.size() - 2;
         int tri_ind = low;
         while(low <= high) {
             int mid = low + (high - low) / 2;
-            if(polar_angle(sub(h_pts[mid], pivot)) <= pt_ang) {
+            if((h_pts[mid] - pivot).polar_angle() <= pt_ang) {
                 tri_ind = max(tri_ind, mid);
                 low = mid + 1;
             }

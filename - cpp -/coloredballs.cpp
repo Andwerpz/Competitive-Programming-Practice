@@ -1,13 +1,29 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
+
+//Codeforces - 1954D
+
+//note that there is a limit for the sum of a. 
+
+//given a set of balls, we can compute the beauty as the max between ceil(|S| / 2), and max(S), where max
+//just gives us the greatest amount of balls of a single color, and |S| gives the amount of balls. 
+
+//we can do a dp, where dp[i][j][k] is the number of ways to make S given that we only use the first i 
+//colors, |S| = k, and max(S) = k. 
+
+//however, this solution will time out, as our complexity is n^3. Notice that if we sort the balls by ascending
+//order of color, then we can ditch the k dimension, as the max will always be equal to a[i], given that we took the
+//ith color. 
 
 struct mint;
 vector<mint> fac;
 map<pair<mint, mint>, mint> nckdp;
 
-ll mod = 1e9 + 7;
+ll mod = 998244353;
 struct mint {
     ll val;
     mint(ll _val = 0) {val = _val;}
@@ -43,8 +59,6 @@ struct mint {
     mint& operator %=(const mint& other) {*this = *this % other; return *this;}
     mint& operator %=(ll other) {*this = *this % other; return *this;}
 
-    //don't forget about fermat's little theorem, 
-    //a^(m-1) % m = 1. This means that a^(p % m) % m != a^(p) % m, rather a^(p % (m-1)) % m = a^(p) % m. 
     mint pow(const mint& other) const {
         mint ans(1), p(val);
         ll b = other.val;
@@ -77,102 +91,39 @@ mint operator *(ll a, const mint& b) {return mint((a * b.val) % mod);}
 mint operator /(ll a, const mint& b) {return mint((a / b.val) % mod);}
 mint operator %(ll a, const mint& b) {return mint(a % b.val);}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    int n;
+    cin >> n;
+    vector<mint> a(n);
+    for(int i = 0; i < n; i++){
+        cin >> a[i];
     }
-    return gcd(b, a % b);
-}
-
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
+    sort(a.begin(), a.end());
+    vector<vector<mint>> dp(n + 1, vector<mint>(5001, 0));  //how many ways to make sum of j, with prefix i
+    dp[0][0] = 1;
+    mint ans = 0;
+    for(int i = 1; i <= n; i++){
+        mint cur = a[i - 1];
+        for(int j = 0; j < dp[i].size(); j++){
+            if(dp[i - 1][j] == 0){
+                continue;
+            }
+            //take
+            dp[i][j + cur] += dp[i - 1][j];
+            {
+                //factor into ans
+                mint ways = dp[i - 1][j];
+                mint val = max(cur, (j + cur) / 2 + ((j + cur) % 2));
+                ans += val * ways;
+            }
+            //don't take
+            dp[i][j] += dp[i - 1][j];
+        }
     }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-mint extended_euclidean(mint a, mint b, mint& x, mint& y) {
-    x = 1, y = 0;
-    mint x1 = 0, y1 = 1, a1 = a, b1 = b;
-    while (b1) {
-        mint q = a1 / b1;
-        tie(x, x1) = make_tuple(x1, x - q * x1);
-        tie(y, y1) = make_tuple(y1, y - q * y1);
-        tie(a1, b1) = make_tuple(b1, a1 - q * b1);
-    }
-    return a1;
-}
-
-//modular inverse of a for any mod m. 
-//if -1 is returned, then there is no solution. 
-mint mod_inv(mint a, mint m) {
-    mint x, y;
-    mint g = extended_euclidean(a, m, x, y);
-    if (g != 1) {
-        return -1;
-    }
-    else {
-        x = (x % m + m) % m;
-        return x;
-    }
-}
-
-//only works when all modulo is coprime. 
-//if you want to do this with non-coprime modulos, then you need to factor all of the modulos, 
-//and resolve the factors independently; converting them back to coprime. 
-//it is not guaranteed that there is a solution if the modulos are not coprime. 
-mint chinese_remainder_theorem(vector<mint>& modulo, vector<mint>& remainder) {
-    if(modulo.size() != remainder.size()) {
-        return -1;
-    }
-    mint M = 1;
-    for(int i = 0; i < modulo.size(); i++){
-        M *= modulo[i];
-    }
-    mint solution = 0;
-    for(int i = 0; i < modulo.size(); i++){
-        mint a_i = remainder[i];
-        mint M_i = M / modulo[i];
-        mint N_i = mod_inv(M_i, modulo[i]);
-        solution = (solution + a_i * M_i % M * N_i) % M;
-    }
-    return solution;
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+    cout << ans << "\n";
+    
+    return 0;
 }

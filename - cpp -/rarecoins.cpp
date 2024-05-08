@@ -1,13 +1,34 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
+
+//Codeforces - 1948F
+
+//for each query we can figure out how many gold and silver coins are in and outside the range using prefix sums. 
+
+//then, imagine that every silver coin by default counts towards the value of the range; any silver coin in the range
+//will default to value 1, and any coin outside the range defaults to value 0. 
+
+//then, for each coin, we decide with 1/2 probability to flip its value. Notice that the result is exactly the same as
+//if we just decided it's value randomly initially, but in this case, any value flip will lower the relative value of 
+//the range compared to the outside by 1. 
+
+//then, we can just compare the default inner value with the default outer value, which is simply the number of gold 
+//coins on the outside. We just need to compute the probability that the default inner value doesn't go equal
+//to the outer value, which can be done using a precomputed binomial CDF. 
+
+//we model it this way so that our distribution is the exact same every time, it's just the number of flips required to
+//go below the outside value changes depending on the query. If we were to instead model it naively, with just generating
+//the values of silver coins inside and outside the range, then we'd have to create a new CDF for every query. 
 
 struct mint;
 vector<mint> fac;
 map<pair<mint, mint>, mint> nckdp;
 
-ll mod = 1e9 + 7;
+ll mod = 998244353;
 struct mint {
     ll val;
     mint(ll _val = 0) {val = _val;}
@@ -16,10 +37,6 @@ struct mint {
     bool operator ==(ll other) const {return val == other;}
     bool operator !=(const mint& other) const {return val != other.val;}
     bool operator !=(ll other) const {return val != other;}
-    bool operator >(const mint& other) const {return val > other.val;}
-    bool operator >(ll other) const {return val > other;}
-    bool operator <(const mint& other) const {return val < other.val;}
-    bool operator <(ll other) const {return val < other;}
     mint& operator =(const mint& other) {val = other.val; return *this;}
     mint& operator =(ll other) {val = other; return *this;}
     mint operator +(const mint& other) const {ll ret = val + other.val; while(ret >= mod) {ret -= mod;} return mint(ret);}
@@ -42,9 +59,7 @@ struct mint {
     mint operator %(ll other) const {return mint(val % other);}
     mint& operator %=(const mint& other) {*this = *this % other; return *this;}
     mint& operator %=(ll other) {*this = *this % other; return *this;}
-
-    //don't forget about fermat's little theorem, 
-    //a^(m-1) % m = 1. This means that a^(p % m) % m != a^(p) % m, rather a^(p % (m-1)) % m = a^(p) % m. 
+    
     mint pow(const mint& other) const {
         mint ans(1), p(val);
         ll b = other.val;
@@ -69,8 +84,6 @@ struct mint {
 };
 bool operator ==(ll a, const mint& b) {return a == b.val;}
 bool operator !=(ll a, const mint& b) {return a != b.val;}
-bool operator >(ll a, const mint& b) {return a > b.val;}
-bool operator <(ll a, const mint& b) {return a < b.val;}
 mint operator +(ll a, const mint& b) {ll ret = a + b.val; while(ret >= mod) {ret -= mod;} return mint(ret);}
 mint operator -(ll a, const mint& b) {ll ret = a - b.val; while(ret < 0) {ret += mod;} return mint(ret);}
 mint operator *(ll a, const mint& b) {return mint((a * b.val) % mod);}
@@ -102,77 +115,51 @@ mint nck(mint n, mint k) {
     return ans;
 }
 
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-mint extended_euclidean(mint a, mint b, mint& x, mint& y) {
-    x = 1, y = 0;
-    mint x1 = 0, y1 = 1, a1 = a, b1 = b;
-    while (b1) {
-        mint q = a1 / b1;
-        tie(x, x1) = make_tuple(x1, x - q * x1);
-        tie(y, y1) = make_tuple(y1, y - q * y1);
-        tie(a1, b1) = make_tuple(b1, a1 - q * b1);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(2e6);
+    int n, q;
+    cin >> n >> q;
+    vector<ll> a(n + 1, 0), b(n + 1, 0);
+    for(int i = 0; i < n; i++){
+        cin >> a[i + 1];
+        a[i + 1] += a[i];
     }
-    return a1;
-}
-
-//modular inverse of a for any mod m. 
-//if -1 is returned, then there is no solution. 
-mint mod_inv(mint a, mint m) {
-    mint x, y;
-    mint g = extended_euclidean(a, m, x, y);
-    if (g != 1) {
-        return -1;
+    for(int i = 0; i < n; i++){
+        cin >> b[i + 1];
+        b[i + 1] += b[i];
     }
-    else {
-        x = (x % m + m) % m;
-        return x;
+    vector<mint> cdf(b[n] + 1);
+    for(int i = 0; i < cdf.size(); i++){
+        cdf[i] = nck(b[n], i);
     }
-}
-
-//only works when all modulo is coprime. 
-//if you want to do this with non-coprime modulos, then you need to factor all of the modulos, 
-//and resolve the factors independently; converting them back to coprime. 
-//it is not guaranteed that there is a solution if the modulos are not coprime. 
-mint chinese_remainder_theorem(vector<mint>& modulo, vector<mint>& remainder) {
-    if(modulo.size() != remainder.size()) {
-        return -1;
+    mint inv_fac = mint(1).inv_divide(mint(2).pow(b[n]));
+    for(int i = 1; i < cdf.size(); i++){
+        cdf[i] += cdf[i - 1];
     }
-    mint M = 1;
-    for(int i = 0; i < modulo.size(); i++){
-        M *= modulo[i];
+    for(int i = 0; i < cdf.size(); i++){
+        cdf[i] *= inv_fac;
     }
-    mint solution = 0;
-    for(int i = 0; i < modulo.size(); i++){
-        mint a_i = remainder[i];
-        mint M_i = M / modulo[i];
-        mint N_i = mod_inv(M_i, modulo[i]);
-        solution = (solution + a_i * M_i % M * N_i) % M;
+    for(int i = 0; i < q; i++){
+        int l, r;
+        cin >> l >> r;
+        l --;
+        ll g_in = a[r] - a[l];
+        ll g_out = a[n] - g_in;
+        ll s_in = b[r] - b[l];
+        ll s_out = b[n] - s_in;
+        if(g_in + s_in <= g_out) {
+            cout << "0\n";
+            continue;
+        }
+        //g_in + s_in > g_out
+        ll req = g_in + s_in - g_out;
+        req = min(b[n] + 1, req);
+        cout << cdf[req - 1] << " ";
     }
-    return solution;
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+    cout << "\n";
+    
+    return 0;
 }

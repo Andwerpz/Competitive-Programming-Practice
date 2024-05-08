@@ -1,12 +1,19 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
 typedef long double ld;
+typedef __float128 lld;
 using namespace std;
 
-struct mint;
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
+//UTPC 03-01-24 Div.2 - D
 
+//first, we notice that the amount of operations for a given subtree is solely dependent on
+//the size of the given subtree. We can precompute a dp array mapping subtree size to number
+//of operations. 
+
+//then, we just look at the given tree and take the sum of costs for each subtree. 
+
+//modular int
 ll mod = 1e9 + 7;
 struct mint {
     ll val;
@@ -16,10 +23,6 @@ struct mint {
     bool operator ==(ll other) const {return val == other;}
     bool operator !=(const mint& other) const {return val != other.val;}
     bool operator !=(ll other) const {return val != other;}
-    bool operator >(const mint& other) const {return val > other.val;}
-    bool operator >(ll other) const {return val > other;}
-    bool operator <(const mint& other) const {return val < other.val;}
-    bool operator <(ll other) const {return val < other;}
     mint& operator =(const mint& other) {val = other.val; return *this;}
     mint& operator =(ll other) {val = other; return *this;}
     mint operator +(const mint& other) const {ll ret = val + other.val; while(ret >= mod) {ret -= mod;} return mint(ret);}
@@ -42,9 +45,7 @@ struct mint {
     mint operator %(ll other) const {return mint(val % other);}
     mint& operator %=(const mint& other) {*this = *this % other; return *this;}
     mint& operator %=(ll other) {*this = *this % other; return *this;}
-
-    //don't forget about fermat's little theorem, 
-    //a^(m-1) % m = 1. This means that a^(p % m) % m != a^(p) % m, rather a^(p % (m-1)) % m = a^(p) % m. 
+    
     mint pow(const mint& other) const {
         mint ans(1), p(val);
         ll b = other.val;
@@ -69,110 +70,56 @@ struct mint {
 };
 bool operator ==(ll a, const mint& b) {return a == b.val;}
 bool operator !=(ll a, const mint& b) {return a != b.val;}
-bool operator >(ll a, const mint& b) {return a > b.val;}
-bool operator <(ll a, const mint& b) {return a < b.val;}
 mint operator +(ll a, const mint& b) {ll ret = a + b.val; while(ret >= mod) {ret -= mod;} return mint(ret);}
 mint operator -(ll a, const mint& b) {ll ret = a - b.val; while(ret < 0) {ret += mod;} return mint(ret);}
 mint operator *(ll a, const mint& b) {return mint((a * b.val) % mod);}
 mint operator /(ll a, const mint& b) {return mint((a / b.val) % mod);}
 mint operator %(ll a, const mint& b) {return mint(a % b.val);}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
+int calc_subt(int cur, int p, vector<int>& subt, vector<vector<int>>& c) {
+    subt[cur] = 1;
+    for(int i = 0; i < c[cur].size(); i++){
+        int next = c[cur][i];
+        if(next == p){
+            continue;
+        }
+        subt[cur] += calc_subt(next, cur, subt, c);
     }
-    return gcd(b, a % b);
+    return subt[cur];
 }
 
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    vector<mint> dp(1e6);
+    dp[0] = 0;
+    dp[1] = 1;
+    for(int i = 2; i < 1e6; i++){
+        dp[i] = 1 + dp[i - 1] * 3;
     }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
+    int n;
+    cin >> n;
+    vector<vector<int>> c(n, vector<int>(0));
+    for(int i = 0; i < n - 1; i++){
+        int a, b;
+        cin >> a >> b;
+        a --;
+        b --;
+        c[a].push_back(b);
+        c[b].push_back(a);
     }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-mint extended_euclidean(mint a, mint b, mint& x, mint& y) {
-    x = 1, y = 0;
-    mint x1 = 0, y1 = 1, a1 = a, b1 = b;
-    while (b1) {
-        mint q = a1 / b1;
-        tie(x, x1) = make_tuple(x1, x - q * x1);
-        tie(y, y1) = make_tuple(y1, y - q * y1);
-        tie(a1, b1) = make_tuple(b1, a1 - q * b1);
+    vector<int> subt(n, 0);
+    calc_subt(0, -1, subt, c);
+    mint ans = 0;
+    for(int i = 0; i < c[0].size(); i++){
+        int next = c[0][i];
+        int n_size = subt[next];
+        // cout << next << " " << n_size << "\n";
+        ans += dp[n_size];
+        ans %= mod;
     }
-    return a1;
-}
-
-//modular inverse of a for any mod m. 
-//if -1 is returned, then there is no solution. 
-mint mod_inv(mint a, mint m) {
-    mint x, y;
-    mint g = extended_euclidean(a, m, x, y);
-    if (g != 1) {
-        return -1;
-    }
-    else {
-        x = (x % m + m) % m;
-        return x;
-    }
-}
-
-//only works when all modulo is coprime. 
-//if you want to do this with non-coprime modulos, then you need to factor all of the modulos, 
-//and resolve the factors independently; converting them back to coprime. 
-//it is not guaranteed that there is a solution if the modulos are not coprime. 
-mint chinese_remainder_theorem(vector<mint>& modulo, vector<mint>& remainder) {
-    if(modulo.size() != remainder.size()) {
-        return -1;
-    }
-    mint M = 1;
-    for(int i = 0; i < modulo.size(); i++){
-        M *= modulo[i];
-    }
-    mint solution = 0;
-    for(int i = 0; i < modulo.size(); i++){
-        mint a_i = remainder[i];
-        mint M_i = M / modulo[i];
-        mint N_i = mod_inv(M_i, modulo[i]);
-        solution = (solution + a_i * M_i % M * N_i) % M;
-    }
-    return solution;
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+    cout << ans << "\n";
+    
+    return 0;
 }

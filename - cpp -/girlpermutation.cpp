@@ -1,7 +1,29 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
+
+//Codeforces - 1946E
+
+//first observe that the location of the maximum element is given, as it should be the only index that is common between the
+//prefix and suffix. 
+
+//in the case that the first element of the prefix or suffix is not the ends of the array, or the maximum element isn't common
+//then the answer should be 0. 
+
+//otherwise, we can solve the problem to the left and right independently. First note that depending on the location
+//of the maximum element, there will be a different amount of numbers to the left and to the right. We can initially choose
+//the set of values to the left, and the values to the right will be determined. 
+
+//next, to solve the left side (the right side is similar), notice that the second greatest element, the one that is just to
+//the left of the greatest element, is already determined. It has to be the largest element smaller than the greatest
+//element. We can choose how many elements go between it and the largest element, and the rest of the elements will
+//go to the left. Note that we should consider that we can permute these elements that we've just placed. 
+
+//now if we consider the second most maximum value, once we choose the set, the second maximum value is determined as well,
+//so we can just repeat the process until we get to the last 'maximum' element, which should be the first element in the array.
 
 struct mint;
 vector<mint> fac;
@@ -16,10 +38,6 @@ struct mint {
     bool operator ==(ll other) const {return val == other;}
     bool operator !=(const mint& other) const {return val != other.val;}
     bool operator !=(ll other) const {return val != other;}
-    bool operator >(const mint& other) const {return val > other.val;}
-    bool operator >(ll other) const {return val > other;}
-    bool operator <(const mint& other) const {return val < other.val;}
-    bool operator <(ll other) const {return val < other;}
     mint& operator =(const mint& other) {val = other.val; return *this;}
     mint& operator =(ll other) {val = other; return *this;}
     mint operator +(const mint& other) const {ll ret = val + other.val; while(ret >= mod) {ret -= mod;} return mint(ret);}
@@ -42,9 +60,7 @@ struct mint {
     mint operator %(ll other) const {return mint(val % other);}
     mint& operator %=(const mint& other) {*this = *this % other; return *this;}
     mint& operator %=(ll other) {*this = *this % other; return *this;}
-
-    //don't forget about fermat's little theorem, 
-    //a^(m-1) % m = 1. This means that a^(p % m) % m != a^(p) % m, rather a^(p % (m-1)) % m = a^(p) % m. 
+    
     mint pow(const mint& other) const {
         mint ans(1), p(val);
         ll b = other.val;
@@ -69,8 +85,6 @@ struct mint {
 };
 bool operator ==(ll a, const mint& b) {return a == b.val;}
 bool operator !=(ll a, const mint& b) {return a != b.val;}
-bool operator >(ll a, const mint& b) {return a > b.val;}
-bool operator <(ll a, const mint& b) {return a < b.val;}
 mint operator +(ll a, const mint& b) {ll ret = a + b.val; while(ret >= mod) {ret -= mod;} return mint(ret);}
 mint operator -(ll a, const mint& b) {ll ret = a - b.val; while(ret < 0) {ret += mod;} return mint(ret);}
 mint operator *(ll a, const mint& b) {return mint((a * b.val) % mod);}
@@ -102,77 +116,45 @@ mint nck(mint n, mint k) {
     return ans;
 }
 
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-mint extended_euclidean(mint a, mint b, mint& x, mint& y) {
-    x = 1, y = 0;
-    mint x1 = 0, y1 = 1, a1 = a, b1 = b;
-    while (b1) {
-        mint q = a1 / b1;
-        tie(x, x1) = make_tuple(x1, x - q * x1);
-        tie(y, y1) = make_tuple(y1, y - q * y1);
-        tie(a1, b1) = make_tuple(b1, a1 - q * b1);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(1e6);
+    int t;
+    cin >> t;
+    while(t--){
+        int n, m1, m2;
+        cin >> n >> m1 >> m2;
+        vector<int> p(m1), s(m2);
+        for(int i = 0; i < m1; i++){
+            cin >> p[i];
+        }
+        for(int i = 0; i < m2; i++){
+            cin >> s[i];
+        }
+        if(p[0] != 1 || s[m2 - 1] != n || p[m1 - 1] != s[0]) {
+            cout << "0\n";
+            continue;
+        }
+        mint ans = 1;
+        mint l_amt = p[m1 - 1] - 1;
+        mint r_amt = n - 1 - l_amt;
+        ans *= nck(n - 1, l_amt);
+        for(int i = m1 - 2; i >= 0; i--){
+            mint tot = p[i + 1] - 2;
+            mint amt = tot - p[i] + 1;
+            ans *= nck(tot, amt);
+            ans *= fac[amt];
+        }
+        for(int i = 1; i < m2; i++){
+            mint tot = n - s[i - 1] - 1;
+            mint amt = s[i] - s[i - 1] - 1;
+            ans *= nck(tot, amt);
+            ans *= fac[amt];
+        }
+        cout << ans << "\n";
     }
-    return a1;
-}
-
-//modular inverse of a for any mod m. 
-//if -1 is returned, then there is no solution. 
-mint mod_inv(mint a, mint m) {
-    mint x, y;
-    mint g = extended_euclidean(a, m, x, y);
-    if (g != 1) {
-        return -1;
-    }
-    else {
-        x = (x % m + m) % m;
-        return x;
-    }
-}
-
-//only works when all modulo is coprime. 
-//if you want to do this with non-coprime modulos, then you need to factor all of the modulos, 
-//and resolve the factors independently; converting them back to coprime. 
-//it is not guaranteed that there is a solution if the modulos are not coprime. 
-mint chinese_remainder_theorem(vector<mint>& modulo, vector<mint>& remainder) {
-    if(modulo.size() != remainder.size()) {
-        return -1;
-    }
-    mint M = 1;
-    for(int i = 0; i < modulo.size(); i++){
-        M *= modulo[i];
-    }
-    mint solution = 0;
-    for(int i = 0; i < modulo.size(); i++){
-        mint a_i = remainder[i];
-        mint M_i = M / modulo[i];
-        mint N_i = mod_inv(M_i, modulo[i]);
-        solution = (solution + a_i * M_i % M * N_i) % M;
-    }
-    return solution;
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+    
+    return 0;
 }

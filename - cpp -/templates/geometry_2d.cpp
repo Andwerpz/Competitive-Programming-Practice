@@ -41,6 +41,9 @@ struct vec2 {
 
     //projection of other onto this. TODO see if we can get rid of sqrt
     vec2 project(const vec2& other) {vec2 t_n = get_normal(); return t_n * t_n.dot(other);}
+
+    friend std::ostream& operator<<(std::ostream& os, const vec2& v) {os << "[" << v.x << ", " << v.y << "]"; return os;}
+    friend std::istream& operator>>(std::istream& is, vec2& v) {is >> v.x >> v.y; return is;}
 };
 vec2 operator*(ld a, const vec2& b) {return vec2(a * b.x, a * b.y);}
 
@@ -164,7 +167,7 @@ vec2 polygon_centroid(vector<vec2>& poly) {
     return c;
 }
 
-//i believe this gives in CCW order, have to verify though. 
+//returns convex hull in CCW order
 vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     function<int(vec2, vec2, vec2)> orientation = [](vec2 a, vec2 b, vec2 c) -> int {
         ld v = a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y);
@@ -172,16 +175,13 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
         if (v > 0) return +1; // counter-clockwise
         return 0;
     };
-
     function<bool(vec2, vec2, vec2)> collinear = [&orientation](vec2 a, vec2 b, vec2 c) -> bool {
         return orientation(a, b, c) == 0;
     };
-
     function<bool(vec2, vec2, vec2, bool)> cw = [&orientation](vec2 a, vec2 b, vec2 c, bool include_collinear) -> bool {
         int o = orientation(a, b, c);
         return o < 0 || (include_collinear && o == 0);
     };
-
     vec2 p0 = *min_element(a.begin(), a.end(), [](vec2 a, vec2 b) {
         return make_pair(a.y, a.x) < make_pair(b.y, b.x);
     });
@@ -196,14 +196,12 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
         while (i >= 0 && collinear(p0, a[i], a.back())) i--;
         reverse(a.begin()+i+1, a.end());
     }
-
     vector<vec2> st;
     for (int i = 0; i < (int)a.size(); i++) {
         while (st.size() > 1 && !cw(st[st.size()-2], st.back(), a[i], include_collinear))
             st.pop_back();
         st.push_back(a[i]);
     }
-
     //make sure there are no duplicate vertices
     vector<vec2> ans(0);
     for(int i = 0; i < st.size(); i++){
@@ -214,7 +212,8 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
         }
         ans.push_back(st[i]);
     }
-
+    //reverse to make winding CCW
+    reverse(ans.begin(), ans.end());
     return ans;
 }
 

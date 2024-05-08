@@ -7,6 +7,16 @@ using namespace std;
 
 //huh
 
+//dp[i][j] = max number of determinable floors given
+//i = nr eggs we have
+//j = nr drops we're allowed
+
+//dp[1][1] = 1
+//dp[2][1] = 1
+//dp[x][1] = 1, x >= 1
+//dp[1][2] = 2
+//dp[2][2] = 3
+
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);

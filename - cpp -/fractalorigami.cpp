@@ -7,7 +7,23 @@ using namespace std;
 
 //Codeforces - 1924C
 
-//
+//most important observation is to note that any fold beyond the first one is going to add
+//equally to the valley and mountain lengths. 
+
+//to show that this is true, we can shade one side of the paper. If we 
+//fold the paper in a way that we fold two shaded sections together, we're creating a valley
+//fold, otherwise we're creating a mountain fold. Notice that since the first fold will 'double up'
+//all the portions of paper, from the second fold onwards, any fold we do is going to have equal
+//parts 'shaded together' and 'unshaded together'. 
+
+//let's define V(n) as the length of valley creases after n folds. V(1) = 4 / sqrt(2), and
+//V(n), where n > 1 is V(n - 1) + 2^(n - 2) * 4 / sqrt(2)^n
+//next, due to the doubling up property mentioned above, M(n) = V(n) - 4 / sqrt(2). 
+
+//notice that the question is asking us to compute the coefficient for the irrational portion of 
+//M(n) / V(n), which is equivalent to (V(n) - 4 / sqrt(2)) / V(n). From here, we can do some geometric
+//series analysis to represent V(n) in closed form, then rationalize the denominator to get 
+//our answer. 
 
 ll mod = 999999893;
 

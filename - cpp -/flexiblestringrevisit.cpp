@@ -1,13 +1,41 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef __int128 lll;
 typedef long double ld;
+typedef __float128 lld;
 using namespace std;
 
-struct mint;
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
+//Codeforces - 1778D
 
-ll mod = 1e9 + 7;
+//note that the only thing we care about is the number of characters that differ between A and B. 
+//E[i] is simply the expected value given that i characters differ. 
+
+//note that E[i] = (i / n) * E[i - 1] + ((n - i) / n) * E[i + 1] + 1. I also claim that 
+//E[i] in the form a[i] * E[i + 1] + b[i]. Below is a derivation. 
+
+//E[i] = a[i] * E[i + 1] + b[i]
+//E[i] = (i / n) * E[i - 1] + ((n - i) / n) * E[i + 1] + 1
+//E[i] = (i / n) * (a[i - 1] * E[i] + b[i - 1]) + ((n - i) / n) * E[i + 1] + 1
+//(1 - (i / n) * a[i - 1]) * E[i] = (i / n) * b[i - 1] + ((n - i) / n) * E[i + 1] + 1
+//E[i] = ((n - i) / n) / (1 - (i / n) * a[i - 1]) * E[i + 1] + (1 + (i / n) * b[i - 1]) / (1 - (i / n) * a[i - 1])
+//a[i] = ((n - i) / n) / (1 - (i / n) * a[i - 1])
+//b[i] = (1 + (i / n) * b[i - 1]) / (1 - (i / n) * a[i - 1])
+
+//our base case is a[1] = (n - 1) / n, b[1] = 1.
+
+//once we have all the a and b coefficients, we can then figure out E[n - 1]:
+//E[n] = E[n - 1] + 1
+//E[n - 1] = a[n - 1] * E[n] + b[n - 1]
+//E[n - 1] = a[n - 1] * (E[n - 1] + 1) + b[n - 1]
+//(1 - a[n - 1]) * E[n - 1] = a[n - 1] + b[n - 1]
+//E[n - 1] = (a[n - 1] + b[n - 1]) / (1 - a[n - 1])
+
+//and then use E[n - 1] to compute all E. 
+
+//Note that the way i derived it leads to a much slower computation than the other way around; expressing E[i]
+//in terms of E[i - 1]. 
+
+ll mod = 998244353;
 struct mint {
     ll val;
     mint(ll _val = 0) {val = _val;}
@@ -16,16 +44,13 @@ struct mint {
     bool operator ==(ll other) const {return val == other;}
     bool operator !=(const mint& other) const {return val != other.val;}
     bool operator !=(ll other) const {return val != other;}
-    bool operator >(const mint& other) const {return val > other.val;}
-    bool operator >(ll other) const {return val > other;}
-    bool operator <(const mint& other) const {return val < other.val;}
-    bool operator <(ll other) const {return val < other;}
     mint& operator =(const mint& other) {val = other.val; return *this;}
     mint& operator =(ll other) {val = other; return *this;}
     mint operator +(const mint& other) const {ll ret = val + other.val; while(ret >= mod) {ret -= mod;} return mint(ret);}
     mint operator +(ll other) const {ll ret = val + other; while(ret >= mod) {ret -= mod;} return mint(ret);}
     mint& operator +=(const mint& other) {*this = *this + other; return *this;}
     mint& operator +=(ll other) {*this = *this + other; return *this;}
+    mint operator -() const {return mint((mod - val) % mod);};
     mint operator -(const mint& other) const {ll ret = val - other.val; while(ret < 0) {ret += mod;} return mint(ret);}
     mint operator -(ll other) const {ll ret = val - other; while(ret < 0) {ret += mod;} return mint(ret);}
     mint& operator -=(const mint& other) {*this = *this - other; return *this;}
@@ -42,19 +67,17 @@ struct mint {
     mint operator %(ll other) const {return mint(val % other);}
     mint& operator %=(const mint& other) {*this = *this % other; return *this;}
     mint& operator %=(ll other) {*this = *this % other; return *this;}
-
-    //don't forget about fermat's little theorem, 
-    //a^(m-1) % m = 1. This means that a^(p % m) % m != a^(p) % m, rather a^(p % (m-1)) % m = a^(p) % m. 
+    
     mint pow(const mint& other) const {
         mint ans(1), p(val);
         ll b = other.val;
-        while(b != 0) {if(b % 2 == 1) {ans *= p;} p *= p; b /= 2;}
+        while(b) {if(b % 2 == 1) {ans *= p;} p *= p; b /= 2;}
         return ans;
     }
     mint pow(ll other) const {
         mint ans(1), p(val);
         ll b = other;
-        while(b != 0) {if(b % 2 == 1) {ans *= p;} p *= p; b /= 2;}
+        while(b) {if(b % 2 == 1) {ans *= p;} p *= p; b /= 2;}
         return ans;
     }
 
@@ -69,110 +92,57 @@ struct mint {
 };
 bool operator ==(ll a, const mint& b) {return a == b.val;}
 bool operator !=(ll a, const mint& b) {return a != b.val;}
-bool operator >(ll a, const mint& b) {return a > b.val;}
-bool operator <(ll a, const mint& b) {return a < b.val;}
 mint operator +(ll a, const mint& b) {ll ret = a + b.val; while(ret >= mod) {ret -= mod;} return mint(ret);}
 mint operator -(ll a, const mint& b) {ll ret = a - b.val; while(ret < 0) {ret += mod;} return mint(ret);}
 mint operator *(ll a, const mint& b) {return mint((a * b.val) % mod);}
 mint operator /(ll a, const mint& b) {return mint((a / b.val) % mod);}
 mint operator %(ll a, const mint& b) {return mint(a % b.val);}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
+const int N = 1e6 + 1;
+mint e[N], a[N], b[N], i_inv[N], ni_inv[N]; 
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int t;
+    cin >> t;
+    while(t--){
+        int n;
+        cin >> n;
+        if(n == 1){
+            string a, b;
+            cin >> a >> b;
+            cout << (a != b) << "\n";
+            continue;
+        }
+        //precalc some stuff
+        for(int i = 0; i <= n; i++){
+            i_inv[i] = mint(i).inv_divide(n);
+            ni_inv[i] = 1 - i_inv[i];
+        }
+        //compute probabilities
+        e[0] = 0;
+        a[1] = mint(n - 1).inv_divide(n);
+        b[1] = 1;
+        for(int i = 2; i < n; i++){
+            a[i] = ni_inv[i].inv_divide(1 - i_inv[i] * a[i - 1]);
+            b[i] = (1 + i_inv[i] * b[i - 1]).inv_divide(1 - i_inv[i] * a[i - 1]);
+        }
+        //use this to figure out E[n - 1], and from there, we can figure out everything
+        e[n - 1] = (a[n - 1] + b[n - 1]).inv_divide(1 - a[n - 1]);
+        e[n] = e[n - 1] + 1;
+        string a_str, b_str;
+        cin >> a_str >> b_str;
+        int b_cnt = 0;
+        for(int i = 0; i < n; i++){
+            b_cnt += a_str[i] != b_str[i];
+        }
+        for(int i = n - 2; i >= b_cnt; i--){
+            e[i] = a[i] * e[i + 1] + b[i];
+        }
+        cout << e[b_cnt] << "\n";
     }
-    return gcd(b, a % b);
-}
-
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-mint extended_euclidean(mint a, mint b, mint& x, mint& y) {
-    x = 1, y = 0;
-    mint x1 = 0, y1 = 1, a1 = a, b1 = b;
-    while (b1) {
-        mint q = a1 / b1;
-        tie(x, x1) = make_tuple(x1, x - q * x1);
-        tie(y, y1) = make_tuple(y1, y - q * y1);
-        tie(a1, b1) = make_tuple(b1, a1 - q * b1);
-    }
-    return a1;
-}
-
-//modular inverse of a for any mod m. 
-//if -1 is returned, then there is no solution. 
-mint mod_inv(mint a, mint m) {
-    mint x, y;
-    mint g = extended_euclidean(a, m, x, y);
-    if (g != 1) {
-        return -1;
-    }
-    else {
-        x = (x % m + m) % m;
-        return x;
-    }
-}
-
-//only works when all modulo is coprime. 
-//if you want to do this with non-coprime modulos, then you need to factor all of the modulos, 
-//and resolve the factors independently; converting them back to coprime. 
-//it is not guaranteed that there is a solution if the modulos are not coprime. 
-mint chinese_remainder_theorem(vector<mint>& modulo, vector<mint>& remainder) {
-    if(modulo.size() != remainder.size()) {
-        return -1;
-    }
-    mint M = 1;
-    for(int i = 0; i < modulo.size(); i++){
-        M *= modulo[i];
-    }
-    mint solution = 0;
-    for(int i = 0; i < modulo.size(); i++){
-        mint a_i = remainder[i];
-        mint M_i = M / modulo[i];
-        mint N_i = mod_inv(M_i, modulo[i]);
-        solution = (solution + a_i * M_i % M * N_i) % M;
-    }
-    return solution;
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+    
+    return 0;
 }

@@ -10,7 +10,7 @@ using namespace std;
 //got this solution from the comments section again D:
 //this solution is way cleaner than the editorial solution. 
 
-//
+//we initially try to add all edges of the form (1, x) with 1 <= x <= n. 
 
 struct DSU {
     int N;

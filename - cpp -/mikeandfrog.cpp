@@ -1,11 +1,26 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
 
-struct mint;
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
+//Codeforces - 547A
+
+//reduces to a CRT problem. 
+//instead of h_1 and h_2, i'll call them a and b. 
+
+//first, we can cycle a and b around until they're both in their respective cycles. Then, we can check if at and bt
+//(which are the respective target values for a and b) exists within their respective cycles. 
+
+//If they do, then we can reduce this to a problem solvable by CRT. Denote the offset from the current a to at as 
+//at_ind; bt_ind is similarly defined. The size of the two cycles are ca_size and cb_size. Then, we are simply asking
+//what's the number of timesteps t such that 
+//t === at_ind % ca_size
+//t === bt_ind % cb_size
+
+//note that if gcd(ca_size, cb_size) != 1, then there may be no solution. We have to check if 
+//at_ind % g != bt_ind % g. If this is true, then there is indeed no solution. Otherwise, there is always a solution. 
 
 ll mod = 1e9 + 7;
 struct mint {
@@ -77,45 +92,6 @@ mint operator *(ll a, const mint& b) {return mint((a * b.val) % mod);}
 mint operator /(ll a, const mint& b) {return mint((a / b.val) % mod);}
 mint operator %(ll a, const mint& b) {return mint(a % b.val);}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
-    }
-    return gcd(b, a % b);
-}
-
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
 ll extended_euclidean(ll a, ll b, ll& x, ll& y) {
     x = 1, y = 0;
     ll x1 = 0, y1 = 1, a1 = a, b1 = b;
@@ -128,8 +104,6 @@ ll extended_euclidean(ll a, ll b, ll& x, ll& y) {
     return a1;
 }
 
-//modular inverse of a for any mod m. 
-//if -1 is returned, then there is no solution. 
 ll mod_inv(ll a, ll m) {
     ll x, y;
     ll g = extended_euclidean(a, m, x, y);
@@ -142,15 +116,6 @@ ll mod_inv(ll a, ll m) {
     }
 }
 
-//solves the following system of congruences for x:
-//x === a_1 % m_1
-//x === a_2 % m_2
-// ...
-//x === a_n % m_n
-//only works when all modulo is coprime. 
-//if you want to do this with non-coprime modulos, then you need to factor all of the modulos, 
-//and resolve the factors independently; converting them back to coprime. 
-//it is not guaranteed that there is a solution if the modulos are not coprime. 
 ll chinese_remainder_theorem(vector<ll> modulo, vector<ll> remainder) {
     if(modulo.size() != remainder.size()) {
         return -1;
@@ -169,15 +134,74 @@ ll chinese_remainder_theorem(vector<ll> modulo, vector<ll> remainder) {
     return solution;
 }
 
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    ll mod;
+    cin >> mod;
+    ll a, at, ax, ay, b, bt, bx, by;
+    cin >> a >> at >> ax >> ay >> b >> bt >> bx >> by;
+    ll ans = 0;
+    vector<bool> va(mod, false), vb(mod, false);
+    while(!va[a] || !vb[b]) {
+        va[a] = true;
+        vb[b] = true;
+        a = (a * ax + ay) % mod;
+        b = (b * bx + by) % mod;
+        ans ++;
+        if(a == at && b == bt) {
+            cout << ans << "\n";
+            return 0;
+        }
+    }
+    //ok, we know a and b have to be in their respective cycles. 
+    ll at_ind = -1, bt_ind = -1;
+    ll iptr = 1;
+    ll ptr = (a * ax + ay) % mod;
+    ll ca_size, cb_size;
+    if(a == at) {
+        at_ind = 0;
+    }
+    if(b == bt){
+        bt_ind = 0;
+    }
+    while(ptr != a){
+        if(ptr == at){
+            at_ind = iptr;
+        }
+        iptr ++;
+        ptr = (ptr * ax + ay) % mod;
+    }
+    ca_size = iptr;
+    iptr = 1;
+    ptr = (b * bx + by) % mod;
+    while(ptr != b){
+        if(ptr == bt) {
+            bt_ind = iptr;
+        }
+        iptr ++;
+        ptr = (ptr * bx + by) % mod;
+    }
+    cb_size = iptr;
+    ll g = gcd(ca_size, cb_size);
+    //check if it's even possible
+    if(at_ind == -1 || bt_ind == -1 || at_ind % g != bt_ind % g) {
+        cout << "-1\n";
+        return 0;
+    }
+    //ok, there has to be a solution
+    ll rem = at_ind % g;
+    ans += rem;
+    at_ind -= rem;
+    bt_ind -= rem;
+    at_ind /= g;
+    bt_ind /= g;
+    ll ma = ca_size / g;
+    ll mb = cb_size / g;
+    ll crt = chinese_remainder_theorem({ma, mb}, {at_ind, bt_ind});
+    ans += crt * g;
+    cout << ans << "\n";
+    
+    return 0;
 }

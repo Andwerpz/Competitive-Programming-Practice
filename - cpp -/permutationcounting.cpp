@@ -7,8 +7,6 @@ using namespace std;
 
 //Codeforces - 1967A
 
-//
-
 bool is_valid(vector<ll>& a, ll val, ll k) {
     for(int i = 0; i < a.size(); i++){
         k -= max(0ll, val - a[i]);

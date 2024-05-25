@@ -11,6 +11,15 @@ using namespace std;
 //this solution is way cleaner than the editorial solution. 
 
 //we initially try to add all edges of the form (1, x) with 1 <= x <= n. 
+//after this process, every node is connected to node 1 in at least one of the trees. 
+
+//then, we maintain two stacks, s1, s2. s1 stores all the nodes which are connected to node 1 in the first tree
+//and likewise for s2 but for the second tree. 
+
+//then, we look at the top of the stacks, and pop until the node on top is only connected to node 1 in their respective
+//tree. Since these nodes are guaranteed to be disconnected, we can go ahead and connect them. 
+
+//keep doing this until we run out of nodes in s1 or s2. 
 
 struct DSU {
     int N;

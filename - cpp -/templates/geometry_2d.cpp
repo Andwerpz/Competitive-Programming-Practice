@@ -39,8 +39,8 @@ struct vec2 {
     //angle from x axis in range (-pi, pi)
     ld polar_angle() {return atan2(y, x);}  
 
-    //projection of other onto this. TODO see if we can get rid of sqrt
-    vec2 project(const vec2& other) {vec2 t_n = get_normal(); return t_n * t_n.dot(other);}
+    //projection of other onto this
+    vec2 project(const vec2& other) {return *this * (other.dot(*this) / dot(*this));}
 
     friend std::ostream& operator<<(std::ostream& os, const vec2& v) {os << "[" << v.x << ", " << v.y << "]"; return os;}
     friend std::istream& operator>>(std::istream& is, vec2& v) {is >> v.x >> v.y; return is;}

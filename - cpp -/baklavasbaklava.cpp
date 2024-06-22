@@ -16,6 +16,9 @@ using namespace std;
 //between two dominant elements will be valid. So, if when extending our right bound and we see that a[r] == dom, then
 //we add to the answer the count of the dominant element in the interval, or cnt[dom]. 
 
+//crucially, two subarrays with two different dominant elements cannot overlap by much. This is why the 2 pointer solution
+//works. 
+
 //when moving the left bound, be careful to properly maintain the dominant element. 
 
 signed main() {

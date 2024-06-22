@@ -1,7 +1,17 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
+
+//Codeforces - 1575K
+
+//we don't really care about the number of colors, just the number of 'free cells'. A free cell is a cell for which we can
+//freely choose it's color. If the number of free cells is x, then the answer is simply k^x. 
+
+//notice that if a == b, then every cell on the board is a free cell. If a != b, then we can freely determine one
+//of the patches, but the other patch is determined by the first one, so x = n * m - r * c. 
 
 struct mint;
 vector<mint> fac;
@@ -77,54 +87,21 @@ mint operator *(ll a, const mint& b) {return mint((a * b.val) % mod);}
 mint operator /(ll a, const mint& b) {return mint((a / b.val) % mod);}
 mint operator %(ll a, const mint& b) {return mint(a % b.val);}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+
+    ll n, m, k, r, c;
+    cin >> n >> m >> k >> r >> c;
+    ll ax1, ay1, bx1, by1;
+    cin >> ax1 >> ay1 >> bx1 >> by1;
+    ll pow = n * m;
+    //adjust pow by regions
+    if(ax1 != bx1 || ay1 != by1) {
+        pow -= r * c;
     }
-    return gcd(b, a % b);
-}
-
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+    mint ans = mint(k).pow(pow);
+    cout << ans << "\n";
+    
+    return 0;
 }

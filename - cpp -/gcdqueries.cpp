@@ -4,9 +4,13 @@ using namespace std;
 
 //Codeforces - 1762D
 
-//notice that if you're using gcd to find multiples, 0 is always a multiple of any number. 
+//lets pick some random indices, a, b, c, and ask for gcd(a, b) and gcd(b, c)
 
-//the problem this solution suffers from is finding the initial not-1 position. 
+//if gcd(a, b) == gcd(b, c), then b cannot be 0.
+//if gcd(a, b) < gcd(b, c), then a cannot be 0, since gcd(b, c) is less than or equal to b
+//by symmetry, if gcd(a, b) > gcd(b, c), then c cannot be 0. 
+
+//just do it until you have 2 indices remaining, and then print both. 
 
 int main() {
     ios_base::sync_with_stdio(false);
@@ -17,56 +21,35 @@ int main() {
     while(t-- > 0){
         int n;
         cin >> n;
-        map<int, int> m;
-        for(int i = 0; i < n; i++){
-            m.insert({i, 0});
+        set<int> s;
+        for(int i = 1; i <= n; i++){
+            s.insert(i);
         }
-        vector<bool> v(n, true);
-        for(int i = n - 1; i >= 0; i--){
-            if(!v[i]) {
-                continue;
+        while(s.size() != 2){
+            auto ptr = s.begin();
+            int a = *ptr;
+            ptr ++;
+            int b = *ptr;
+            ptr ++;
+            int c = *ptr;
+            int g0, g1;
+            cout << "? " << a << " " << b << endl;
+            cin >> g0;
+            cout << "? " << b << " " << c << endl;
+            cin >> g1;
+            if(g0 == g1){
+                s.erase(b);
+            }            
+            else if(g0 < g1){
+                s.erase(a);
             }
-            int maxGcd = 0;
-            for(auto j = m.begin(); j != m.end(); j++){
-                int next = j -> first;
-                if(next == i){
-                    continue;
-                }
-                int gcd = 0;
-                cout << "? " << (i + 1) << " " << (next + 1) << endl;
-                cin >> gcd;
-                j -> second = gcd;
-                maxGcd = max(maxGcd, gcd);
-            }
-            vector<int> remove(0);
-            for(auto j = m.begin(); j != m.end(); j++){
-                if(j -> first == i){
-                    continue;
-                }
-                if(j -> second == maxGcd){
-                    continue;
-                }
-                remove.push_back(j -> first);
-            }
-            for(int j : remove) {
-                m.erase(j);
-                v[j] = false;
-            }
-            if(m.size() == 2) {
-                cout << "! " << (m.begin() -> first + 1) << " " << (m.rbegin() -> first + 1) << endl;
-                int ret = 0;
-                cin >> ret;
-                break;
-            }
-            v[i] = false;
-            m.erase(i);
-            if(m.size() == 2) {
-                cout << "! " << (m.begin() -> first + 1) << " " << (m.rbegin() -> first + 1) << endl;
-                int ret = 0;
-                cin >> ret;
-                break;
+            else {
+                s.erase(c);
             }
         }
+        cout << "! " << *s.begin() << " " << *s.rbegin() << endl;
+        int res;
+        cin >> res;
     }
     
     return 0;

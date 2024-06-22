@@ -1,7 +1,20 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
+
+//Codeforces - 1462E2
+
+//first, notice that the number of tuples should be the same before and after we sort the array, so first thing
+//we should do is sort the array. 
+
+//the main idea is that we can fix the left and right bounds of indices set, and then compute the number of ways to choose
+//the remaining m - 2 elements. Since we've sorted the array, fixing the left and right bounds on indices also 
+//conveniently fixes the range of the set. 
+
+//my solutions counts the complement, or the number of tuples with range greater than k. I found it more convenient. 
 
 struct mint;
 vector<mint> fac;
@@ -102,29 +115,58 @@ mint nck(mint n, mint k) {
     return ans;
 }
 
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(1e6);
+    int t;
+    cin >> t;
+    while(t--){
+        int n, m, k;
+        cin >> n >> m >> k;
+        vector<int> a(n);
+        for(int i = 0; i < n; i++){
+            cin >> a[i];
+        }
+        if(m == 1){
+            cout << n << "\n";
+            continue;
+        }
+        if(m > n){
+            cout << "0\n";
+            continue;
+        }
+        sort(a.begin(), a.end());
+        // cout << "SORTED : " << "\n";
+        // for(int i = 0; i < n; i++){
+        //     cout << a[i] << " ";
+        // }
+        // cout << "\n";
+        vector<int> pfx(n + 2, 0);
+        int r = 0;
+        for(int i = 0; i < n; i++){
+            while(r != n && (a[r] - a[i] <= k || r - i + 1 < m)){
+                r ++;
+            }
+            if(r == n) {
+                break;
+            }
+            pfx[r - i + 1] ++;
+            pfx[n - i + 1] --;
+            // cout << "PFX : " << r - i << " " << n - i + 1 << "\n";
+        }
+        for(int i = 1; i <= n; i++){
+            pfx[i] += pfx[i - 1];
+        }
+        mint ans = 0;
+        for(int i = m; i <= n; i++){
+            // cout << "NCK : " << i - 2 << " " << m - 2 << " X " << pfx[i] << endl;
+            ans += nck(i - 2, m - 2) * pfx[i];
+        }
+        ans = nck(n, m) - ans;
+        cout << ans << "\n";
+    }
+    
+    return 0;
 }

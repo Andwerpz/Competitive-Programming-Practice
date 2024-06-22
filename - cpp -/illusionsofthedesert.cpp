@@ -1,15 +1,21 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
 
-// -- REMEMBER -- 
-//always check that the lazysegtree settings are exactly what you need. 
-//don't forget to modify the range combine function. 
+//Codeforces - 1575I
 
-//a relatively kinda dumb implementation of heavy-light decomposition. 
-//note that this implementation is not very optimized; you'll probably TLE on tight time constraints. 
-//O(log(n)) query, O(log(n)^2) modify any path along the tree. 
+//although the formula giving the cost of travelling from node x to y is pretty intimidating, it's actually quite simple. 
+//The cost of travelling from x to y is the maximum between the absolute value of the sum and difference between a[x] and a[y].
+//You can make the observation that the sign of either number doesn't matter, and so you can just assign a[i] = abs(a[i]), for
+//all i. 
+
+//after you do that, you can then notice that the cost of travelling from x to y is just the sum of the two nodes, and it 
+//follows that the cost of taking a path is twice the sum of all the nodes on the path, minus the values of the end nodes. 
+
+//This observation makes this problem trivial to solve through the application of HLD. 
 
 struct Segtree {
     //note that t[0] is not used
@@ -487,18 +493,50 @@ struct HLD {
         }
 };
 
-int main() {
-
-    int n = 100;
-    vector<vector<int>> c(n, vector<int>(0));   //placeholder adjacency list
-
-    // -- ASSIGNMENT MODIFY, MAXIMUM QUERY --
-    {
-        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
-        function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val;};
-        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return max(a, b);};
-        HLD<int> hld(n, 0, {}, 0, -1e9, 0, fmodify, fmodifyk, fcombine);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    int n, q;
+    cin >> n >> q;
+    vector<ll> a(n);
+    for(int i = 0; i < n; i++){
+        cin >> a[i];
+        a[i] = abs(a[i]);
     }
-
+    vector<vector<int>> c(n, vector<int>(0));
+    for(int i = 0; i < n - 1; i++){
+        int x, y;
+        cin >> x >> y;
+        x --;
+        y --;
+        c[x].push_back(y);
+        c[y].push_back(x);
+    }
+    function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return val;};
+    function<ll(ll, ll, int)> fmodifyk = [](const ll src, const ll val, const int k) -> ll{return val * k;};
+    function<ll(ll, ll)> fcombine = [](const ll a, const ll b) -> ll{return a + b;};
+    HLD<ll> hld(n, 0, c, 0, 0, 0, fmodify, fmodifyk, fcombine);
+    for(int i = 0; i < n; i++){
+        hld.modify(i, a[i]);
+    }
+    for(int i = 0; i < q; i++){
+        int type;
+        cin >> type;
+        ll u, v;
+        cin >> u >> v;
+        if(type == 1){
+            u --;
+            v = abs(v);
+            hld.modify(u, v);
+        }
+        else {
+            u --;
+            v --;
+            ll ans = hld.query(u, v) * 2 - hld.query(u) - hld.query(v);
+            cout << ans << "\n";
+        }
+    }
+    
     return 0;
 }

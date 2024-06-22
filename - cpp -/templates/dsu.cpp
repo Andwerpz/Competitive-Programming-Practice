@@ -16,12 +16,6 @@ struct DSU {
         }
     }
 
-    void dsu_init() {
-        for(int i = 0; i < N; i++){
-            dsu[i] = i;
-        }
-    }
-
     int find(int a) {
         if(dsu[a] == a) {
             return a;

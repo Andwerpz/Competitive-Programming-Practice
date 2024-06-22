@@ -44,6 +44,18 @@ struct SegtreeLazy {
             for(int i = 0; i < n; i++){
                 t[i + n] = initVal;
             }
+            build();
+        }
+
+        void assign(vector<T>& arr) {
+            for(int i = 0; i < min(n, arr.size()); i++){
+                t[i + n] = arr[i];
+            }
+            build();
+        }
+
+        //build tree after manually assigning values
+        void build() {
             for(int i = n - 1; i > 0; i--){
                 t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
             }
@@ -342,6 +354,43 @@ int main() {
         segt.modify(0, {0, false}); //set range to 0
         segt.modify(1, 5, {0, true});   //set range to 1
         seg a = segt.query(5, 10);  //get attr over range
+    }
+
+    // -- INCREMENT MODIFY, MINIMUM AND MINIMUM INDEX QUERY --
+    //if there are multiple indices with the minimum value, will return the minimum index out of all of them. 
+    {
+        struct seg {
+            int mn, ind;
+            seg() {
+                mn = 1e9;
+                ind = 0;
+            }
+            seg(int _mn, int _ind) {
+                mn = _mn;
+                ind = _ind;
+            }
+            seg(int val) {
+                mn = val;
+            }
+        };
+        function<seg(seg, seg)> fmodify = [](const seg src, const seg val) -> seg{
+            return seg(src.mn + val.mn, src.ind);
+        };
+        function<seg(seg, seg, int)> fmodifyk = [](const seg src, const seg val, const int k) -> seg{
+            return seg(src.mn + val.mn, src.ind);
+        };
+        function<seg(seg, seg)> fcombine = [](const seg a, const seg b) -> seg{
+            if(a.mn == b.mn) {
+                return seg(a.mn, min(a.ind, b.ind));
+            }
+            return a.mn < b.mn? seg(a.mn, a.ind) : seg(b.mn, b.ind);
+        };
+        SegtreeLazy<seg> segt(n + 1, seg(0), seg(), seg(), fmodify, fmodifyk, fcombine);
+        vector<seg> init_arr(n + 1);
+        for(int i = 0; i <= n; i++){
+            init_arr[i] = seg(0, i);
+        }
+        segt.assign(init_arr);
     }
 
     return 0;

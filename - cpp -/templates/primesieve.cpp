@@ -37,9 +37,10 @@ void find_divisors_helper(vector<int>& p, vector<int>& c, int ind, int val, vect
         ans.push_back(val);
         return;
     }
-    for(int i = 0; i <= c[ind]; i++){
-        find_divisors_helper(p, c, ind + 1, val, ans);
+    find_divisors_helper(p, c, ind + 1, val, ans);
+    for(int i = 0; i < c[ind]; i++){
         val *= p[ind];
+        find_divisors_helper(p, c, ind + 1, val, ans);
     }
 }
 

@@ -5,7 +5,7 @@ using namespace std;
 
 struct Trie {
     struct TrieNode {
-        vector<TrieNode*> c = vector<TrieNode*>(26, nullptr);
+        TrieNode* c[26];
         bool isWord = false;    //true if a word ends on this node
         int numWords = 0;   //counts how many words use this node as prefix
     };

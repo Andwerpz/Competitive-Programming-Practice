@@ -1,13 +1,17 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
 
-struct mint;
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
+//Codeforces - 337C
 
-ll mod = 1e9 + 7;
+//to minimize score, we want to put all k-groups in the beginning. Better to double early than double late. 
+
+//to find the number of k groups we have to put, we can just binary search. 
+
+ll mod = 1e9 + 9;
 struct mint {
     ll val;
     mint(ll _val = 0) {val = _val;}
@@ -77,54 +81,37 @@ mint operator *(ll a, const mint& b) {return mint((a * b.val) % mod);}
 mint operator /(ll a, const mint& b) {return mint((a / b.val) % mod);}
 mint operator %(ll a, const mint& b) {return mint(a % b.val);}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
+ll ceil_div(ll a, ll b){
+    return (a + b - 1) / b;
+}
+
+bool is_valid(ll n, ll m, ll k, ll val) {
+    ll gap = n - m;
+    m -= val * k;
+    return ceil_div(m, k - 1) <= gap + 1;
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    ll n, m, k;
+    cin >> n >> m >> k;
+    ll low = 0;
+    ll high = m / k;
+    ll cnt = high;
+    while(low <= high) {
+        ll mid = low + (high - low) / 2;
+        if(is_valid(n, m, k, mid)) {
+            cnt = min(cnt, mid);
+            high = mid - 1;
+        }
+        else {
+            low = mid + 1;
+        }
     }
-    return gcd(b, a % b);
-}
-
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+    ll ans = (mint(2).pow(cnt) - 1) * k * 2 + (m - cnt * k);
+    cout << ans << "\n";
+    
+    return 0;
 }

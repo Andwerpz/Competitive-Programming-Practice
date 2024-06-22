@@ -10,8 +10,6 @@ using namespace std;
 //we can solve this with dp. dp[i][j][k] = expected value of weight k, given that i seconds have passed, and
 //the sum of all weights is j. 
 
-//we'll also 
-
 struct mint;
 vector<mint> fac;
 map<pair<mint, mint>, mint> nckdp;

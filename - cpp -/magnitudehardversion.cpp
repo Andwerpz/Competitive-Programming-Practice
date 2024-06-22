@@ -1,13 +1,26 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
+
+//Codeforces - 1984C2
+
+//my observation in the previous problem was correct, but it was not fully descriptive of the process required. 
+//specifically, once you perform the first type 2 operation, if you're on the track to create the maximum value then 
+//it shouldn't matter whether you perform type 1 or 2 operations from that point onwards. 
+
+//so for every prefix, you can compute the number of ways to get to some value by only using type 1 operations, 
+//and then combine that with suffixes. 
+
+//note that we have to consider the case where you don't need to perform any type 2 operations seperately. 
 
 struct mint;
 vector<mint> fac;
 map<pair<mint, mint>, mint> nckdp;
 
-ll mod = 1e9 + 7;
+ll mod = 998244353;
 struct mint {
     ll val;
     mint(ll _val = 0) {val = _val;}
@@ -77,54 +90,61 @@ mint operator *(ll a, const mint& b) {return mint((a * b.val) % mod);}
 mint operator /(ll a, const mint& b) {return mint((a / b.val) % mod);}
 mint operator %(ll a, const mint& b) {return mint(a % b.val);}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
+ll calc_ans(vector<ll>& a, int n) {
+    vector<ll> pfx(n);
+    for(int i = 0; i < n; i++){
+        pfx[i] = a[i];
+        if(i != 0){
+            pfx[i] += pfx[i - 1];
+        }
     }
-    return gcd(b, a % b);
-}
-
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
+    ll cmax = abs(a[0]);
+    for(int i = 1; i < n; i++){
+        cmax = max(abs(cmax + a[i]), abs(pfx[i - 1] + a[i]));
     }
+    return cmax;
 }
 
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    int t;
+    cin >> t;
+    while(t--){
+        int n;
+        cin >> n;
+        vector<ll> a(n);
+        for(int i = 0; i < n; i++){
+            cin >> a[i];
+        }
+        vector<ll> pfx(n + 1, 0), sfx(n + 1, 0);
+        vector<mint> pfx_ways(n + 1, 0);
+        pfx_ways[0] = 1;
+        for(int i = 1; i <= n; i++){
+            pfx[i] = pfx[i - 1] + a[i - 1];
+            pfx_ways[i] = pfx_ways[i - 1];
+            if(pfx[i] >= 0){
+                pfx_ways[i] *= 2;
+            }
+        }
+        for(int i = n - 1; i >= 0; i--){
+            sfx[i] = sfx[i + 1] + a[i];
+        }
+        ll cmax = calc_ans(a, n);
+        mint ans = 0;
+        if(sfx[0] == cmax) {
+            ans = mint(2).pow(n);
+        }
+        else {
+            for(int i = 1; i <= n; i++){
+                if(abs(pfx[i]) + sfx[i] == cmax) {
+                    ans += pfx_ways[i] * mint(2).pow(n - i);
+                }
+            }
+        }
+        cout << ans << "\n";
     }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+    
+    return 0;
 }

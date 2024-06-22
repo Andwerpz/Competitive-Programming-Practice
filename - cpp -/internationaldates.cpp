@@ -3,7 +3,7 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-////University of Alberta Programming Contest 2023 B
+//University of Alberta Programming Contest 2023 B
 
 //if the first date is greater than 12, then it's EU, if the second one is greater than 12, then it's US, 
 //but if they're both not greater than 12, then it could be either. 

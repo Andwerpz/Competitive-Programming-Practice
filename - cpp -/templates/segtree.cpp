@@ -32,6 +32,13 @@ struct Segtree {
         build();
     }
 
+    void assign(vector<T>& arr) {
+        for(int i = 0; i < min(n, arr.size()); i++){
+            t[i + n] = arr[i];
+        }
+        build();
+    }
+
     void build() { // build the tree after manually assigning the values.
         for (int i = n - 1; i > 0; i--) {   
             t[i] = fcombine(t[i * 2], t[i * 2 + 1]);

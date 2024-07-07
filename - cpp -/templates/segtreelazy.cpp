@@ -1,5 +1,10 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef long double ld;
+typedef std::pair<int, int> pii;
+typedef std::pair<ll, ll> pll;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
 
 template <typename T>
@@ -48,7 +53,7 @@ struct SegtreeLazy {
         }
 
         void assign(vector<T>& arr) {
-            for(int i = 0; i < min(n, arr.size()); i++){
+            for(int i = 0; i < min(n, (int) arr.size()); i++){
                 t[i + n] = arr[i];
             }
             build();
@@ -391,6 +396,22 @@ int main() {
             init_arr[i] = seg(0, i);
         }
         segt.assign(init_arr);
+    }
+
+    // -- ADD OR MULTIPLY MODIFY, SUM UNDER MOD QUERY --
+    {   
+        //modify {a, b} means multiply by b, then add a. 
+        ll mod = 1e9 + 7;
+        function<pll(pll, pll)> fmodify = [&mod](const pll src, const pll val) -> pll{
+            return {(src.first * val.second + val.first) % mod, (src.second * val.second) % mod};
+        };
+        function<pll(pll, pll, int)> fmodifyk = [&mod](const pll src, const pll val, const int k) -> pll{
+            return {(src.first * val.second + val.first * k) % mod, (src.second * val.second) % mod};
+        };
+        function<pll(pll, pll)> fcombine = [&mod](const pll a, const pll b) -> pll{
+            return {(a.first + b.first) % mod, (a.second * b.second) % mod};
+        };
+        SegtreeLazy<pll> segt(n, {0, 1}, {0, 0}, {0, 0}, fmodify, fmodifyk, fcombine);
     }
 
     return 0;

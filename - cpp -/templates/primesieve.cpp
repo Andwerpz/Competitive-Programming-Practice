@@ -44,6 +44,7 @@ void find_divisors_helper(vector<int>& p, vector<int>& c, int ind, int val, vect
     }
 }
 
+//includes 1 as a divisor
 vector<int> find_divisors(int val) {
     vector<int> factors = find_prime_factors(val);
     map<int, int> m;

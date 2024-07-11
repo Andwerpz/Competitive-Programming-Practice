@@ -1,7 +1,28 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+typedef std::pair<int, int> pii;
+typedef std::pair<ll, ll> pll;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
+
+//Codeforces - 1983E
+
+//First, the number of normal balls that alice and bob will get is fixed. We know this because in each
+//move, each player will get exactly 1 normal ball (except if there are no normal balls left). 
+
+//second, observe that the actual values of each ball actually doesn't matter. All we need to know is 
+//the expected amount of each ball each player will get, and since they choose the balls randomly, 
+//the expected value for each type of ball is just the sum of that ball type values times the expected
+//number of balls divided by the total amount of balls of that type. 
+
+//next, consider some sequence of recieving balls, A means alice gets a ball, and B means bob gets one:
+//A A B A B
+
+//notice that every unique sequence is actually equally likely. Given that alice will recieve x special
+//balls, we can compute the number of ways that it can happen, and then take the weighted average
+//over all ways. 
 
 struct mint;
 vector<mint> fac;
@@ -110,29 +131,45 @@ mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
     return nck(stars - 1, bars);
 }
 
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(1e6 + 100);
+    int t;
+    cin >> t;
+    while(t--){
+        int n, k;
+        cin >> n >> k;
+        n -= k;
+        vector<mint> a(n + k);
+        mint s_sum = 0, n_sum = 0;
+        for(int i = 0; i < a.size(); i++){
+            cin >> a[i];
+            if(i < k){
+                s_sum += a[i];
+            }
+            else {
+                n_sum += a[i];
+            }
+        }
+        if(n == 0){
+            cout << s_sum << " " << 0 << "\n";
+            continue;
+        }
+        mint ans = n_sum * mint((n + 1) / 2).inv_divide(n);
+        mint s_ev = 0, s_ways = 0;
+        for(int i = 0; i <= k; i++){
+            mint a_ways = stars_bars(i, (n + 2) / 2 - 1, true);
+            mint b_ways = stars_bars(k - i, (n + 1) / 2 - 1, true);
+            mint ways = a_ways * b_ways;
+            s_ev += ways * i;
+            s_ways += ways;
+        }
+        s_ev = s_ev.inv_divide(s_ways);
+        ans += s_sum * s_ev.inv_divide(k);
+        cout << ans << " " << n_sum + s_sum - ans << "\n";
+    }
+    
+    return 0;
 }

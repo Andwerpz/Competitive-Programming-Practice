@@ -1,50 +1,26 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+typedef std::pair<int, int> pii;
+typedef std::pair<ll, ll> pll;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
 
-//for strings
-struct Trie {
-    struct TrieNode {
-        TrieNode* c[26];
-        bool isWord = false;    //true if a word ends on this node
-        int numWords = 0;   //counts how many words use this node as prefix
-    };
+//Codeforces - 1983F
 
-    TrieNode head;
+//if we can count the number of subarrays having value less than or equal to some value x in n * log(n) time, 
+//then we can simply binary search for the minimum x where the number of subarrays with value
+//less than or equal to x is >= k, and that x is our answer. 
 
-    Trie() {
-        this->head = TrieNode();
-    }
+//To find the number of subarrays with value less than or equal to x, we can use a 2 pointer method, 
+//and a trie. The trie should support adding, removing, and querying the minimum xor value against any value
+//inside the trie. All these operations can be done in log(n) time. 
 
-    void insert(string s){
-        TrieNode* ptr = &head;
-        for(int i = 0; i < s.size(); i++){
-            ptr->numWords ++;
-            int ch = s[i] - 'a';
-            if(ptr->c[ch] == nullptr) {
-                ptr->c[ch] = new TrieNode();
-            }
-            ptr = ptr->c[ch];
-        }
-        ptr->numWords ++;
-        ptr->isWord = true;
-    }
+//as for the 2 pointer, notice that if some array has value v, then any subarray of that array must have
+//value greater than or equal to v. This means that for our two pointer, we can just find for each l, 
+//the maximum r in which the segment [l, r) has value > x, and then take the complement. 
 
-    TrieNode* query(string s) {
-        TrieNode* ptr = &head;
-        for(int i = 0; i < s.size(); i++){
-            int ch = s[i] - 'a';
-            ptr = ptr->c[ch];
-            if(ptr == nullptr) {
-                break;
-            }
-        }
-        return ptr;
-    }
-};
-
-//can move this inside, just won't run locally. Seems like allocating memory on heap is way slower. 
 static const int N = (1e5 + 100) * 30;
 int trie_c[N][2], trie_subt[N];
 struct TrieXOR {
@@ -129,3 +105,54 @@ struct TrieXOR {
         return ans;
     }
 };
+
+ll get_amt(ll n, vector<int>& a, int val, TrieXOR& trie) {
+    trie.clear();
+    ll ans = n * (n - 1) / 2;
+    int r = 0;
+    for(int i = 0; i < n; i++){
+        while(r != n) {
+            if(r != i && trie.query_min(a[r]) <= val){
+                break;
+            }
+            trie.insert(a[r]);
+            r ++;
+        }
+        ans -= r - i - 1;
+        trie.erase(a[i]);
+    }
+    return ans;
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    TrieXOR trie;
+    vector<int> a(1e5 + 1);
+    int t;
+    cin >> t;
+    while(t--){
+        ll n, k;
+        cin >> n >> k;
+        for(int i = 0; i < n; i++){
+            cin >> a[i];
+        }
+        int low = 0;
+        int high = (1 << 30) - 1;
+        int ans = high;
+        while(low <= high) {
+            int mid = low + (high - low) / 2;
+            if(get_amt(n, a, mid, trie) >= k){
+                ans = min(ans, mid);
+                high = mid - 1;
+            }
+            else {
+                low = mid + 1;
+            }
+        }
+        cout << ans << "\n";
+    }
+    
+    return 0;
+}

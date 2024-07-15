@@ -16,8 +16,10 @@ using namespace std;
 //notice that if the player to go first can't force a win, then it's always true that the second player
 //can force a win. Likewise for forcing losses. 
 
-//Determining whether or not you can force a win or a loss over a series of games is actually pretty
-//easy. Just think about it for a moment and you'll get it. 
+//We can see then that if the player wants to force something this game, lets say force a win, and it's possible
+//to by going first, then the player wants to lose in the previous game, thus making themselves go first. If instead
+//they can't force the thing they want, then they want to go second in the current game, which means forcing a win
+//in the previous game. 
 
 bool can_win(ll s, ll e) {
     if(e % 2 == 1){

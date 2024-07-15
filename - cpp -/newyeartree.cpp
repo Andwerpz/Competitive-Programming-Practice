@@ -1,12 +1,19 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+typedef std::pair<int, int> pii;
+typedef std::pair<ll, ll> pll;
+// typedef __int128 lll;
+// typedef __float128 lld;
 using namespace std;
 
-//given a rooted tree, we can perform queries of the type
-//lca(a, b) -> least common ancestor of a and b; O(log(n))
-//dist(a, b) -> distance between nodes a and b; O(log(n))
-//O(n * log(n)) preprocessing
+//Codeforces - 379F
+
+//let the endpoints of the old diameter be A and B. If you add a new node X to the tree, then the
+//diameter of the new tree has to be one of dist(A, B), dist(A, X), or dist(B, X). 
+
+//we can easily find distances between nodes on a tree using LCA. 
+
 struct LCA {
     struct Segtree {
         //note that t[0] is not used
@@ -136,6 +143,8 @@ struct LCA {
         init(n, root, edges);
     }
 
+    LCA() {}
+
     //parent list constructor
     //if node i is the root, then parents[i] must equal -1
     LCA(int n, vector<int> parents) {
@@ -162,4 +171,54 @@ struct LCA {
         int lc = lca(a, b);
         return depth[a] + depth[b] - 2 * depth[lc];
     }
+
 };
+
+vector<vector<int>> c;
+void add_edge(int u, int v) {
+    c[u].push_back(v);
+    c[v].push_back(u);
+}
+
+LCA lca;
+int a = 1, b = 2, diam = 2;
+void update_diam(int x) {
+    if(lca.dist(a, x) > diam) {
+        b = x;
+        diam = lca.dist(a, x);
+    }
+    else if(lca.dist(b, x) > diam) {
+        a = x;
+        diam = lca.dist(b, x);
+    }
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    int q;
+    cin >> q;
+    int n = 4 + 2 * q;
+    c = vector(n, vector<int>(0));
+    add_edge(0, 1);
+    add_edge(0, 2);
+    add_edge(0, 3);
+    vector<int> v(q);
+    int ptr = 4;
+    for(int i = 0; i < q; i++){
+        cin >> v[i];
+        v[i] --;
+        add_edge(v[i], ptr ++);
+        add_edge(v[i], ptr ++);
+    }
+    lca = LCA(n, 0, c);
+    ptr = 4;
+    for(int i = 0; i < q; i++){
+        update_diam(ptr ++);
+        update_diam(ptr ++);
+        cout << diam << "\n";
+    }
+    
+    return 0;
+}

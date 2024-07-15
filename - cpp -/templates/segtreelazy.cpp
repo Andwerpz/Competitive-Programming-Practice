@@ -414,6 +414,31 @@ int main() {
         SegtreeLazy<pll> segt(n, {0, 1}, {0, 0}, {0, 0}, fmodify, fmodifyk, fcombine);
     }
 
+    // -- MULTIPLY BY -1 MODIFY, MIN AND MAX QUERY --
+    {
+        //{{min, max}, whether or not to multiply by -1}
+        function<pair<pii, bool>(pair<pii, bool>, pair<pii, bool>)> fmodify = [](const pair<pii, bool> src, const pair<pii, bool> val) -> pair<pii, bool>{
+            return {src.first, src.second ^ val.second};
+        };
+        function<pair<pii, bool>(pair<pii, bool>, pair<pii, bool>, int)> fmodifyk = [](const pair<pii, bool> src, const pair<pii, bool> val, const int k) -> pair<pii, bool>{
+            return {src.first, src.second ^ val.second};
+        };
+        function<pair<pii, bool>(pair<pii, bool>, pair<pii, bool>)> fcombine = [](pair<pii, bool> a, pair<pii, bool> b) -> pair<pii, bool>{
+            if(a.second) {
+                a.first.first *= -1;
+                a.first.second *= -1;
+                swap(a.first.first, a.first.second);
+            }
+            if(b.second) {
+                b.first.first *= -1;
+                b.first.second *= -1;
+                swap(b.first.first, b.first.second);
+            }
+            return {{min(a.first.first, b.first.first), max(a.first.second, b.first.second)}, false};
+        };
+        SegtreeLazy<pair<pii, bool>> segt(n, {{0, 0}, 0}, {{1e18, -1e18}, 0}, {{0, 0}, 0}, fmodify, fmodifyk, fcombine);
+    }
+
     return 0;
 }
 

@@ -3,3 +3,5 @@
 *.in
 *.out
 *.jar
+*.txt
+!nice_problems.txt

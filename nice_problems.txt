@@ -1,0 +1,19 @@
+ - Codeforces 1549D, Integers Have Friends
+   - tasked with finding the maximum size of a subarray in an array such that there exists an integer m where all the values in the subarray are equal under mod m. 
+   - have to observe that if two values are equal under mod m, then m must divide the difference between the two values. 
+
+ - Codeforces 979D, Kuro and GCD and XOR and SUM
+   - tasked with handling two types of queries: the first is to append some value onto our array, and the second gives x, k, and s, and asks to find some number v in the array such that k | gcd(v, x), x + v <= s, and x xor v is maximized. 
+   - first, can ignore everything except for the xor constraint. Remember the way to try to maximize xor is to use a trie. 
+   - then can modify trie to handle sum constraint, and finally keep 10^5 tries to handle divisibility constraint. 
+
+ - Codeforces 1369E, DeadLee
+   - have n different types of food, w[i] is the amount of food of the ith type. Also have m friends, the ith of which likes x[i] and y[i] types of food. When you call a friend to eat, they attempt to each one unit of each food they like, and if they can't eat any food, you die D:. You're tasked with finding an ordering in which to call the friends to not die. 
+   - First, can turn into graph problem. Food types are nodes, and friend preferences are edges. 
+   - Next, observe that if there doesn't exist a node with value greater or equal to the sum of all incident edges, then it's impossible. We call such a node a good node. 
+   - Finally, observe that we can just remove any edge connected to a good node last. We continually remove good nodes until there are no good nodes, or all the edges are removed. 
+
+ - Codeforces 787D, Legacy
+   - have a graph that we want to compute minimum cost path from one source, but we have weird definition for edge. 
+   - An edge can specify that you can go from any node in range [l1, r1] to any node in range [l2, r2] with cost w. 
+   - Answer is to use auxillary nodes, but it isn't obvious how exactly. We create a segment tree like structure out of auxillary nodes, so to handle an edge, we only have to add log(n) extra edges. 

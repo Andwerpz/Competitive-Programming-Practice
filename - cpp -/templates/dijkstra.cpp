@@ -3,46 +3,72 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-//make sure that there are no negative weights. 
-//size of dist and prev must be n. 
+void _dijkstra(vector<vector<pair<int, ll>>>& c, int start, vector<ll>& dist) {
+    int n = c.size();
+    vector<bool> v(n, false);
+    dist = vector<ll>(n, 1e18);
+    priority_queue<pair<ll, int>> q;
+    q.push({0, start});
+    dist[start] = 0;
+    while(q.size() != 0){
+        int cur = q.top().second;
+        q.pop();
+        if(v[cur]) {
+            continue;
+        }
+        v[cur] = true;
+        for(int i = 0; i < c[cur].size(); i++){
+            int next = c[cur][i].first;
+            ll cost = c[cur][i].second;
+            if(dist[next] > dist[cur] + cost) {
+                dist[next] = dist[cur] + cost;
+                q.push({-dist[next], next});    
+            }
+        }
+    }
+}
+
+//note: untested as of 7/17/2024
 void _dijkstra(vector<vector<pair<int, ll>>>& c, vector<int> start, vector<ll>& dist, vector<int>& prev) {
     int n = c.size();
-    fill(dist.begin(), dist.end(), 1e18);
-    fill(prev.begin(), prev.end(), -1);
+    dist = vector<ll>(n, 1e18);
+    prev = vector<int>(n, -1);
+    vector<bool> v(n, false);
     priority_queue<pair<ll, pair<int, int>>> q;
     for(int i = 0; i < start.size(); i++){
         q.push({0, {start[i], -1}});
+        dist[start[i]] = 0;
     }
     while(q.size() != 0){
         int _prev = q.top().second.second;
         int cur = q.top().second.first;
-        ll curDist = -q.top().first;
         q.pop();
-        if(dist[cur] < curDist) {
+        if(v[cur]) {
             continue;
         }
+        v[cur] = true;
         prev[cur] = _prev;
-        dist[cur] = curDist;
         for(int i = 0; i < c[cur].size(); i++){
             int next = c[cur][i].first;
-            ll nextDist = curDist + c[cur][i].second;
-            q.push({-nextDist, {next, cur}});
+            ll nextDist = dist[cur] + c[cur][i].second;
+            if(dist[next] < nextDist) {
+                dist[next] = nextDist;
+                q.push({-nextDist, {next, cur}});
+            }
         }
     }
 }
 
 ll dijkstra(vector<vector<pair<int, ll>>>& c, int start, int end) {
     int n = c.size();
-    vector<ll> dist(n);
-    vector<int> prev(n);
+    vector<ll> dist; vector<int> prev;
     _dijkstra(c, {start}, dist, prev);
     return dist[end];
 }
 
 vector<int> dijkstra_path(vector<vector<pair<int, ll>>>& c, int start, int end) {
     int n = c.size();
-    vector<ll> dist(n);
-    vector<int> prev(n);
+    vector<ll> dist; vector<int> prev;
     _dijkstra(c, {start}, dist, prev);
     vector<int> path(0);
     int ptr = end;

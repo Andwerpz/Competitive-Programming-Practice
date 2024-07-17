@@ -7,6 +7,10 @@ using namespace std;
 // -- REMINDER --
 //make sure to modify the terminator character if '$' is used as a character in the input. 
 //terminator character is to 'flush' the buffered changes so that all suffixes are in the tree. 
+//it's also lexicographically smaller than any other character (i think this is important)
+
+//suffix array gives suffix indices in lexicographic order. 
+//lcp[i] means that suffix i and suffix i + 1 in lexicographic order share the first lcp[i] characters
 
 template <typename T>
 struct Segtree {

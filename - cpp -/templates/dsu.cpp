@@ -6,11 +6,12 @@ using namespace std;
 //basic union find implementation with path compression
 struct DSU {
     int N;
-    vector<int> dsu;
+    vector<int> dsu, sz;
 
     DSU(int n) {
         this->N = n;
         this->dsu = vector<int>(n, 0);
+        this->sz = vector<int>(n, 1);
         for(int i = 0; i < n; i++){ //initialize roots
             dsu[i] = i;
         }
@@ -23,6 +24,10 @@ struct DSU {
         return dsu[a] = find(dsu[a]);
     }
 
+    int get_sz(int a){
+        return sz[find(a)];
+    }
+
     //ret true if updated something
     bool unify(int a, int b) {
         int ra = find(a);
@@ -31,6 +36,7 @@ struct DSU {
             return false;
         }
         dsu[rb] = ra;
+        sz[ra] += sz[rb];
         return true;
     }
 };

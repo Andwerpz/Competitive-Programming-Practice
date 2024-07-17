@@ -33,7 +33,7 @@ struct Segtree {
     }
 
     void assign(vector<T>& arr) {
-        for(int i = 0; i < min(n, arr.size()); i++){
+        for(int i = 0; i < min(n, (int) arr.size()); i++){
             t[i + n] = arr[i];
         }
         build();

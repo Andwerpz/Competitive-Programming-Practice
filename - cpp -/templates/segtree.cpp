@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 typedef long long ll;
+typedef pair<int, int> pii;
 using namespace std;
 
 //single modify, range query
@@ -16,6 +17,7 @@ struct Segtree {
     //product of two elements for query and updating tree
     function<T(T, T)> fcombine;
 
+    Segtree() {}
     Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T)> fcombine) {
         this -> n = n;
         t = new T[2 * n];
@@ -167,6 +169,13 @@ int main() {
         function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
         function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
         run_segt_tests(n, 0, 1e9, fmodify, fcombine); 
+    }
+
+    // -- ASSIGNMENT MODIFY, MIN AND MIN INDEX QUERY --
+    {
+        function<pii(pii, pii)> fmodify = [](const pii src, const pii val) -> pii{return val;};
+        function<pii(pii, pii)> fcombine = [](const pii a, const pii b) -> pii{return a.first < b.first? a : b;};
+        Segtree<pii> segt(n, {0, 0}, {1e9, -1}, fmodify, fcombine);
     }
 
     // -- INCREMENT MODIFY, MAX SUBARRAY SUM QUERY --

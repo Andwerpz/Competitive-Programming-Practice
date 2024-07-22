@@ -39,8 +39,10 @@ struct RMQ  {
         for(int i = 0; i < n/block_size; i++) sparse_table[i] = small_query(block_size * i + block_size - 1);
         for(int j = 1; (1<<j) <= n/block_size; j++) for(int i = 0; i + (1<<j) <= n / block_size; i++) sparse_table[n / block_size * j + i] = op(sparse_table[n / block_size * (j - 1) + i], sparse_table[n / block_size * (j - 1) + i + (1<<(j-1))]);
     }
-    int query(int l, int r) {//query(l,r) returns the element from the minimum of v[l..r]
-        if(r - l + 1 <= block_size) return elements[small_query(r, r - l + 1)];
+    int _query(int l, int r) {  //queries range [l, r]
+        if(r - l + 1 <= block_size) {
+            return small_query(r, r - l + 1);
+        }
         int ans = op(small_query(l + block_size - 1), small_query(r)); 
         int x = l / block_size + 1;
         int y = r / block_size - 1;
@@ -48,7 +50,11 @@ struct RMQ  {
             int j = most_significant_bit_index(y - x + 1);
             ans = op(ans, op(sparse_table[n / block_size * j + x], sparse_table[n / block_size * j + y - (1 << j) + 1]));
         }
-        return elements[ans]; //return the value
-        // return ans;        //return the index with value
+        return ans;
+    }
+    int query(int l, int r) {   //queries range [l, r)
+        r --;
+        // return query(l, r);              //return the index with minimum value
+        return elements[query(l, r)];       //return the minimum value
     }
 };

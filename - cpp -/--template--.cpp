@@ -9,6 +9,9 @@ typedef vector<ll> vl;
 typedef vector<bool> vb;
 typedef vector<ld> vd;
 typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 

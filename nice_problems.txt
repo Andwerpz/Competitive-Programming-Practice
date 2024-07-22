@@ -17,3 +17,10 @@
    - have a graph that we want to compute minimum cost path from one source, but we have weird definition for edge. 
    - An edge can specify that you can go from any node in range [l1, r1] to any node in range [l2, r2] with cost w. 
    - Answer is to use auxillary nodes, but it isn't obvious how exactly. We create a segment tree like structure out of auxillary nodes, so to handle an edge, we only have to add log(n) extra edges. 
+
+ - Codeforces 1994D, Funny Problem
+   - First observation should be that the resulting graph has to be a tree. Second observation is that you can consider the operations in any order you like. Third observation should be that if |a - b| is divisible by x, then a % x = b % x. 
+   - hint: pidgeonhole principle
+   - If you consider the operations in the order n - 1, n - 2, ..., 1, then at the n - 1th operation, you'll have n components to merge, and in general, at the xth operation, you'll have x + 1 components to merge. 
+   - Since there are only x unique values under mod x, and you'll always have 1 extra component, it's guaranteed that two components will share a mod, therefore there is always an edge to merge. 
+   - In order to find the edge to add for each operation in linear time, you'll have to use DSU. 

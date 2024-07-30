@@ -12,8 +12,9 @@ typedef vector<vector<int>> vvi;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
-//this works by sorting all cyclic shifts of the string after appending '$' to it (lexicographically small character). 
+#include "segtree.cpp"
 
+//this works by sorting all cyclic shifts of the string after appending '$' to it (lexicographically small character). 
 vector<int> sort_cyclic_shifts(string const& s) {
     int n = s.size();
     const int alphabet = 256;
@@ -67,7 +68,6 @@ vector<int> calc_suffix_array(string s) {
 }
 
 //kasai's algorithm
-//note: untested
 vector<int> calc_lcp_array(string s){
     vector<int> suf = calc_suffix_array(s);
     int n = s.size();
@@ -90,3 +90,32 @@ vector<int> calc_lcp_array(string s){
     }
     return lcp;
 }
+
+struct LCP {
+    int n;
+    Segtree<int> segt;
+    vector<int> ind_mp;
+    LCP() {}
+    LCP(string s) {
+        n = s.size();
+        vector<int> lcp = calc_lcp_array(s);
+        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
+        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
+        segt = Segtree<int>(n, 0, 1e9, fmodify, fcombine); 
+        segt.assign(lcp);
+        vector<int> suf = calc_suffix_array(s);
+        ind_mp = vector<int>(n);
+        for(int i = 0; i < n; i++){
+            ind_mp[suf[i]] = i;
+        }
+    }
+
+    int get_lcp(int a, int b) {
+        if(a == b){
+            return n - a;
+        }
+        int l = min(ind_mp[a], ind_mp[b]);
+        int r = max(ind_mp[a], ind_mp[b]);
+        return segt.query(l, r);
+    }
+};

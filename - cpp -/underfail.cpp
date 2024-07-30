@@ -1,14 +1,35 @@
 #include <bits/stdc++.h>
-typedef long long ll;
 using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
 
-//slightly modified MCMF template from KACTL
+//Codeforces - 717G
 
-//given a target flow, what is the minimum cost to acheive that flow?
-//each edge has some cost, which is the cost per unit of flow. 
+//we can turn this into a max flow problem and solve it that way. 
+//consider each index of the crossword string s as a node. For each node i, draw an edge of infinite capacity, 
+//0 cost to i + 1. This will emulate not taking anything. 
 
-//backedges between nodes are allowed. I think this works because in max flow, it only really makes sense to 
-//push flow one way through an edge, given that the capacity is symmetrical. 
+//if there is a point giving word of length k at index i, then we draw an edge from node i to i + k with capacity
+//1, cost -p. This edge will tie up one unit of flow in exchange for p points. To find all these edges, it's
+//sufficient to just brute force. 
+
+//The maximum amount of points that we can get is found by computing the minimum cost required to get x units
+//of flow from 0 to n. 
+
+//interestingly, the problem is also equivalent to a weighted scheduling problem with multiple workers, so we can
+//also solve that in polynomial time with max flow. 
 
 #include <bits/extc++.h>
 #define all(x) begin(x), end(x)
@@ -90,6 +111,45 @@ struct MCMF {
 			  for (edge& e : ed[i]) if (e.cap)
 				  if ((v = pi[i] + e.cost) < pi[e.to])
 					  pi[e.to] = v, ch = 1;
-		assert(it >= 0); // negative cost cycle
+		assert(it >= 0); // detect negative cost cycle
 	}
 };
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    int n;
+    cin >> n;
+    string s;
+    cin >> s;
+    int m;
+    cin >> m;
+    MCMF mcmf(n + 1);
+    for(int i = 0; i < n; i++){
+        mcmf.addEdge(i, i + 1, 1000, 0);
+    }
+    for(int i = 0; i < m; i++){
+        string tmp;
+        cin >> tmp;
+        int p;
+        cin >> p;
+        for(int j = 0; j < n - tmp.size() + 1; j++){
+            bool match = true;
+            for(int k = 0; k < tmp.size(); k++){
+                if(tmp[k] != s[j + k]) {
+                    match = false;
+                }
+            }
+            if(match) {
+                mcmf.addEdge(j, j + tmp.size(), 1, -p);
+            }
+        }
+    }
+    int x;
+    cin >> x;
+    mcmf.setpi(0);
+    cout << -mcmf.maxflow(0, n, x).second << "\n";
+    
+    return 0;
+}

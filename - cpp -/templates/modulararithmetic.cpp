@@ -112,7 +112,7 @@ mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
 
 //true if odd, false if even. 
 bool nck_parity(mint n, mint k) {   
-    return (n & (n - k)) == 0;
+    return (k & (n - k)) == 0;
 }
 
 mint catalan(mint n){

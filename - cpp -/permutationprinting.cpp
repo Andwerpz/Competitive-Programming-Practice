@@ -15,6 +15,15 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Codeforces - 1930B
+
+//in the permutation, any value above n / 2 is not going to be able to divide any other value. So we can
+//use these values to 'insulate' the other values which are less than n / 2. 
+
+//for example, if n = 6, then
+//1 6 2 5 3 4
+//works. 
+
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);

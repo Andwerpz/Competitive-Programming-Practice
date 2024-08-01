@@ -15,9 +15,10 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
-//Codeforces - 1930A
+//Codeforces - 1997B
 
-//sort the array in descending order, and greedily take the pairs. 
+//if a cell is open, and has three adjacent open cells, and two diagonally adjacent closed cells, then filling this cell
+//will split it into 3 regions. 
 
 signed main() {
     ios_base::sync_with_stdio(false);
@@ -28,14 +29,15 @@ signed main() {
     while(t--){
         int n;
         cin >> n;
-        vi a(n * 2);
-        for(int i = 0; i < n * 2; i++){
-            cin >> a[i];
-        }
-        sort(a.begin(), a.end());
+        vector<string> g(2);
+        cin >> g[0] >> g[1];
         int ans = 0;
-        for(int i = 0; i < n; i++){
-            ans += a[i * 2];
+        for(int i = 1; i < n - 1; i++){
+            for(int j = 0; j < 2; j++){
+                if(g[j][i] == '.' && g[j][i + 1] == '.' && g[j][i - 1] == '.' && g[j ^ 1][i] == '.' && g[j ^ 1][i - 1] == 'x' && g[j ^ 1][i + 1] == 'x') {
+                    ans ++;
+                }
+            }
         }
         cout << ans << "\n";
     }

@@ -15,9 +15,9 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
-//Codeforces - 1930A
+//Codeforces - 1997A
 
-//sort the array in descending order, and greedily take the pairs. 
+//just find any two adjacent characters which are the same, and insert a different character between them. 
 
 signed main() {
     ios_base::sync_with_stdio(false);
@@ -26,18 +26,19 @@ signed main() {
     int t;
     cin >> t;
     while(t--){
-        int n;
-        cin >> n;
-        vi a(n * 2);
-        for(int i = 0; i < n * 2; i++){
-            cin >> a[i];
+        string s;
+        cin >> s;
+        bool placed = false;
+        for(int i = 0; i < s.size(); i++){
+            cout << s[i];
+            if(!placed) {
+                if((i != s.size() - 1 && s[i] == s[i + 1]) || (i == s.size() - 1)) {
+                    placed = true;
+                    cout << (char) ((s[i] - 'a' + 1) % 26 + 'a');
+                }
+            }
         }
-        sort(a.begin(), a.end());
-        int ans = 0;
-        for(int i = 0; i < n; i++){
-            ans += a[i * 2];
-        }
-        cout << ans << "\n";
+        cout << "\n";
     }
     
     return 0;

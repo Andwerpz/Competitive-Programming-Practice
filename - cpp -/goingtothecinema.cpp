@@ -15,10 +15,6 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
-//Codeforces - 1930A
-
-//sort the array in descending order, and greedily take the pairs. 
-
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);
@@ -28,14 +24,19 @@ signed main() {
     while(t--){
         int n;
         cin >> n;
-        vi a(n * 2);
-        for(int i = 0; i < n * 2; i++){
+        vi a(n);
+        for(int i = 0; i < n; i++){
             cin >> a[i];
         }
         sort(a.begin(), a.end());
         int ans = 0;
+        if(a[0] != 0){
+            ans ++;
+        }
         for(int i = 0; i < n; i++){
-            ans += a[i * 2];
+            if(i >= a[i] && (i == n - 1 || i + 1 < a[i + 1])) {
+                ans ++;
+            }
         }
         cout << ans << "\n";
     }

@@ -15,13 +15,9 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
-//Codeforces - 1782B
+//Codeforces - 1669C
 
-//first sort all the people in ascending order. I claim that if we can satisfy a subset of them, it's 
-//always going to be a prefix of this ascending order array. (proof is left to the reader). 
-
-//finally, we just have to iterate through all prefixes and check if they're good. Don't forget about the
-//empty prefix. 
+//just need to make sure all values of a group are all even or all odd. 
 
 signed main() {
     ios_base::sync_with_stdio(false);
@@ -36,17 +32,25 @@ signed main() {
         for(int i = 0; i < n; i++){
             cin >> a[i];
         }
-        sort(a.begin(), a.end());
-        int ans = 0;
-        if(a[0] != 0){
-            ans ++;
+        bool odd = true, even = true;
+        for(int i = 0; i < n; i += 2){
+            odd = odd && (a[i] % 2 == 1);
+            even = even && (a[i] % 2 == 0);
         }
-        for(int i = 0; i < n; i++){
-            if(i >= a[i] && (i == n - 1 || i + 1 < a[i + 1])) {
-                ans ++;
-            }
+        if(!odd && !even) {
+            cout << "NO\n";
+            continue;
         }
-        cout << ans << "\n";
+        odd = true, even = true;
+        for(int i = 1; i < n; i += 2){
+            odd = odd && (a[i] % 2 == 1);
+            even = even && (a[i] % 2 == 0);
+        }
+        if(!odd && !even) {
+            cout << "NO\n";
+            continue;
+        }
+        cout << "YES\n";
     }
     
     return 0;

@@ -1,13 +1,57 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//Codeforces - 1830C
+
+//if we replace '(' with 1 and ')' with -1, then the following must be true about any RBS:
+//1. the sum of elements must be 0
+//2. all prefixes must have sum >= 0
+//3. all suffixes must have sum <= 0
+
+//note that if two segments intersect (not completely containing), then the intersection must 
+//itself be a RBS. For example, we have two segments A and B intersecting like so:
+//(the intersection is denoted by C)
+
+//    |------A------|
+//             |------B------|
+//             |--C-|
+
+//since C is a suffix of A, all of it's suffixes must have sum <= 0, and since it is a prefix of 
+//B, all it's prefixes must have sum >= 0. These two conditions are enough to show that C must
+//be a RBS. 
+
+//Next, consider when A fully contains B:
+//(X and Y are the leftover portions of A)
+
+//   |--------A--------|
+//   |---X---|--B--|-Y-|
+
+//since the sum of B is 0, we can safely remove it without affecting any prefix or suffix sums. 
+//Therefore, the concatenation of X and Y must be a RBS. 
+
+//From here, I guessed that if the multiset of segments that cover some range is the same, then
+//they should always form a RBS upon concatenation. We can use XOR hashing to identify all such 
+//multisets, and a formula to quickly compute the number of RBS for a given length n. 
 
 struct mint;
 vector<mint> fac;
 map<pair<mint, mint>, mint> nckdp;
 
-ll mod = 1e9 + 7;
+ll mod = 998244353;
 struct mint {
     ll val;
     mint(ll _val = 0) {val = _val;}
@@ -102,14 +146,6 @@ mint nck(mint n, mint k) {
     return ans;
 }
 
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
-    }
-    return nck(stars - 1, bars);
-}
-
 //given that we choose n / 2 left brackets and n / 2 right brackets, 
 //nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
 mint nr_rbs(int n){
@@ -122,29 +158,51 @@ mint nr_rbs(int n){
     return nck(n, n / 2) - nck(n, n / 2 + 1);
 }
 
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(1e6);
+    int t;
+    cin >> t;
+    while(t--){
+        srand(time(0));
+        int n, k;
+        cin >> n >> k;
+        vector<pii> seg(k + 1);
+        priority_queue<pii> q;
+        for(int i = 0; i < k; i++){
+            cin >> seg[i].first >> seg[i].second;
+            seg[i].first --;
+        }
+        seg[k].first = 0;
+        seg[k].second = n;
+        vl hash(k + 1);
+        for(int i = 0; i <= k; i++){
+            hash[i] = rand() + (rand() << 16) + ((ll) rand() << 32) + ((ll) rand() << 48);
+        }
+        map<ll, int> m;
+        for(int i = 0; i <= k; i++){
+            q.push({-seg[i].first, i});
+            q.push({-seg[i].second, i});
+        }
+        int prev = 0;
+        ll hsum = 0;
+        while(q.size() != 0){
+            int next = -q.top().first;
+            int ind = q.top().second;
+            q.pop();
+            int diff = next - prev;
+            prev = next;
+            m[hsum] += diff;
+            hsum ^= hash[ind];
+        }
+        mint ans = 1;
+        for(auto i = m.begin(); i != m.end(); i++){
+            ans *= nr_rbs(i->second);
+        }
+        cout << ans << "\n";
+    }
+    
+    return 0;
 }

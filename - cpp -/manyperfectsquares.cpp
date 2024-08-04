@@ -15,6 +15,33 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Codeforces - 1782D
+
+//observe that we can compute the squareness of some x in O(n) time. 
+
+//let's pick a pair of numbers a[i] and a[j], i < j, and force them to be perfect squares. Note that this actually 
+//doesn't nail down the value of x, as we don't know how many squares are between them. 
+
+//next, iterate over the amount of squares inbetween a[i] + x and a[j] + x. Note that if a[j] - a[i] is odd, then
+//there must be an odd amount of squares between them, otherwise there must be an even amount. 
+
+//lets say we're testing some gap k. How do we find x given a[i], a[j], and k? We can first derive this equation:
+//a[j] - a[i] = k * (k - 1) + y * k. 
+//y is the initial difference. 
+//k * (k - 1) accounts for the arithmetic progression we get from adjacent differences of squares. 
+
+//Solving for y we get y = (a[j] - a[i]) / k - (k - 1). Now a few things have to be true. 
+//1. y must be an integer, this means that (a[j] - a[i]) must be divisible by k. 
+//2. (y - 1)^2 >= a[i]. In other words, x >= 0 or a[i] must be less than the square we're boosting it up to. 
+//3. y >= 0. 
+
+//if all three are true, then we can say that x = (y - 1)^2, and test it. 
+
+//A note on complexity. My rudimentary analysis gives around n^3 * sqrt(10^9), because we're testing every pair 
+//of numbers, we have around sqrt(10^9) differences we need to test per pair, and every x we test costs
+//n. This comes out to around 3 * 10^9 for n = 50, but ig there are some constant factors that I failed to 
+//consider that allow this to run relatively fast (500 ms). 
+
 int test_x(vl& a, ll x){
     // cout << "TEST X : " << x << "\n";
     int ans = 0;

@@ -15,6 +15,15 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Codeforces - 1782C
+
+//We can iterate through the amount of unique characters in the string and test each one.
+
+//to find the minimum changes given some amount of unique letters k, first find the frequency of each letter. 
+//then, choose to keep the k highest frequency letters and discard everything else. 
+
+//constructing the string is kinda annoying, but it's just implementation. 
+
 int solve(string& s, int nr_diff, string& retstring) {
     int n = s.size();
     if(n % nr_diff != 0){

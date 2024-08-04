@@ -15,6 +15,24 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Codeforces - 1782E
+
+//implementation school :/
+
+//I guessed that whatever area we have before shrinking, we can retain after shrinking. 
+//To do this, we need to only shrink rectangles where they are overlapping. 
+
+//I created a three step process. Unfortunately, it's a pain to implement. 
+
+//1. make all tall rectangles non-intersecting. By tall, i mean ones with height 2, and short refers to height 1 
+//rectangles. 
+
+//2. if a short rectangle 'completely contains' a tall one, then shrink the tall one vertically. If a short rectangle
+//only intersects a tall rectangle, but does not completely contain it, then horizontally shrink the short
+//rectangle. 
+
+//3. make all short rectangles non-intersecting. 
+
 void solve_seg(vvi& a, priority_queue<pii>& q){
     int active = -1;
     int a_r = -1;

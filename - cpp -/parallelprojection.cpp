@@ -15,6 +15,11 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Codeforces - 1782A
+
+//the optimal path is going to go fromt the projector to one of the walls, go straight down, and then go 
+//directly to the laptop. We can just test all possible points on the wall to go to.  
+
 int calc(int a, int b, int f, int g, int x, int y){
     return abs(a - x) + abs(b - y) + abs(f - x) + abs(g - y);
 }

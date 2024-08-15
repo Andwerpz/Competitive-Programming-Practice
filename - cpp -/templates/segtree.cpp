@@ -2,6 +2,7 @@
 using namespace std;
 typedef long long ll;
 typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
 
 //single modify, range query
 template <typename T>
@@ -176,6 +177,27 @@ int main() {
         function<pii(pii, pii)> fmodify = [](const pii src, const pii val) -> pii{return val;};
         function<pii(pii, pii)> fcombine = [](const pii a, const pii b) -> pii{return a.first < b.first? a : b;};
         Segtree<pii> segt(n, {0, 0}, {1e9, -1}, fmodify, fcombine);
+    }
+
+    // -- INCREMENT MODIFY, SUM AND FIRST NON-ZERO ELEMENT QUERY --
+    // {value, {index (useless), first non-zero index}}
+    {
+        function<pair<ll, pll>(pair<ll, pll>, pair<ll, pll>)> fmodify = [](pair<ll, pll> src, pair<ll, pll> val) -> pair<ll, pll>{
+            ll nval = src.first + val.first;
+            return {nval, {src.second.first, nval != 0? src.second.first : 1e9}};
+        };
+        function<pair<ll, pll>(pair<ll, pll>, pair<ll, pll>)> fcombine = [](pair<ll, pll> a, pair<ll, pll> b) -> pair<ll, pll>{
+            return {a.first + b.first, {a.second.first, min(a.second.second, b.second.second)}};
+        };
+        Segtree<pair<ll, pll>> segt(n + 1, {0, {}}, {0, {0, 1e9}}, fmodify, fcombine); //{value, {index, first nonzero index}}
+        {
+            vector<pair<ll, pll>> init(n, {0, {0, 0}});
+            for(int i = 0; i < n; i++){
+                init[i].second.first = i;
+                init[i].second.second = 1e9;
+            }
+            segt.assign(init);
+        }
     }
 
     // -- INCREMENT MODIFY, MAX SUBARRAY SUM QUERY --

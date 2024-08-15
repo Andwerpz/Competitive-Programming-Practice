@@ -51,7 +51,7 @@ void _dijkstra(vector<vector<pair<int, ll>>>& c, vector<int> start, vector<ll>& 
         for(int i = 0; i < c[cur].size(); i++){
             int next = c[cur][i].first;
             ll nextDist = dist[cur] + c[cur][i].second;
-            if(dist[next] < nextDist) {
+            if(dist[next] > nextDist) {
                 dist[next] = nextDist;
                 q.push({-nextDist, {next, cur}});
             }

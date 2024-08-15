@@ -83,6 +83,7 @@ struct LCA {
         for(int i = 0; i < n; i++){
             if(parents[i] == -1){
                 root = i;
+                continue;
             }
             edges[parents[i]].push_back(i);
             edges[i].push_back(parents[i]);

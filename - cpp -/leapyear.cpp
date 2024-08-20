@@ -15,11 +15,28 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//AtCoder - ABC365A
+
+//implementation
+
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);
-    
-    
+
+    int y;
+    cin >> y;
+    if(y % 4) {
+        cout << "365\n";
+    }
+    else if(y % 100) {
+        cout << "366\n";
+    }
+    else if(y % 400) {
+        cout << "365\n";
+    }
+    else {
+        cout << "366\n";
+    }
     
     return 0;
 }

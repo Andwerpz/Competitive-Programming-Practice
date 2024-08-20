@@ -24,3 +24,7 @@
    - If you consider the operations in the order n - 1, n - 2, ..., 1, then at the n - 1th operation, you'll have n components to merge, and in general, at the xth operation, you'll have x + 1 components to merge. 
    - Since there are only x unique values under mod x, and you'll always have 1 extra component, it's guaranteed that two components will share a mod, therefore there is always an edge to merge. 
    - In order to find the edge to add for each operation in linear time, you'll have to use DSU. 
+
+ - AtCoder ABC366F, Maximum Composition
+   - Problem where you are given a bunch of linear functions of form Ax + B, and asked to generate a composite function f(x) such that f(1) is maximized
+   - solution involves making some observations about when function compositions are greater than other ones. Turns an initially nasty problem into one that is actually very simple to implement. 

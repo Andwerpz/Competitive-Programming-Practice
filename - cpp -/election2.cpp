@@ -15,11 +15,22 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//AtCoder - ABC366A
+
+//just see if someone already has a simple majority. 
+
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);
-    
-    
+
+    int n, t, a;
+    cin >> n >> t >> a;
+    if(t > n / 2 || a > n / 2) {
+        cout << "Yes\n";
+    }
+    else {
+        cout << "No\n";
+    }
     
     return 0;
 }

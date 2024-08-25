@@ -4,5 +4,7 @@
 *.out
 *.jar
 *.txt
+*.hi
+*.o
 !nice_problems.txt
 !gibberish.txt

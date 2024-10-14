@@ -1,24 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
-typedef long long ll;
 typedef long double ld;
-typedef pair<int, int> pii;
-typedef pair<ll, ll> pll;
-typedef pair<ld, ld> pld;
-typedef vector<int> vi;
-typedef vector<ll> vl;
-typedef vector<bool> vb;
-typedef vector<ld> vd;
-typedef vector<vector<int>> vvi;
-typedef vector<vector<ll>> vvl;
-typedef vector<vector<bool>> vvb;
-typedef vector<vector<ld>> vvd;
-// typedef __int128 lll;
-// typedef __float128 lld;
-
-//Calgary 2022 - H
-
-//just compute the complex inverse of b. 
 
 struct Complex;
 typedef vector<Complex> vc;
@@ -65,15 +47,3 @@ Complex operator +(ld a, const Complex& b) {return Complex(a, 0) + b;}
 Complex operator -(ld a, const Complex& b) {return Complex(a, 0) - b;}
 Complex operator *(ld a, const Complex& b) {return Complex(a, 0) * b;}
 Complex operator /(ld a, const Complex& b) {return Complex(a, 0) / b;}
-
-signed main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL); cout.tie(NULL);
-    
-    Complex a, b;
-    cin >> a >> b;
-    Complex c = a * b.inv();
-    cout << fixed << setprecision(10) << c << "\n";
-    
-    return 0;
-}

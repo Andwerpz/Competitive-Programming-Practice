@@ -1,15 +1,34 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
 
+//Codeforces - 2020E
+
+//bruh, const mod makes it like 3 times faster. rip dmot. 
+
+//idea is to use dp to compute the probability of each set xor sum occurring, then we can easily
+//compute the expected squared value. 
+    
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
 typedef pair<mint, mint> pmm;
 vector<mint> fac;
 map<pair<mint, mint>, mint> nckdp;
-
+    
 const ll mod = 1e9 + 7;
 struct mint {
     ll val; //this should always be in range [0, mod)
@@ -45,7 +64,7 @@ struct mint {
     mint operator %(ll other) const {return *this % mint(other);}
     mint& operator %=(const mint& other) {*this = *this % other; return *this;}
     mint& operator %=(ll other) {*this = *this % other; return *this;}
-
+    
     //don't forget about fermat's little theorem, 
     //a^(m-1) % m = 1. This means that a^(p % m) % m != a^(p) % m, rather a^(p % (m-1)) % m = a^(p) % m. 
     mint pow(const mint& other) const {
@@ -55,12 +74,12 @@ struct mint {
         return ans;
     }
     mint pow(ll other) const {return this->pow(mint(other));}
-
+    
     //returns X such that A = (B * X) % mod
     mint inv_divide(const mint& other) const {
         return *this * other.pow(mod - 2);
     }
-
+    
     friend std::ostream& operator<<(std::ostream& os, const mint& m) {os << m.val; return os;}
     friend std::istream& operator>>(std::istream& is, mint& m) {is >> m.val; return is;}
     operator size_t() const {return val;}
@@ -74,75 +93,52 @@ mint operator -(ll a, const mint& b) {return mint(a) - b;}
 mint operator *(ll a, const mint& b) {return mint(a) * b;}
 mint operator /(ll a, const mint& b) {return mint(a) / b;}
 mint operator %(ll a, const mint& b) {return mint(a) % b;}
-
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
+    
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    vvm dp(2, vm((1 << 10), 0));
+    int t;
+    cin >> t;
+    while(t--){
+        int n;
+        cin >> n;
+        for(int i = 0; i < (1 << 10); i++){
+            dp[0][i] = 0;
+        }
+        dp[0][0] = 1;
+        vi a(n);
+        vm p(n);
+        for(int i = 0; i < n; i++){
+            cin >> a[i];
+        }
+        for(int i = 0; i < n; i++){
+            cin >> p[i];
+            p[i] = p[i].inv_divide(10000);
+        }
+        for(int i = 0; i < n; i++){
+            for(int j = 0; j < (1 << 10); j++){
+                dp[1][j] = 0;
+            }
+            for(int j = 0; j < (1 << 10); j++){
+                dp[1][j ^ a[i]] += dp[0][j] * p[i];
+                dp[1][j] += dp[0][j] * (1 - p[i]);
+            }
+            // for(int j = 0; j < 16; j++){
+            //     cout << dp[1][j] << " ";
+            // }
+            // cout << "\n";
+            swap(dp[0], dp[1]);
+        }
+        mint ans = 0;
+        for(int i = 0; i < (1 << 10); i++){
+            // cout << dp[0][i] << "\n";
+            mint cur = dp[0][i] * i;
+            ans += cur * i;
+        }
+        cout << ans << "\n";
     }
-    return gcd(b, a % b);
-}
-
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
-    }
-    return nck(stars - 1, bars);
-}
-
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
-        return 0;
-    }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+    
+    return 0;
 }

@@ -303,6 +303,21 @@ int main() {
         run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
     }
 
+    // -- INCREMENT MODIFY, MINIMUM AND COUNT OF MINIMUM QUERY --
+    // {min, min cnt}
+    {
+        function<pll(pll, pll)> fmodify = [](const pll src, const pll val) -> pll{
+            return {src.first + val.first, src.second};
+        };
+        function<pll(pll, pll, int)> fmodifyk = [](const pll src, const pll val, const int k) -> pll{
+            return {src.first + val.first, src.second};
+        };
+        function<pll(pll, pll)> fcombine = [](const pll a, const pll b) -> pll{
+            return a.first == b.first? (pll){a.first, a.second + b.second} : (a.first < b.first? a : b);
+        };
+        SegtreeLazy<pll> segt(n, {0, 0}, {1e18, 0}, {0, 1}, fmodify, fmodifyk, fcombine);
+    }
+
     // -- 01 ASSIGNMENT MODIFY, FIRST LAST INDEX 01 QUERY -- 
     // when querying, returns a struct that tells you the first and last indices of 0 and 1
     // in the range that you queried. 

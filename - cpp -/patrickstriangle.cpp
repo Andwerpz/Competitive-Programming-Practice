@@ -1,7 +1,25 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//KTH Challenge 2022 - B
+
+//i just observed that the constructed triangle is just a sum of 3 shifted pascals triangles. 
+//intuition is that if you fix the top two sides of the triangle, then the middle portion should be
+//all good, if you are constructing the triangle via sum of pascals triangles. 
 
 struct mint;
 typedef vector<mint> vm;
@@ -10,7 +28,7 @@ typedef pair<mint, mint> pmm;
 vector<mint> fac;
 map<pair<mint, mint>, mint> nckdp;
 
-const ll mod = 1e9 + 7;
+ll mod = 1e9 + 7;
 struct mint {
     ll val; //this should always be in range [0, mod)
     mint(ll _val = 0) {val = _val; if(val < 0) val = mod + (val % mod);}
@@ -75,13 +93,6 @@ mint operator *(ll a, const mint& b) {return mint(a) * b;}
 mint operator /(ll a, const mint& b) {return mint(a) / b;}
 mint operator %(ll a, const mint& b) {return mint(a) % b;}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
-    }
-    return gcd(b, a % b);
-}
-
 void fac_init(int N) {
     fac = vector<mint>(N);
     fac[0] = 1;
@@ -90,7 +101,6 @@ void fac_init(int N) {
     }
 }
 
-//n >= k
 mint nck(mint n, mint k) {
     if(nckdp.find({n, k}) != nckdp.end()) {
         return nckdp.find({n, k}) -> second;
@@ -100,49 +110,34 @@ mint nck(mint n, mint k) {
     return ans;
 }
 
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
-    }
-    return nck(stars - 1, bars);
-}
-
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
-        return 0;
-    }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
+mint calc_val(ll n, ll k) { 
+    mint ans = 0;
+    ans += nck(n + 2, k + 2);
+    ans += nck(n + 2, k);
+    ans -= nck(n, k);
     return ans;
 }
 
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(1e7);
+    // for(int n = 0; n < 10; n++){
+    //     // cout << "N : " << n << "\n";
+    //     for(int k = 0; k <= n; k++){
+    //         cout << calc_val(n, k) << " ";
+    //     }
+    //     cout << "\n";
+    // }
+    int q;
+    cin >> q;
+    for(int i = 0; i < q; i++){
+        ll n, k, x;
+        cin >> n >> k >> x;
+        // cout << "CHECK : " << x << " " << calc_val(n, k) << "\n";
+        cout << (x == calc_val(n - 1, k - 1)? "Correct" : "Incorrect") << "\n";
+    }
+    
+    return 0;
 }

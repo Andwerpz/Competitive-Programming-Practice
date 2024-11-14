@@ -8,7 +8,6 @@ typedef std::pair<ll, ll> pll;
 using namespace std;
 
 //RMQ from josh
-
 struct RMQ  {
     vector<int> elements;
     int n;
@@ -17,9 +16,9 @@ struct RMQ  {
     int op(int x, int y) { //update this method to determine what value we are trying to find. Currently set to minimum (return index of minimum element)
         return elements[x] < elements[y] ? x : y;
     }
-    int least_significant_bit(int x) {return x & -x;}
-    int most_significant_bit_index(int x) {return 31 - __builtin_clz(x);}
-    int small_query(int r, int size = block_size) {return r - most_significant_bit_index(mask[r] & ((1<<size)-1));}
+    int lsb(int x) {return x & -x;}
+    int msbi(int x) {return 31 - __builtin_clz(x);}
+    int small_query(int r, int size = block_size) {return r - msbi(mask[r] & ((1<<size)-1));}
     RMQ() {} //need this to satisfy master goon's requirements
     RMQ (const vector<int>& input) {build(input);}
     void build (const vector<int>& input) {
@@ -32,7 +31,7 @@ struct RMQ  {
         int curr_mask = 0;
         for(int i = 0; i < n; i++) {
             curr_mask = (curr_mask<<1) & ((1<<block_size)-1);
-            while(curr_mask > 0 && op(i, i - most_significant_bit_index(least_significant_bit(curr_mask))) == i) curr_mask ^= least_significant_bit(curr_mask);
+            while(curr_mask > 0 && op(i, i - msbi(lsb(curr_mask))) == i) curr_mask ^= lsb(curr_mask);
             curr_mask |= 1;
             mask[i] = curr_mask;
         }
@@ -47,7 +46,7 @@ struct RMQ  {
         int x = l / block_size + 1;
         int y = r / block_size - 1;
         if(x <= y) {
-            int j = most_significant_bit_index(y - x + 1);
+            int j = msbi(y - x + 1);
             ans = op(ans, op(sparse_table[n / block_size * j + x], sparse_table[n / block_size * j + y - (1 << j) + 1]));
         }
         return ans;

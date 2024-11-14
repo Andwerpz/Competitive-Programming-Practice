@@ -64,14 +64,14 @@ vec2 lerp(ld t0, ld t1, vec2 x0, vec2 x1, ld t) {
     return vec2(lerp(t0, t1, x0.x, x1.x, t), lerp(t0, t1, x0.y, x1.y, t));
 }
 
-//returns the coefficients s and t, where p1 + v1 * s = p2 + v2 * t
-vector<ld> lineLineIntersect(vec2 p1, vec2 v1, vec2 p2, vec2 v2) {
+//p1 + v1 * s = p2 + v2 * t
+vec2 line_lineIntersect(vec2 p1, vec2 v1, vec2 p2, vec2 v2) {
     if(cross(v1, v2) == 0){
         return {};
     }
     ld s = cross(p2 - p1, v2) / cross(v1, v2);
     ld t = cross(p1 - p2, v1) / cross(v2, v1);
-    return {s, t};
+    return p1 + v1 * s;
 }
 
 ld tri_area(vec2 t1, vec2 t2, vec2 t3) {
@@ -81,7 +81,7 @@ ld tri_area(vec2 t1, vec2 t2, vec2 t3) {
 }
 
 //returns the distance along the ray from ray_a to the nearest point on the circle. 
-ld rayCircleIntersect(vec2 ray_a, vec2 ray_b, vec2 center, ld radius) {
+ld ray_circleIntersect(vec2 ray_a, vec2 ray_b, vec2 center, ld radius) {
     vec2 ray_dir = (ray_b - ray_a).get_normal();
     vec2 to_center = center - ray_a;
     vec2 center_proj = ray_a + ray_dir * dot(ray_dir, to_center);
@@ -98,21 +98,30 @@ ld sector_area(ld theta, ld radius) {
 }
 
 ld chord_area(ld theta, ld radius) {
-    ld sector = sector_area(theta, radius);
-    ld tri_area = radius * radius * cos(theta) * sin(theta);
-    return sector - tri_area;
+    return (radius * radius / 2.0) * (theta - sin(theta));
 }
 
 //dist = distance from center
 ld chord_area_dist(ld dist, ld radius) {
     ld theta = acos(dist / radius);
-    return chord_area(theta, radius);
+    return chord_area(theta * 2, radius);
 }
 
 //length of chord
 ld chord_area_length(ld length, ld radius) {
     ld theta = asin((length / 2.0) / radius);
-    return chord_area(theta, radius);
+    return chord_area(theta * 2, radius);
+}
+
+//3 points can uniquely define a circle, just have to find the intersection between the perpendicular
+//bisectors between two pairs of points. 
+//be careful if the three points are colinear. 
+vec2 threept_circle(vec2 a, vec2 b, vec2 c){
+    vec2 ab = b - a;
+    vec2 ac = c - a;
+    vec2 abp = {ab.y, -ab.x};
+    vec2 acp = {ac.y, -ac.x};
+    return line_lineIntersect(a + ab / 2, abp, a + ac / 2, acp);
 }
 
 //given a point inside and outside a circle, find the point along the line that intersects the circle.

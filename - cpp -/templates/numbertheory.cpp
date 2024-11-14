@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 typedef long long ll;
 typedef long double ld;
+typedef vector<ld> vd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 using namespace std;
@@ -86,4 +87,23 @@ void calc_totient(int n) {
                 totient[j] -= totient[j] / i;
         }
     }
+}
+
+vd H;
+void init_H() {
+    H = vd(100000000);
+    H[0] = 0;
+    for(int i = 1; i < H.size(); i++){
+        H[i] = H[i - 1] + (ld) 1.0 / (ld) i;
+    }
+}
+
+//harmonic series approximation
+//H_n = ln(n) + \gamma
+//approximation gets better as N grows, so precompute H for small n. 
+ld calc_H(ll n) {
+    if(n < H.size()) {
+        return H[n];
+    }
+    return log(n) + 0.57721566490153286060651;
 }

@@ -8,148 +8,85 @@ using namespace std;
 
 //this can be solved using a normal segment tree, but i was lazy. 
 
+template <typename T>
 struct SegtreeLazy {
     public:
-        ll n;
-        ll* t;    //stores product of range
-        ll* d;    //lazy tree
-        bool* upd;   //upd[i] = true if t[i] needs to be updated
-        ll uneut, qneut;
+        int n;
+        T* t;    //stores product of range
+        T* d;    //lazy tree
+        bool* upd;  //marks whether or not a lazy change is here
+        T uneut, qneut;
+        function<T(T, T)> fmodify, fcombine;
+        function<T(T, T, int)> fmodifyk;
 
-        //single element modify
-        function<ll(ll, ll)> fmodify;
-
-        //k element modify
-        function<ll(ll, ll, ll)> fmodifyk;
-
-        //product of two elements for query
-        function<ll(ll, ll)> fcombine;
-
-        SegtreeLazy(ll maxSize, ll updateNeutral, ll queryNeutral, function<ll(ll, ll)> fmodify, function<ll(ll, ll, ll)> fmodifyk, function<ll(ll, ll)> fcombine) {
-            n = maxSize;
-            uneut = updateNeutral;
-            qneut = queryNeutral;
-
-            this -> fmodify = fmodify;
-            this -> fmodifyk = fmodifyk;
-            this -> fcombine = fcombine;
-
-            //raise n to nearest pow 2
-            ll x = 1;
-            while(x < n) {
-                x <<= 1;
-            }
-            n = x;
-
-            t = new ll[n * 2];
-            d = new ll[n * 2];
+        SegtreeLazy(int maxSize, T updateNeutral, T queryNeutral, T initVal, function<T(T, T)> fmodify, function<T(T, T, int)> fmodifyk, function<T(T, T)> fcombine) {
+            uneut = updateNeutral, qneut = queryNeutral;
+            this->fmodify = fmodify;
+            this->fmodifyk = fmodifyk;
+            this->fcombine = fcombine;
+            n = 1; //raise n to nearest pow 2
+            while(n < maxSize) n <<= 1;
+            t = new T[n * 2], d = new T[n * 2];
             upd = new bool[n * 2];
-
-            //make sure to initialize values
-            for(ll i = 0; i < n * 2; i++){
-                t[i] = uneut;
-            }
-            for(ll i = 0; i < n * 2; i++){
-                d[i] = uneut;
-                upd[i] = false;
-            }
+            for(int i = 0; i < n; i++) t[i + n] = initVal;
+            build();
         }
+	
+        //modifies the range [l, r)
+        void modify(int l, int r, T val) {_modify(l, r, val, 0, n, 1);}
+        void modify(int ind, T val) {modify(ind, ind + 1, val);}
+        
+        //queries the range [l, r)
+        T query(int l, int r) {return _query(l, r, 0, n, 1);}
+        T query(int ind) {return query(ind, ind + 1);}
 
-        void modify(ll l, ll r, ll val) {    //modifies the range [l, r)
-            _modify(l, r, val, 0, n, 1);
+        void assign(vector<T>& arr) {
+            for(int i = 0; i < min(n, (int) arr.size()); i++) t[i + n] = arr[i];
+            build();
         }
-
-        void modify(ll ind, ll val) { //modifies the range [ind, ind + 1)
-            _modify(ind, ind + 1, val, 0, n, 1);
-        }
-
-        ll query(ll l, ll r) {   //queries the range [l, r)
-            return _query(l, r, 0, n, 1);
-        }
-
-        ll query(ll ind) {    //queries the range [ind, ind + 1)
-            return _query(ind, ind + 1, 0, n, 1);
+        void build() {
+            for(int i = n - 1; i > 0; i--) t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
+            for(int i = 0; i < n * 2; i++){d[i] = uneut; upd[i] = false;}
         }
 
     private:
-        //calculates value of node based off of children
-        //k is the amount of values that this node represents. 
-        void combine(ll ind, ll k) {
-            if(ind >= n){
-                return;
-            }
-            ll l = ind * 2;
-            ll r = ind * 2 + 1;
-            //make sure children are correct value before calculating
-            push(l, k / 2);
-            push(r, k / 2);
+        void combine(int ind, int k) {
+            if(ind >= n) return;
+            int l = ind * 2, r = ind * 2 + 1;
+            push(l, k / 2), push(r, k / 2);
             t[ind] = fcombine(t[l], t[r]);
         }
-
-        //registers a lazy change llo this node
-        void apply(ll ind, ll val) {
+        void apply(int ind, T val) {
             upd[ind] = true;
             d[ind] = fmodify(d[ind], val);
         }
-
-        //applies lazy change to this node
-        //k is the amount of values that this node represents. 
-        void push(ll ind, ll k) {
-            if(!upd[ind]) {
-                return;
-            }
+        void push(int ind, int k) {
+            if(!upd[ind]) return;
             t[ind] = fmodifyk(t[ind], d[ind], k);
             if(ind < n) {
-                ll l = ind * 2;
-                ll r = ind * 2 + 1;
-                apply(l, d[ind]);
-                apply(r, d[ind]);
+                int l = ind * 2, r = ind * 2 + 1;
+                apply(l, d[ind]), apply(r, d[ind]);
             }
             upd[ind] = false;
             d[ind] = uneut;
         }
-
-        void _modify(ll l, ll r, ll val, ll tl, ll tr, ll ind) {
-            if(l == r){
-                return;
-            }
-            if(upd[ind]){
-                push(ind, tr - tl);
-            }
-            if(l == tl && r == tr) {
-                apply(ind, val);
-                push(ind, tr - tl);
-                return;
-            }
-            ll mid = tl + (tr - tl) / 2;
-            if(l < mid) {
-                _modify(l, min(r, mid), val, tl, mid, ind * 2);
-            }
-            if(r > mid) {
-                _modify(max(l, mid), r, val, mid, tr, ind * 2 + 1);
-            }
+        void _modify(int l, int r, T val, int tl, int tr, int ind) {
+            if(l == r) return;
+            if(upd[ind]) push(ind, tr - tl);
+            if(l == tl && r == tr) {apply(ind, val), push(ind, tr - tl); return;}
+            int mid = tl + (tr - tl) / 2;
+            if(l < mid) _modify(l, min(r, mid), val, tl, mid, ind * 2);
+            if(r > mid) _modify(max(l, mid), r, val, mid, tr, ind * 2 + 1);
             combine(ind, tr - tl);
         }
-
-        ll _query(ll l, ll r, ll tl, ll tr, ll ind) {
-            if(l == r){
-                return qneut;
-            }  
-            if(upd[ind]) {
-                push(ind, tr - tl);
-            }
-            if(l == tl && r == tr){
-                return t[ind];
-            }
-            ll mid = tl + (tr - tl) / 2;
-            ll lans = qneut;
-            ll rans = qneut;
-            if(l < mid) {
-                lans = _query(l, min(r, mid), tl, mid, ind * 2);
-            }
-            if(r > mid) {
-                rans = _query(max(l, mid), r, mid, tr, ind * 2 + 1);
-            }
+        T _query(int l, int r, int tl, int tr, int ind) {
+            if(l == r) return qneut;
+            if(upd[ind]) push(ind, tr - tl);
+            if(l == tl && r == tr) return t[ind];
+            int mid = tl + (tr - tl) / 2;
+            T lans = qneut, rans = qneut;
+            if(l < mid) lans = _query(l, min(r, mid), tl, mid, ind * 2);
+            if(r > mid) rans = _query(max(l, mid), r, mid, tr, ind * 2 + 1);
             return fcombine(lans, rans);
         }
 };
@@ -163,7 +100,7 @@ int main() {
     function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return src + val;};
     function<ll(ll, ll, ll)> fmodifyk = [](const ll src, const ll val, const ll k) -> ll{return src + val * k;};
     function<ll(ll, ll)> fcombine = [](const ll a, const ll b) -> ll{return a + b;};
-    SegtreeLazy segt(n, 0, 0, fmodify, fmodifyk, fcombine);
+    SegtreeLazy<ll> segt(n, 0, 0, 0, fmodify, fmodifyk, fcombine);
     for(int i = 0; i < n; i++){
         int next;
         cin >> next;

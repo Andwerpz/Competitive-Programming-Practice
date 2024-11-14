@@ -2,6 +2,7 @@
 typedef long long ll;
 using namespace std;
 
+//creates kmp array for s. 
 vector<int> kmp(vector<int> s) {
     int n = s.size();
     vector<int> b(n+1,-1);
@@ -33,4 +34,9 @@ vector<int> find_matches(vector<int> &n, vector<int> &m, vector<int> &a) {
         }
     }
     return matches;
+}
+
+vector<int> find_matches(vector<int>& n, vector<int>& m){
+    vector<int> k = kmp(m);
+    return find_matches(n, m, k);
 }

@@ -8,8 +8,20 @@
 \renewcommand\maketitlehooka{\null\mbox{}\vfill}
 \renewcommand\maketitlehookd{\vfill\null}
 
+\usepackage{fancyhdr}
+% Set the headheight explicitly
+\setlength{\headheight}{35pt} % This ensures the header does not get cut off
+
+% Reduce space between header and content
+\setlength{\headsep}{5pt}  % Adjust this value to reduce the gap
+
+% Use fancyhdr for custom header
+\pagestyle{fancy}
+\fancyhf{} % Clear all headers and footers
+\fancyhead[C]{\small\thepage} % Small page number at the top-center
+
 \usepackage{authblk}
-\title{\scalebox{2}{\fontsize{32pt}{0pt}\selectfont \textbf{goon}}}
+\title{\scalebox{2}{\fontsize{32pt}{0pt}\selectfont \textbf{hyper}}}
 \author{\scalebox{1}{\fontsize{16pt}{0pt}\selectfont {Andwerp, dmot, Duckling}}}
 \affil{\scalebox{1}{\fontsize{12pt}{0pt}\selectfont {Texas A\&M University}}}
 
@@ -21,6 +33,8 @@
 
 %\linespread{0.8}
 \lstset{basicstyle=\fontsize{8}{6}\ttfamily\selectfont}
+
+\usepackage[fontsize=8pt]{fontsize}
 
 \begin{document}
 \begin{titlingpage}
@@ -56,41 +70,36 @@ struct Segtree {
     int n;
     T* t;
     T uneut, qneut;
+    function<T(T, T)> fmodify, fcombine;
 
-    //single element modification function
-    function<T(T, T)> fmodify;
-
-    //product of two elements for query and updating tree
-    function<T(T, T)> fcombine;
-
-    Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T)> fcombine) {
-        this -> n = n;
+    Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fm, function<T(T, T)> fc) {
+        this->n = n;
         t = new T[2 * n];
-
-        this -> fmodify = fmodify;
-        this -> fcombine = fcombine;
-
+        this->fmodify = fm;
+        this->fcombine = fc;
         uneut = updateNeutral;
         qneut = queryNeutral;
-
-        for(int i = 0; i < n; i++){
-            t[i + n] = uneut;
-        }
+        for(int i = 0; i < n; i++) t[i + n] = uneut;
         build();
     }
 
-    void build() { // build the tree after manually assigning the values.
-        for (int i = n - 1; i > 0; i--) {   
+    void assign(vector<T>& arr) {
+        for(int i = 0; i < min(n, (int) arr.size()); i++)
+            t[i + n] = arr[i];
+        build();
+    }
+
+	// build the tree after manually assigning the values.
+    void build() { 
+        for (int i = n - 1; i > 0; i--)
             t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
-        }
     }
 
     void modify(int p, T value) { // set value at position p
         p += n;
         t[p] = fmodify(t[p], value);
-        for (p /= 2; p > 0; p /= 2) {
+        for (p /= 2; p > 0; p /= 2)
             t[p] = fcombine(t[p * 2], t[p * 2 + 1]);
-        }
     }
 
     T query(int l, int r) { // sum on interval [l, r)
@@ -98,32 +107,18 @@ struct Segtree {
         bool l_none = true, r_none = true;
         for (l += n, r += n; l < r; l /= 2, r /= 2) {
             if (l % 2 == 1) {
-                if(l_none) {
-                    l_none = false;
-                    l_res = t[l];
-                }
-                else {
-                    l_res = fcombine(l_res, t[l]);
-                }
+                if(l_none) {l_none = false; l_res = t[l];}
+                else l_res = fcombine(l_res, t[l]);
                 l++;
             }
             if (r % 2 == 1) {
                 r--;
-                if(r_none) {
-                    r_none = false;
-                    r_res = t[r];
-                }
-                else {
-                    r_res = fcombine(t[r], r_res);
-                }
+                if(r_none) {r_none = false; r_res = t[r];}
+                else r_res = fcombine(t[r], r_res);
             }
         }
-        if(l_none) {
-            return r_res;
-        }
-        if(r_none) {
-            return l_res;
-        }
+        if(l_none) return r_res;
+        if(r_none) return l_res;
         return fcombine(l_res, r_res);
     }
 
@@ -181,58 +176,6 @@ struct Segtree {
     };
     Segtree<seg> segt(n, {0, 0, 0, 0}, {0, 0, 0, 0}, fmodify, fcombine);
 }
-
-// -- ASSIGNMENT MODIFY, XOR BASIS QUERY --
-//returns the xor basis of a range. Refer to https://codeforces.com/blog/entry/68953
-{   
-    struct seg{
-        int basis[20];
-        int nr_b = 0;
-        seg(int val) {
-            fill(basis, basis + 20, -1);
-            nr_b += basisAdd(val);
-        }
-        seg() {
-            fill(basis, basis + 20, -1);
-        }
-        bool basisAdd(int val, int start = 0) {
-            for(int i = start; i < 20; i++){
-                if((val & 1 << i) == 0){
-                    continue;
-                }
-                if(basis[i] == -1){
-                    basis[i] = val;
-                    return true;
-                }
-                val ^= basis[i];
-            }
-            return false;
-        }
-    };
-    function<seg(seg, seg)> fmodify = [](const seg src, const seg val) -> seg{
-        return val;
-    };
-    function<seg(seg, seg)> fcombine = [](const seg a, const seg b) -> seg{
-        if(a.nr_b == 20){
-            return a;
-        }
-        if(b.nr_b == 20){
-            return b;
-        }
-        seg next;
-        for(int i = 0; i < 20; i++){
-            next.basis[i] = a.basis[i];
-        }
-        next.nr_b = a.nr_b;
-        for(int i = 19; i >= 0; i--){
-            if(b.basis[i] != -1){
-                next.basisAdd(b.basis[i], i);
-            }
-        }
-        return next;
-    };
-    Segtree<seg> segt(n, {}, {}, fmodify, fcombine);
-}
 \end{lstlisting}
 
 \subsection{Lazy Segment Tree}
@@ -246,144 +189,76 @@ struct SegtreeLazy {
         T* d;    //lazy tree
         bool* upd;  //marks whether or not a lazy change is here
         T uneut, qneut;
-
-        //single element modify
-        function<T(T, T)> fmodify;
-
-        //k element modify
+        function<T(T, T)> fmodify, fcombine;
         function<T(T, T, int)> fmodifyk;
 
-        //product of two elements for query
-        function<T(T, T)> fcombine;
-
         SegtreeLazy(int maxSize, T updateNeutral, T queryNeutral, T initVal, function<T(T, T)> fmodify, function<T(T, T, int)> fmodifyk, function<T(T, T)> fcombine) {
-            n = maxSize;
-            uneut = updateNeutral;
-            qneut = queryNeutral;
-
-            this -> fmodify = fmodify;
-            this -> fmodifyk = fmodifyk;
-            this -> fcombine = fcombine;
-
-            //raise n to nearest pow 2
-            int x = 1;
-            while(x < n) {
-                x <<= 1;
-            }
-            n = x;
-
-            t = new T[n * 2];
-            d = new T[n * 2];
+            uneut = updateNeutral, qneut = queryNeutral;
+            this->fmodify = fmodify;
+            this->fmodifyk = fmodifyk;
+            this->fcombine = fcombine;
+            n = 1; //raise n to nearest pow 2
+            while(n < maxSize) n <<= 1;
+            t = new T[n * 2], d = new T[n * 2];
             upd = new bool[n * 2];
+            for(int i = 0; i < n; i++) t[i + n] = initVal;
+            build();
+        }
+	
+        void modify(int l, int r, T val) 
+            {_modify(l, r, val, 0, n, 1);}
+        T query(int l, int r) {return _query(l, r, 0, n, 1);}
 
-            //make sure to initialize values
-            for(int i = 0; i < n; i++){
-                t[i + n] = initVal;
-            }
-            for(int i = n - 1; i > 0; i--){
+        void assign(vector<T>& arr) {
+            for(int i = 0; i < min(n, (int) arr.size()); i++) 
+                t[i + n] = arr[i];
+            build();
+        }
+        void build() {
+            for(int i = n - 1; i > 0; i--) 
                 t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
-            }
-            for(int i = 0; i < n * 2; i++){
-                d[i] = uneut;
-                upd[i] = false;
-            }
-        }
-
-        void modify(int l, int r, T val) {    //modifies the range [l, r)
-            _modify(l, r, val, 0, n, 1);
-        }
-
-        void modify(int ind, T val) { //modifies the range [ind, ind + 1)
-            _modify(ind, ind + 1, val, 0, n, 1);
-        }
-
-        T query(int l, int r) {   //queries the range [l, r)
-            return _query(l, r, 0, n, 1);
-        }
-
-        T query(int ind) {    //queries the range [ind, ind + 1)
-            return _query(ind, ind + 1, 0, n, 1);
+            for(int i = 0; i < n * 2; i++)
+            	  {d[i] = uneut; upd[i] = false;}
         }
 
     private:
-        //calculates value of node based off of children
-        //k is the amount of values that this node represents. 
         void combine(int ind, int k) {
-            if(ind >= n){
-                return;
-            }
-            int l = ind * 2;
-            int r = ind * 2 + 1;
-            //make sure children are correct value before calculating
-            push(l, k / 2);
-            push(r, k / 2);
+            if(ind >= n) return;
+            int l = ind * 2, r = ind * 2 + 1;
+            push(l, k / 2), push(r, k / 2);
             t[ind] = fcombine(t[l], t[r]);
         }
-
-        //registers a lazy change llo this node
         void apply(int ind, T val) {
             upd[ind] = true;
             d[ind] = fmodify(d[ind], val);
         }
-
-        //applies lazy change to this node
-        //k is the amount of values that this node represents. 
         void push(int ind, int k) {
-            if(!upd[ind]) {
-                return;
-            }
+            if(!upd[ind]) return;
             t[ind] = fmodifyk(t[ind], d[ind], k);
             if(ind < n) {
-                int l = ind * 2;
-                int r = ind * 2 + 1;
-                apply(l, d[ind]);
-                apply(r, d[ind]);
+                int l = ind * 2, r = ind * 2 + 1;
+                apply(l, d[ind]), apply(r, d[ind]);
             }
             upd[ind] = false;
             d[ind] = uneut;
         }
-
         void _modify(int l, int r, T val, int tl, int tr, int ind) {
-            if(l == r){
-                return;
-            }
-            if(upd[ind]) {
-                push(ind, tr - tl);
-            }
-            if(l == tl && r == tr) {
-                apply(ind, val);
-                push(ind, tr - tl);
-                return;
-            }
+            if(l == r) return;
+            if(upd[ind]) push(ind, tr - tl);
+            if(l == tl && r == tr) {apply(ind, val), push(ind, tr - tl); return;}
             int mid = tl + (tr - tl) / 2;
-            if(l < mid) {
-                _modify(l, min(r, mid), val, tl, mid, ind * 2);
-            }
-            if(r > mid) {
-                _modify(max(l, mid), r, val, mid, tr, ind * 2 + 1);
-            }
+            if(l < mid) _modify(l, min(r, mid), val, tl, mid, ind * 2);
+            if(r > mid) _modify(max(l, mid), r, val, mid, tr, ind * 2 + 1);
             combine(ind, tr - tl);
         }
-
         T _query(int l, int r, int tl, int tr, int ind) {
-            if(l == r){
-                return qneut;
-            }  
-            if(upd[ind]) {
-                push(ind, tr - tl);
-            }
-            if(l == tl && r == tr){
-                return t[ind];
-            }
+            if(l == r) return qneut;
+            if(upd[ind]) push(ind, tr - tl);
+            if(l == tl && r == tr) return t[ind];
             int mid = tl + (tr - tl) / 2;
-            T lans = qneut;
-            T rans = qneut;
-            if(l < mid) {
-                lans = _query(l, min(r, mid), tl, mid, ind * 2);
-            }
-            if(r > mid) {
-                rans = _query(max(l, mid), r, mid, tr, ind * 2 + 1);
-            }
+            T lans = qneut, rans = qneut;
+            if(l < mid) lans = _query(l, min(r, mid), tl, mid, ind * 2);
+            if(r > mid) rans = _query(max(l, mid), r, mid, tr, ind * 2 + 1);
             return fcombine(lans, rans);
         }
 };
@@ -411,64 +286,6 @@ struct SegtreeLazy {
     function<int(int, int, int)> fmodifyk = [](const int src, const int val, const int k) -> int{return val;};
     function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
     run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
-}
-
-// -- 01 ASSIGNMENT MODIFY, FIRST LAST INDEX 01 QUERY -- 
-// when querying, returns a struct that tells you the first and last indices of 0 and 1
-// in the range that you queried. 
-{
-    struct seg {
-        int size;
-        bool has_one, has_zero;
-        int pfx_one, sfx_one;   //distance from beginning and end of closest 1
-        int pfx_zero, sfx_zero; 
-        seg(int size, bool which) { //sets the entire segment the same value
-            this->size = size;
-            has_one = which;
-            has_zero = !which;
-            pfx_one = 0;
-            sfx_one = 1;
-            pfx_zero = 0;
-            sfx_zero = 1;
-        }
-        seg(int size){
-            this->size = size;
-            has_one = false;
-            has_zero = false;
-        }
-        seg() {}
-    };
-    //assignment modify, range 'seg' query. 
-    function<seg(seg, seg)> fmodify = [](const seg src, const seg val) -> seg{
-        //set this element to 0 or 1
-        seg next(src.size, val.has_one);
-        return next;
-    };
-    function<seg(seg, seg, int)> fmodifyk = [](const seg src, const seg val, const int k) -> seg{
-        //set the entire range to 0 or 1
-        seg next(src.size, val.has_one);
-        return next;
-    };
-    function<seg(seg, seg)> fcombine = [](const seg lhs, const seg rhs) -> seg{
-        //combines lhs and rhs into one segment
-        seg next(lhs.size + rhs.size, false);
-        next.has_one = lhs.has_one || rhs.has_one;
-        next.has_zero = lhs.has_zero || rhs.has_zero;
-        if(next.has_one) {
-            next.pfx_one = lhs.has_one? lhs.pfx_one : lhs.size + rhs.pfx_one;
-            next.sfx_one = rhs.has_one? rhs.sfx_one : rhs.size + lhs.sfx_one;
-        }
-        if(next.has_zero) {
-            next.pfx_zero = lhs.has_zero? lhs.pfx_zero : lhs.size + rhs.pfx_zero;
-            next.sfx_zero = rhs.has_zero? rhs.sfx_zero : rhs.size + lhs.sfx_zero;
-        }
-        return next;
-    };
-    SegtreeLazy<seg> segt(n, {0}, {0}, {1, false}, fmodify, fmodifyk, fcombine);
-    //example use
-    segt.modify(0, {0, false}); //set range to 0
-    segt.modify(1, 5, {0, true});   //set range to 1
-    seg a = segt.query(5, 10);  //get attr over range
 }
 \end{lstlisting}
 
@@ -546,45 +363,121 @@ struct Lazy {
 };
 \end{lstlisting}
 
+\subsection{RMQ}
+Range minimum queries in $O(1)$ time. Can be adjusted to other operations. 
+\begin{lstlisting}
+struct RMQ  {
+    vector<int> elements;
+    int n;
+    static const int block_size = 30;
+    int *mask, *sparse_table;
+    //adjust to do other operations
+    int op(int x, int y) { 
+        return elements[x] < elements[y] ? x : y;
+    }
+    int lsb(int x) {return x & -x;}
+    int msbi(int x) {return 31 - __builtin_clz(x);}
+    int small_query(int r, int size = block_size) {return r - msbi(mask[r] & ((1<<size)-1));}
+    RMQ() {} //need this to satisfy master goon's requirements
+    RMQ (const vector<int>& input) {build(input);}
+    void build (const vector<int>& input) {
+        elements = input;
+        n = input.size();
+        mask = new int[n];
+        sparse_table = new int[n];
+        memset(mask, 0, n);
+        memset(sparse_table, 0, n);
+        int curr_mask = 0;
+        for(int i = 0; i < n; i++) {
+            curr_mask = (curr_mask<<1) & ((1<<block_size)-1);
+            while(curr_mask > 0 && op(i, i - msbi(lsb(curr_mask))) == i) curr_mask ^= lsb(curr_mask);
+            curr_mask |= 1;
+            mask[i] = curr_mask;
+        }
+        for(int i = 0; i < n/block_size; i++) sparse_table[i] = small_query(block_size * i + block_size - 1);
+        for(int j = 1; (1<<j) <= n/block_size; j++) for(int i = 0; i + (1<<j) <= n / block_size; i++) sparse_table[n / block_size * j + i] = op(sparse_table[n / block_size * (j - 1) + i], sparse_table[n / block_size * (j - 1) + i + (1<<(j-1))]);
+    }
+    int _query(int l, int r) {  //queries range [l, r]
+        if(r - l + 1 <= block_size) {
+            return small_query(r, r - l + 1);
+        }
+        int ans = op(small_query(l + block_size - 1), small_query(r)); 
+        int x = l / block_size + 1;
+        int y = r / block_size - 1;
+        if(x <= y) {
+            int j = msbi(y - x + 1);
+            ans = op(ans, op(sparse_table[n / block_size * j + x], sparse_table[n / block_size * j + y - (1 << j) + 1]));
+        }
+        return ans;
+    }
+    int query(int l, int r) {   //queries range [l, r)
+        r --;
+        // return query(l, r);              //return the index with minimum value
+        return elements[_query(l, r)];      //return the minimum value
+    }
+};
+\end{lstlisting}
+
 \section{Graphs}
 \subsection{DSU}
 \begin{lstlisting}
-//basic union find implementation with path compression
 struct DSU {
     int N;
-    vector<int> dsu;
+    vector<int> dsu, sz;
 
     DSU(int n) {
         this->N = n;
         this->dsu = vector<int>(n, 0);
-        for(int i = 0; i < n; i++){ //initialize roots
+        this->sz = vector<int>(n, 1);
+        for(int i = 0; i < n; i++)
             dsu[i] = i;
-        }
-    }
-
-    void dsu_init() {
-        for(int i = 0; i < N; i++){
-            dsu[i] = i;
-        }
     }
 
     int find(int a) {
-        if(dsu[a] == a) {
-            return a;
-        }
+        if(dsu[a] == a) return a;
         return dsu[a] = find(dsu[a]);
+    }
+
+    int get_sz(int a){
+        return sz[find(a)];
     }
 
     //ret true if updated something
     bool unify(int a, int b) {
-        int ra = find(a);
-        int rb = find(b);
-        if(ra == rb) {
-            return false;
-        }
+        int ra = find(a), rb = find(b);
+        if(ra == rb) return false;
         dsu[rb] = ra;
+        sz[ra] += sz[rb];
         return true;
     }
+};
+\end{lstlisting}
+
+\subsection{DSU with Rollback}
+Usage: \lstinline{int t = uf.time(); ...; uf.rollback(t);}
+
+Can ignore \lstinline{time()} and \lstinline{rollback()} if not needed. 
+\begin{lstlisting}
+struct RollbackUF {
+	vi e; vector<pii> st;
+	RollbackUF(int n) : e(n, -1) {}
+	int size(int x) { return -e[find(x)]; }
+	int find(int x) { return e[x] < 0 ? x : find(e[x]); }
+	int time() { return sz(st); }
+	void rollback(int t) {
+		for (int i = time(); i --> t;)
+			e[st[i].first] = st[i].second;
+		st.resize(t);
+	}
+	bool join(int a, int b) {
+		a = find(a), b = find(b);
+		if (a == b) return false;
+		if (e[a] > e[b]) swap(a, b);
+		st.push_back({a, e[a]});
+		st.push_back({b, e[b]});
+		e[a] += e[b]; e[b] = a;
+		return true;
+	}
 };
 \end{lstlisting}
 
@@ -593,7 +486,6 @@ A bridge is an edge who's deletion will disconnect the graph. Articulation point
 
 \subsubsection{Bridges}
 If edge (u, v) is a bridge, then the returned set should contain (u, v) and (v, u). 
-As of 2/22/2024, this is untested. 
 \begin{lstlisting}
 set<pair<int, int>> find_bridges(int n, vector<vector<int>>& adj) {
     vector<bool> visited;
@@ -718,138 +610,55 @@ vector<vector<int>> find_scc(int n, vector<vector<int>>& adj) {
 
 \subsection{LCA}
 Lets you find the Lowest Common Ancestor of two nodes in a rooted tree in $O(log(n))$ time. 
-Note that the segment tree used in this LCA is slightly modified. 
 \begin{lstlisting}
+#include "segtree.cpp"
 struct LCA {
-    struct Segtree {
-        //note that t[0] is not used
-        int n;
-        int* t;
-        int* node_id;
-        int uneut, qneut;
-
-        //single element modification function
-        function<int(int, int)> fmodify;
-
-        //product of two elements for query and updating tree
-        function<int(int, int)> fcombine;
-
-        Segtree() {
-            //do nothing
-        }
-
-        Segtree(int n, int updateNeutral, int queryNeutral, function<int(int, int)> fmodify, function<int(int, int)> fcombine) {
-            this -> n = n;
-            t = new int[2 * n];
-            node_id = new int[2 * n];
-
-            this -> fmodify = fmodify;
-            this -> fcombine = fcombine;
-
-            uneut = updateNeutral;
-            qneut = queryNeutral;
-
-            for(int i = 0; i < 2 * n; i++){
-                t[i] = uneut;
-                node_id[i] = 0;
-            }
-        }
-
-        void build() { // build the tree after manually assigning the values.
-            for (int i = n - 1; i > 0; i--) {   
-                t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
-                node_id[i] = t[i] == t[i * 2]? node_id[i * 2] : node_id[i * 2 + 1];
-            }
-        }
-
-        int query(int l, int r) { // least deep node on interval [l, r)
-            int min_depth = 1e9;
-            int res = -1;
-            for (l += n, r += n; l < r; l /= 2, r /= 2) {
-                if (l % 2 == 1) {
-                    if(t[l] < min_depth) {
-                        res = node_id[l];
-                        min_depth = t[l];
-                    }
-                    l++;
-                }
-                if (r % 2 == 1) {
-                    r--;
-                    if(t[r] < min_depth) {
-                        res = node_id[r];
-                        min_depth = t[r];
-                    }
-                }
-            }
-            return res;
-        }
-    };
-
-    int n;
-    int root;
+    int n, root;
     vector<vector<int>> edges;
-    vector<int> depth;  //distance of each node from the root
-
-    vector<int> left_occ, right_occ;   //leftmost and rightmost occurrences for each node in the euler tour
-    
-    //single assignment modify, range min query
-    //stores the euler tour of the tree to compute lca
-    Segtree segt;
-
+    vector<int> depth;
+    vector<int> left_occ, right_occ;
+    Segtree<pii> segt;
     void euler_tour(int cur, int p, vector<int>& ret) {
         left_occ[cur] = ret.size();
         ret.push_back(cur);
         for(int i = 0; i < edges[cur].size(); i++){
             int next = edges[cur][i];
-            if(next == p){
-                continue;
-            }
+            if(next == p) continue;
             euler_tour(next, cur, ret);
             ret.push_back(cur);
         }
         right_occ[cur] = ret.size();
     }
-
     void find_depth(int cur, int p) {
         for(int i = 0; i < edges[cur].size(); i++){
             int next = edges[cur][i];
-            if(next == p){
-                continue;
-            }
+            if(next == p) continue;
             depth[next] = depth[cur] + 1;
             find_depth(next, cur);
         }
     }
-
     void init(int n, int root, vector<vector<int>>& edges) {
         this->n = n;
         this->root = root;
         this->edges = edges;
-
         this->depth = vector<int>(n, 0);
         find_depth(root, -1);
-
         vector<int> tour(0);
         this->left_occ = vector<int>(n, -1);
         this->right_occ = vector<int>(n, -1);
         euler_tour(root, -1, tour);
-
-        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
-        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
-        this->segt = Segtree(tour.size(), 0, 1e9, fmodify, fcombine);
+        function<pii(pii, pii)> fmodify = [](const pii src, const pii val) -> pii{return val;};
+        function<pii(pii, pii)> fcombine = [](const pii a, const pii b) -> pii{return a.first < b.first? a : b;};
+        this->segt = Segtree<pii>(tour.size(), {0, 0}, {1e9, -1}, fmodify, fcombine);
         for(int i = 0; i < tour.size(); i++){
-            segt.node_id[i + tour.size()] = tour[i];
-            segt.t[i + tour.size()] = depth[tour[i]];
+            segt.t[i + tour.size()] = {depth[tour[i]], tour[i]};
         }
         segt.build();
     }
-
-    //adjacency list constructor
+    LCA() {}
     LCA(int n, int root, vector<vector<int>> edges) {
         init(n, root, edges);
     }
-
-    //parent list constructor
     //if node i is the root, then parents[i] must equal -1
     LCA(int n, vector<int> parents) {
         int root = -1;
@@ -857,25 +666,23 @@ struct LCA {
         for(int i = 0; i < n; i++){
             if(parents[i] == -1){
                 root = i;
+                continue;
             }
             edges[parents[i]].push_back(i);
             edges[i].push_back(parents[i]);
         }
         init(n, root, edges);
     }
-
     int lca(int a, int b) {
         int l = min(left_occ[a], left_occ[b]);
         int r = max(right_occ[a], right_occ[b]);
-        int lc = segt.query(l, r);
+        int lc = segt.query(l, r).second;
         return lc;
     }
-
     int dist(int a, int b) {
         int lc = lca(a, b);
         return depth[a] + depth[b] - 2 * depth[lc];
     }
-
 };
 \end{lstlisting}
 
@@ -971,8 +778,10 @@ vector<int> findCentroid(const vector<vector<int>> &g) {
 \end{lstlisting}
 
 \subsection{Heavy-Light Decomposition}
-$O(log(n)^2)$ modify and query over any path in the tree. LCA, and Lazy Segment Tree not included. 
+$O(log(n)^2)$ modify and $O(log(n))$ query over any path in the tree.
 \begin{lstlisting}
+#include "lca.cpp"
+#include "segtreelazy.cpp"
 template <typename T>
 struct HLD {
     LCA lca;
@@ -983,12 +792,12 @@ struct HLD {
     vector<int> subtreeSize;
 
     SegtreeLazy<T> segt;
-    vector<int> segEndInd; //stores the index at which this heavy path ends. 
-    vector<int> segBeginInd; //stores the index at which this heavy path begins.
-    vector<int> segParent; //what is the parent node of this heavy path?
-    vector<int> segPos;    //stores the index of each node within the segment tree. 
+    vector<int> segEndInd; 
+    vector<int> segBeginInd; 
+    vector<int> segParent; 
+    vector<int> segPos;    
 
-    vector<T> maxSegCache;    //stores results to segments which take up the entire heavy path
+    vector<T> maxSegCache;   
 
     void calcSubtreeSize(int cur, int p = -1) {
         parent[cur] = p;
@@ -1212,8 +1021,8 @@ struct MCMF {
 	}
 
 	// If some costs can be negative, call this before maxflow:
-	void setpi(int s) { // (otherwise, leave this out)
-		fill(all(pi), INF); pi[s] = 0;
+	void setpi(int source) { // (otherwise, leave this out)
+		fill(all(pi), INF); pi[source] = 0;
 		int it = N, ch = 1; ll v;
 		while (ch-- && it--)
 			rep(i,0,N) if (pi[i] != INF)
@@ -1233,69 +1042,51 @@ struct TSAT {
     int n;
     vector<vector<int>> node_id; //{false, true}
     vector<vector<int>> c;
-
     TSAT(int n) {
         this->n = n;
-
         int ptr = 0;
         this->node_id = vector<vector<int>>(n, {0, 0});
         for(int i = 0; i < n; i++){
             node_id[i][0] = ptr ++;
             node_id[i][1] = ptr ++;
         }
-
         this->c = vector<vector<int>>(n * 2, vector<int>(0));
     }
-
     //clears all implications
     void clear() {
         this->c = vector<vector<int>>(n * 2, vector<int>(0));
     }
-
     //a being a_state implies b being b_state
     void imply(int a, bool a_state, int b, bool b_state) {
         int a_id = node_id[a][a_state];
         int b_id = node_id[b][b_state];
-        c[a_id].push_back(b_id);            //positive
-        c[b_id ^ 1].push_back(a_id ^ 1);    //contrapositive
+        c[a_id].push_back(b_id);            
+        c[b_id ^ 1].push_back(a_id ^ 1); 
     }
-
-    //forces a to be state
     void set(int a, int state) {
-        imply(a, !state, a, state);         //if a is !state, then we have a contradiction, so a must be state. 
+        imply(a, !state, a, state);       
     }
-
-    //at least one of a has to be a_state or b has to be b_state
     void addOR(int a, bool a_state, int b, bool b_state) {
-        imply(a, !a_state, b, b_state);     //if a is not good, then b has to be
+        imply(a, !a_state, b, b_state);     
     }
-
-    //exactly one of a has to be a_state or b has to be b_state
     void addXOR(int a, bool a_state, int b, bool b_state) {
-        imply(a, !a_state, b, b_state);     //normal or
-        imply(a, a_state, b, !b_state);     //if a is good, then b can't be
+        imply(a, !a_state, b, b_state);     
+        imply(a, a_state, b, !b_state);     
     }
-
-    //either both a and b are good, or both a and b are not good
     void addXNOR(int a, bool a_state, int b, bool b_state) {
-        imply(a, a_state, b, b_state);      //if a is good, then b has to be good
-        imply(b, b_state, a, a_state);      //if b is good, then a has to be good
+        imply(a, a_state, b, b_state);      
+        imply(b, b_state, a, a_state);      
     }
-
-    //a and b both have to be good
-    //equivalent to set(a, a_state); set(b, b_state);
     void addAND(int a, bool a_state, int b, bool b_state) {
-        imply(a, a_state, b, b_state);      //if a is good, then b has to be good
-        imply(b, b_state, a, a_state);      //if b is good, then a has to be good
-        set(a, a_state);                    //make sure that a is good
+        imply(a, a_state, b, b_state);      
+        imply(b, b_state, a, a_state);      
+        set(a, a_state);                    
     }
 
     //if a solution exists, returns a possible configuration of the variables. 
     //otherwise, returns an empty vector
     vector<bool> generateSolution() {
-        //first, split into sccs. 
         vector<vector<int>> scc = find_scc(n * 2, c);
-        //check for contradictions, eg if a and !a are in the same scc
         vector<int> node_scc(n * 2);
         for(int i = 0; i < scc.size(); i++){
             for(int j = 0; j < scc[i].size(); j++){
@@ -1308,10 +1099,7 @@ struct TSAT {
                 return {};
             }
         }
-        //otherwise, a solution always exists
-        vector<bool> v(n, false);
-        vector<bool> ans(n, false);
-        //toposort scc
+        vector<bool> v(n, false), ans(n, false);
         vector<vector<int>> scc_c(scc.size(), vector<int>(0));
         for(int i = 0; i < node_scc.size(); i++){
             int cur = i;
@@ -1350,16 +1138,13 @@ struct TSAT {
                 }
             }
         }
-        //assign the answers in reverse topological order
         for(int i = toporder.size() - 1; i >= 0; i--){
             int cur_scc = toporder[i];
             for(int j = 0; j < scc[cur_scc].size(); j++){
                 int cur = scc[cur_scc][j];
                 bool state = cur % 2;
                 cur /= 2;
-                if(v[cur]) {
-                    break;
-                }
+                if(v[cur]) break;
                 v[cur] = true;
                 ans[cur] = state;
             }
@@ -1373,7 +1158,400 @@ struct TSAT {
 };
 \end{lstlisting}
 
+\subsection{Eulerian Path / Circuit}
+An \textit{Eulerian Path} is a path within a graph that uses every edge exactly once. An \textit{Eulerian Circuit} is an Eulerian Path that is also a cycle. An Eulerian Circuit exists iff the degrees of all vertices are even in an undirected graph. And an Eulerian Path exists iff the number of vertices with odd degree is exactly two. Of course, the graph also needs to be sufficiently connected. 
+\begin{lstlisting}
+//assumes that each edge is mentioned once in both directions. 
+//this can handle multiedges and selfedges. If there is a self edge, then it should be mentioned twice. 
+void euler_path_undirected(vector<vector<int>>& c, vector<vector<int>>& eid, vector<int>& ptr, vector<bool>& rm, vector<int>& ans, int i) {
+    while(ptr[i] < c[i].size()){
+        if(rm[eid[i][ptr[i]]]){
+            ptr[i] ++;
+            continue;
+        }
+        int next = c[i][ptr[i]];
+        rm[eid[i][ptr[i]]] = true;
+        ptr[i] ++;
+        euler_path_undirected(c, eid, ptr, rm, ans, next);
+    }
+    ans.push_back(i);
+}
+
+vector<int> euler_path_undirected(vector<vector<int>>& _c, int i){
+    int n = _c.size();
+    int m = 0;
+    vector<vector<int>> eid(n), c(n);
+    vector<int> ptr(n, 0), ans(0);
+    vector<bool> se(n, false);
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j < _c[i].size(); j++){
+            int next = _c[i][j];
+            if(next >= i){
+                if(next == i){
+                    se[i] = !se[i];
+                    if(!se[i]){
+                        continue;
+                    }
+                }
+                eid[i].push_back(m);
+                c[i].push_back(next);
+                eid[next].push_back(m);
+                c[next].push_back(i);
+                m ++;
+            }
+        }
+    }
+    vector<bool> rm(m, false);
+    euler_path_undirected(c, eid, ptr, rm, ans, i);
+    return ans;
+}
+
+void euler_path_directed(vector<vector<int>>& c, vector<int>& ptr, vector<int>& ans, int i) {
+    while(ptr[i] < c[i].size()) {
+        int next = c[i][ptr[i] ++];
+        euler_path_directed(c, ptr, ans, next);
+    }
+    ans.push_back(i);
+}
+
+vector<int> euler_path_directed(vector<vector<int>>& c, int i) {
+    int n = c.size();
+    vector<int> ptr(n, 0);
+    vector<int> ans(0);
+    euler_path_directed(c, ptr, ans, i);
+    return ans;
+}
+\end{lstlisting}
+
+\section{DP}
+\subsection{SOS DP}
+Sum over Subsets or Supersets.
+\begin{lstlisting}
+int BITS = 22;
+int n;
+cin >> n;
+vi a(n), dpa((1 << BITS), 0), dpb((1 << BITS), 0);
+for(int i = 0; i < n; i++){
+    cin >> a[i];
+    dpa[a[i]] = a[i];
+    dpb[a[i]] = a[i];
+}
+//subsets
+//dpa[i] = sum over a[j] where j is subset of i
+for(int i = 0; i < BITS; i++){
+    for(int j = 0; j < (1 << BITS); j++){
+        if(j & (1 << i)) {
+            dpa[j] = max(dpa[j], dpa[j ^ (1 << i)]);   //replace this with whatever you want
+            //dpa[j] += dpa[j ^ (1 << i)];  //sum for example
+        }
+    }
+}
+//supersets
+//dpb[i] = sum over a[j] where j is a superset of i
+for(int i = 0; i < BITS; i++){
+    for(int j = 0; j < (1 << BITS); j++){
+        if((j & (1 << i)) == 0) { //only different line
+            dpb[j] += dpb[j ^ (1 << i)];
+        }
+    }
+}
+\end{lstlisting}
+
+\subsection{Line Container}
+Container where you can add lines of the form $kx + m$, and query maximum values at points $x$. Useful for dynamic programming (convex hull trick). 
+\begin{lstlisting}
+struct Line {
+	mutable ll k, m, p;
+	bool operator<(const Line& o) const { return k < o.k; }
+	bool operator<(ll x) const { return p < x; }
+};
+
+struct LineContainer : multiset<Line, less<>> {
+	// (for doubles, use inf = 1/.0, div(a,b) = a/b)
+	static const ll inf = LLONG_MAX;
+	ll div(ll a, ll b) { // floored division
+		return a / b - ((a ^ b) < 0 && a % b); }
+	bool isect(iterator x, iterator y) {
+		if (y == end()) return x->p = inf, 0;
+		if (x->k == y->k) x->p = x->m > y->m ? inf : -inf;
+		else x->p = div(y->m - x->m, x->k - y->k);
+		return x->p >= y->p;
+	}
+	void add(ll k, ll m) {
+		auto z = insert({k, m, 0}), y = z++, x = y;
+		while (isect(y, z)) z = erase(z);
+		if (x != begin() && isect(--x, y)) isect(x, y = erase(y));
+		while ((y = x) != begin() && (--x)->p >= y->p)
+			isect(x, erase(y));
+	}
+	ll query(ll x) {
+		assert(!empty());
+		auto l = *lower_bound(x);
+		return l.k * x + l.m;
+	}
+};
+\end{lstlisting}
+
 \section{Strings}
+\subsection{Trie}
+\begin{lstlisting}
+struct Trie {
+    struct TrieNode {
+        TrieNode* c[26];
+        //true if current node ends on word
+        bool isWord = false;
+        //counts how many words use this node as prefix
+        int numWords = 0;   
+    };
+
+    TrieNode head;
+
+    Trie() {
+        this->head = TrieNode();
+    }
+
+    void insert(string s){
+        TrieNode* ptr = &head;
+        for(int i = 0; i < s.size(); i++){
+            ptr->numWords ++;
+            int ch = s[i] - 'a';
+            if(ptr->c[ch] == nullptr) {
+                ptr->c[ch] = new TrieNode();
+            }
+            ptr = ptr->c[ch];
+        }
+        ptr->numWords ++;
+        ptr->isWord = true;
+    }
+
+    TrieNode* query(string s) {
+        TrieNode* ptr = &head;
+        for(int i = 0; i < s.size(); i++){
+            int ch = s[i] - 'a';
+            ptr = ptr->c[ch];
+            if(ptr == nullptr) break;
+        }
+        return ptr;
+    }
+};
+\end{lstlisting}
+
+\subsection{String Hashing}
+Uses polynomial rolling hash. 
+\begin{lstlisting}
+mt19937 rng((uint32_t) chrono::steady_clock::now().time_since_epoch().count());
+struct hstring {
+	// change M and B if you want
+	static const ll M = 1e9 + 9;
+	ll B = uniform_int_distribution<ll>(0, M - 1)(rng);
+
+	// pow[i] contains B^i % M
+	vector<long long> pow;
+
+	// p_hash[i] is the hash of the first i characters of the given string
+	vector<long long> p_hash;
+
+	hstring(const string &s) : p_hash(s.size() + 1), pow(1, 1){
+		while (pow.size() <= s.size()) { pow.push_back((pow.back() * B) % M); }
+		p_hash[0] = 0;
+		for (int i = 0; i < s.size(); i++) {
+			p_hash[i + 1] = ((p_hash[i] * B) % M + s[i]) % M;
+		}
+	}
+
+	long long get_hash(int start, int end) {
+		long long raw_val = (p_hash[end] - (p_hash[start] * pow[end - start]));
+		return (raw_val % M + M) % M;
+	}
+};
+\end{lstlisting}
+
+\subsection{Manacher}
+Find all palindromes in a string in $O(n)$ time. Pads the array with `\#' so that all palindromes in the original string can be treated like odd length palindromes.
+\begin{lstlisting}
+vector<int> manacher_odd(string s) {
+    int n = s.size();
+    s = "$" + s + "^";
+    vector<int> p(n + 2);
+    int l = 1, r = 1;
+    for(int i = 1; i <= n; i++) {
+        p[i] = max(0, min(r - i, p[l + (r - i)]));
+        while(s[i - p[i]] == s[i + p[i]]) {
+            p[i]++;
+        }
+        if(i + p[i] > r) {
+            l = i - p[i], r = i + p[i];
+        }
+    }
+    return vector<int>(begin(p) + 1, end(p) - 1);
+}
+
+vector<int> manacher(string s) {
+    string t;
+    for(auto c: s) {
+        t += string("#") + c;
+    }
+    auto res = manacher_odd(t + "#");
+    vector<int> ans = vector<int>(begin(res) + 1, end(res) - 1);
+    for(int i = 0; i < ans.size(); i++){
+        ans[i] = ans[i] * 2 - 1;
+    }
+    return ans;
+}
+\end{lstlisting}
+
+\subsection{Suffix Array}
+Computes the sorted ordering of all suffixes of the given string. It works by sorting all cyclic shifts of the string after appending '\$' to it (lexicographically small character). Runs in $O(n log(n))$
+\begin{lstlisting}
+#include "segtree.cpp"
+vector<int> sort_cyclic_shifts(string const& s) {
+    int n = s.size();
+    const int alphabet = 256;
+    vector<int> p(n), c(n), cnt(max(alphabet, n), 0);
+    for (int i = 0; i < n; i++)
+        cnt[s[i]]++;
+    for (int i = 1; i < alphabet; i++)
+        cnt[i] += cnt[i-1];
+    for (int i = 0; i < n; i++)
+        p[--cnt[s[i]]] = i;
+    c[p[0]] = 0;
+    int classes = 1;
+    for (int i = 1; i < n; i++) {
+        if (s[p[i]] != s[p[i-1]])
+            classes++;
+        c[p[i]] = classes - 1;
+    }
+    vector<int> pn(n), cn(n);
+    for (int h = 0; (1 << h) < n; ++h) {
+        for (int i = 0; i < n; i++) {
+            pn[i] = p[i] - (1 << h);
+            if (pn[i] < 0)
+                pn[i] += n;
+        }
+        fill(cnt.begin(), cnt.begin() + classes, 0);
+        for (int i = 0; i < n; i++)
+            cnt[c[pn[i]]]++;
+        for (int i = 1; i < classes; i++)
+            cnt[i] += cnt[i-1];
+        for (int i = n-1; i >= 0; i--)
+            p[--cnt[c[pn[i]]]] = pn[i];
+        cn[p[0]] = 0;
+        classes = 1;
+        for (int i = 1; i < n; i++) {
+            pair<int, int> cur = {c[p[i]], c[(p[i] + (1 << h)) % n]};
+            pair<int, int> prev = {c[p[i-1]], c[(p[i-1] + (1 << h)) % n]};
+            if (cur != prev)
+                ++classes;
+            cn[p[i]] = classes - 1;
+        }
+        c.swap(cn);
+    }
+    return p;
+}
+
+vector<int> calc_suffix_array(string s) {
+    s += "$"; 
+    vector<int> sorted_shifts = sort_cyclic_shifts(s);
+    sorted_shifts.erase(sorted_shifts.begin());
+    return sorted_shifts;
+}
+\end{lstlisting}
+
+\subsection{LCP Array}
+Longest Common Prefix Array. Stores the lcp between adjacent entries in the suffix array. Uses Kasai's algorithm, runs in $O(n)$. 
+\begin{lstlisting}
+vector<int> calc_lcp_array(string s){
+    vector<int> suf = calc_suffix_array(s);
+    int n = s.size();
+    int k = 0;
+    vector<int> lcp(n, 0);
+    vector<int> rank(n, 0);
+    for(int i = 0; i < n; i++) {
+        rank[suf[i]] = i;
+    }
+    for(int i = 0; i < n; i++, k? k-- : 0) {
+        if(rank[i] == n - 1){
+            k = 0;
+            continue;
+        }
+        int j = suf[rank[i] + 1];
+        while(i + k < n && j + k < n && s[i + k] == s[j + k]) {
+            k++;
+        }
+        lcp[rank[i]] = k;
+    }
+    return lcp;
+}
+
+//convenient struct to get LCP between two arbitrary suffixes. 
+struct LCP {
+    int n;
+    Segtree<int> segt;
+    vector<int> ind_mp;
+    LCP() {}
+    LCP(string s) {
+        n = s.size();
+        vector<int> lcp = calc_lcp_array(s);
+        function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};
+        function<int(int, int)> fcombine = [](const int a, const int b) -> int{return min(a, b);};
+        segt = Segtree<int>(n, 0, 1e9, fmodify, fcombine); 
+        segt.assign(lcp);
+        vector<int> suf = calc_suffix_array(s);
+        ind_mp = vector<int>(n);
+        for(int i = 0; i < n; i++){
+            ind_mp[suf[i]] = i;
+        }
+    }
+
+    int get_lcp(int a, int b) {
+        if(a == b){
+            return n - a;
+        }
+        int l = min(ind_mp[a], ind_mp[b]);
+        int r = max(ind_mp[a], ind_mp[b]);
+        return segt.query(l, r);
+    }
+};
+\end{lstlisting}
+
+\subsection{KMP}
+Find matches between two strings in $O(n + m)$.
+\begin{lstlisting}
+//creates kmp array for s. 
+vector<int> kmp(vector<int> s) {
+    int n = s.size();
+    vector<int> b(n+1,-1);
+    int i = 0, j = -1;
+    while(i != n) {
+        while(j != -1 && s[i] != s[j]) {
+            j = b[j];
+        }
+        i++;
+        j++;
+        b[i] = j;
+    }
+    return b;
+}
+
+//finds all occurences of m in n with kmp array of m, a. 
+vector<int> find_matches(vector<int> &n, vector<int> &m, vector<int> &a) {
+    vector<int> matches;
+    int i = 0;
+    int j = 0;
+    while(i < n.size()) {
+        while(j == m.size() || (j != -1 && n[i] != m[j])) {
+            j = a[j];
+        }
+        i++;
+        j++;
+        if(j == m.size()) {
+            matches.push_back(i - m.size() + 1);
+        }
+    }
+    return matches;
+}
+\end{lstlisting}
+
 \subsection{Suffix Tree}
 Equivalent to a trie that contains all suffixes of a string $S$, but only uses $O(log(A)|S|)$ memory, where $A$ is the size of the alphabet. Can find the number of occurrences of $T$ in $S$, compute the suffix array of $S$, and compute the Longest Common Prefix between two indices in $S$. 
 
@@ -1641,9 +1819,9 @@ struct SuffixTree {
 
 \section{Maths}
 \subsection{Modular Arithmetic}
-REMEMBER: power function is \lstinline{power(ll, ll)}, not \lstinline{pow(ll, ll)}.
+REMEMBER: making mod const gives significant performance boost. 
 \begin{lstlisting}
-ll mod = 1e9 + 7;
+const ll mod = 1e9 + 7;
 vector<ll> fac;
 map<pair<ll, ll>, ll> nckdp;
 
@@ -1747,10 +1925,21 @@ ll mod_inv(ll a, ll m) {
     }
 }
 
-//only works when all modulo is coprime. 
-//if you want to do this with non-coprime modulos, then you need to factor all of the modulos, 
-//and resolve the factors independently; converting them back to coprime. 
-//it is not guaranteed that there is a solution if the modulos are not coprime. 
+//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
+ll arith_sum(ll start, ll nr_elem, ll inc) {
+    ll ans = start * nr_elem;
+    ans += inc * nr_elem * (nr_elem - 1) / 2;
+    return ans;
+}
+\end{lstlisting}
+
+\subsection{Chinese Remainder Theorem}
+Solve a linear system of congruences in the form 
+
+$$x \equiv a_k \pmod{m_k}$$
+
+for $x$ given coprime $a_k$ and $m_k$
+\begin{lstlisting}
 ll chinese_remainder_theorem(vector<ll>& modulo, vector<ll>& remainder) {
     if(modulo.size() != remainder.size()) {
         return -1;
@@ -1768,12 +1957,25 @@ ll chinese_remainder_theorem(vector<ll>& modulo, vector<ll>& remainder) {
     }
     return solution;
 }
+\end{lstlisting}
 
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-ll arith_sum(ll start, ll nr_elem, ll inc) {
-    ll ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
+\subsection{Harmonic Series Approximation}
+Approximates $H_n$ as $log(n) + \gamma$. Gets better as $n$ grows, so precompute for small $n$. 
+\begin{lstlisting}
+vd H;
+void init_H() {
+    H = vd(100000000);
+    H[0] = 0;
+    for(int i = 1; i < H.size(); i++){
+        H[i] = H[i - 1] + (ld) 1.0 / (ld) i;
+    }
+}
+
+ld calc_H(ll n) {
+    if(n < H.size()) {
+        return H[n];
+    }
+    return log(n) + 0.57721566490153286060651;
 }
 \end{lstlisting}
 
@@ -1898,30 +2100,49 @@ vector<int> fft_multiply(vector<int> const& a, vector<int> const& b) {
 }
 \end{lstlisting}
 
-\subsection{Geometry}
+\section{Geometry}
 \begin{lstlisting}
 ld pi = acos(-1);
 ld epsilon = 1e-9;
 
 struct vec2 {
     ld x, y;
-    vec2() {this->x = 0; this->y = 0;}
-    vec2(ld x, ld y) {this->x = x; this->y = y;}
+    vec2(ld _x = 0, ld _y = 0) {x = _x; y = _y;}
+    vec2(const vec2& other) {x = other.x; y = other.y;}
+    vec2(const vec2& a, const vec2& b) {x = b.x - a.x; y = b.y - a.y;}  //creates A to B
+    vec2& operator=(const vec2& other) {x = other.x; y = other.y; return *this;}
+    vec2 operator-() const {return vec2(-x, -y);}
+    vec2 operator+(const vec2& other) const {return vec2(x + other.x, y + other.y);}
+    vec2& operator+=(const vec2& other) {*this = *this + other; return *this;}
+    vec2 operator-(const vec2& other) const {return vec2(x - other.x, y - other.y);}
+    vec2& operator-=(const vec2& other) {*this = *this - other; return *this;}
+    vec2 operator*(ld other) const {return vec2(x * other, y * other);}
+    vec2& operator*=(ld other) {*this = *this * other; return *this;}
+    vec2 operator/(ld other) const {return vec2(x / other, y / other);}
+    vec2& operator/=(ld other) {*this = *this / other; return *this;}
+
+    ld lengthSq() const {return x * x + y * y;}
+    ld length() const {return sqrt(lengthSq());}
+    vec2 get_normal() const {return *this / length();}
+    void normalize() {*this /= length();}   //actually normalizes this vector
+    ld distSq(const vec2& other) const {return vec2(*this, other).lengthSq();}
+    ld dist(const vec2& other) const {return sqrt(distSq(other));}
+
+    ld dot(const vec2& other) const {return x * other.x + y * other.y;}
+    ld cross(const vec2& other) const {return x * other.y - y * other.x;}
+    ld angle_to(const vec2& other) const {return acos(dot(other) / length() / other.length());}
+    vec2 rotate_CCW(ld theta) const {return vec2(x * cos(theta) - y * sin(theta), x * sin(theta) + y * cos(theta));}
+
+    //angle from x axis in range (-pi, pi)
+    ld polar_angle() {return atan2(y, x);}  
+
+    //projection of other onto this
+    vec2 project(const vec2& other) {return *this * (other.dot(*this) / dot(*this));}
+
+    friend std::ostream& operator<<(std::ostream& os, const vec2& v) {os << "[" << v.x << ", " << v.y << "]"; return os;}
+    friend std::istream& operator>>(std::istream& is, vec2& v) {is >> v.x >> v.y; return is;}
 };
-
-vec2 add(vec2 a, vec2 b){
-    vec2 ret;
-    ret.x = a.x + b.x;
-    ret.y = a.y + b.y;
-    return ret;
-}
-
-vec2 sub(vec2 a, vec2 b) {
-    vec2 ret;
-    ret.x = a.x - b.x;
-    ret.y = a.y - b.y;
-    return ret;
-}
+vec2 operator*(ld a, const vec2& b) {return vec2(a * b.x, a * b.y);}
 
 ld cross(vec2 a, vec2 b) {
     return a.x * b.y - a.y * b.x;
@@ -1931,74 +2152,37 @@ ld dot(vec2 a, vec2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
-ld length(vec2 a) {
-    return sqrt(a.x * a.x + a.y * a.y);
-}
-
-ld distance(vec2 a, vec2 b){
-    return length(sub(a, b));
-}
-
 ld lerp(ld t0, ld t1, ld x0, ld x1, ld t) {
     ld slope = (x1 - x0) / (t1 - t0);
     return x0 + slope * (t - t0);
 }
 
-vec2 mul(vec2 a, ld s) {
-    a.x *= s;
-    a.y *= s;
-    return a;
+vec2 lerp(ld t0, ld t1, vec2 x0, vec2 x1, ld t) {
+    return vec2(lerp(t0, t1, x0.x, x1.x, t), lerp(t0, t1, x0.y, x1.y, t));
 }
 
-vec2 normalize(vec2 a){
-    ld len = length(a);
-    vec2 ret;
-    ret.x = a.x / len;
-    ret.y = a.y / len;
-    return ret;
-}
-
-//angle from the +x axis in range (-pi, pi)
-ld polar_angle(vec2 a) {
-    return atan2(a.y, a.x);
-}
-
-//project a onto b
-vec2 project(vec2 a, vec2 b) {
-    b = normalize(b);
-    ld proj_mag = dot(a, b);
-    return mul(b, proj_mag);
-}
-
-vec2 rotateCCW(vec2 a, ld theta) {
-    vec2 ret(0, 0);
-    ret.x = a.x * cos(theta) - a.y * sin(theta);
-    ret.y = a.x * sin(theta) + a.y * cos(theta);
-    return ret;
-}
-
-//returns the coefficients s and t, where p1 + v1 * s = p2 + v2 * t
-vector<ld> lineLineIntersect(vec2 p1, vec2 v1, vec2 p2, vec2 v2) {
+//p1 + v1 * s = p2 + v2 * t
+vec2 line_lineIntersect(vec2 p1, vec2 v1, vec2 p2, vec2 v2) {
     if(cross(v1, v2) == 0){
         return {};
     }
-    ld s = cross(sub(p2, p1), v2) / cross(v1, v2);
-    ld t = cross(sub(p1, p2), v1) / cross(v2, v1);
-    return {s, t};
+    ld s = cross(p2 - p1, v2) / cross(v1, v2);
+    ld t = cross(p1 - p2, v1) / cross(v2, v1);
+    return p1 + v1 * s;
 }
 
 ld tri_area(vec2 t1, vec2 t2, vec2 t3) {
-    vec2 v1 = sub(t1, t2);
-    vec2 v2 = sub(t2, t3);
+    vec2 v1 = t1 - t2;
+    vec2 v2 = t2 - t3;
     return abs(cross(v1, v2) / 2.0);
 }
 
 //returns the distance along the ray from ray_a to the nearest point on the circle. 
-ld rayCircleIntersect(vec2 ray_a, vec2 ray_b, vec2 center, ld radius) {
-    vec2 ray_dir = normalize(sub(ray_b, ray_a));
-    vec2 to_center = sub(center, ray_a);
-    vec2 center_proj = add(ray_a, mul(ray_dir, dot(ray_dir, to_center)));
-    ld center_proj_len = length(sub(center, center_proj));
+ld ray_circleIntersect(vec2 ray_a, vec2 ray_b, vec2 center, ld radius) {
+    vec2 ray_dir = (ray_b - ray_a).get_normal();
+    vec2 to_center = center - ray_a;
+    vec2 center_proj = ray_a + ray_dir * dot(ray_dir, to_center);
+    ld center_proj_len = (center - center_proj).length();
     //radius^2 = center_proj_len^2 + int_depth^2
     //int_depth = sqrt(radius^2 - center_proj_len^2)
     ld int_depth = sqrt(radius * radius - center_proj_len * center_proj_len);
@@ -2011,21 +2195,30 @@ ld sector_area(ld theta, ld radius) {
 }
 
 ld chord_area(ld theta, ld radius) {
-    ld sector = sector_area(theta, radius);
-    ld tri_area = radius * radius * cos(theta) * sin(theta);
-    return sector - tri_area;
+    return (radius * radius / 2.0) * (theta - sin(theta));
 }
 
 //dist = distance from center
 ld chord_area_dist(ld dist, ld radius) {
     ld theta = acos(dist / radius);
-    return chord_area(theta, radius);
+    return chord_area(theta * 2, radius);
 }
 
 //length of chord
 ld chord_area_length(ld length, ld radius) {
     ld theta = asin((length / 2.0) / radius);
-    return chord_area(theta, radius);
+    return chord_area(theta * 2, radius);
+}
+
+//3 points can uniquely define a circle, just have to find the intersection between the perpendicular
+//bisectors between two pairs of points. 
+//be careful if the three points are colinear. 
+vec2 threept_circle(vec2 a, vec2 b, vec2 c){
+    vec2 ab = b - a;
+    vec2 ac = c - a;
+    vec2 abp = {ab.y, -ab.x};
+    vec2 acp = {ac.y, -ac.x};
+    return line_lineIntersect(a + ab / 2, abp, a + ac / 2, acp);
 }
 
 //given a point inside and outside a circle, find the point along the line that intersects the circle.
@@ -2034,12 +2227,12 @@ vec2 find_circle_intersect(vec2 in, vec2 out, vec2 c_center, ld c_radius) {
     //i think we can reduce this to some sort of quadratic. 
     ld low = 0;
     ld high = 1;
-    ld len = length(sub(in, out));
-    vec2 norm = normalize(sub(out, in));
+    ld len = (in - out).length();
+    vec2 norm = (out - in).get_normal();
     while(abs(high - low) > epsilon) {
         ld mid = (high + low) / 2.0;
-        vec2 mid_pt = add(in, mul(norm, len * mid));
-        ld mid_dist = length(sub(mid_pt, c_center));
+        vec2 mid_pt = in + norm * (len * mid);
+        ld mid_dist = (mid_pt - c_center).length();
         if(mid_dist < c_radius) {
             low = mid;
         }
@@ -2047,7 +2240,7 @@ vec2 find_circle_intersect(vec2 in, vec2 out, vec2 c_center, ld c_radius) {
             high = mid;
         }
     }
-    return add(in, mul(norm, len * low));
+    return in + norm * (len * low);
 }
 
 //returns the area of the polygon. 
@@ -2080,7 +2273,7 @@ vec2 polygon_centroid(vector<vec2>& poly) {
     return c;
 }
 
-//i believe this gives in CCW order, have to verify though. 
+//returns convex hull in CCW order
 vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     function<int(vec2, vec2, vec2)> orientation = [](vec2 a, vec2 b, vec2 c) -> int {
         ld v = a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y);
@@ -2088,24 +2281,20 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
         if (v > 0) return +1; // counter-clockwise
         return 0;
     };
-
     function<bool(vec2, vec2, vec2)> collinear = [&orientation](vec2 a, vec2 b, vec2 c) -> bool {
         return orientation(a, b, c) == 0;
     };
-
     function<bool(vec2, vec2, vec2, bool)> cw = [&orientation](vec2 a, vec2 b, vec2 c, bool include_collinear) -> bool {
         int o = orientation(a, b, c);
         return o < 0 || (include_collinear && o == 0);
     };
-
     vec2 p0 = *min_element(a.begin(), a.end(), [](vec2 a, vec2 b) {
         return make_pair(a.y, a.x) < make_pair(b.y, b.x);
     });
     sort(a.begin(), a.end(), [&p0, &orientation](const vec2& a, const vec2& b) {
         int o = orientation(p0, a, b);
         if (o == 0)
-            return (p0.x-a.x)*(p0.x-a.x) + (p0.y-a.y)*(p0.y-a.y)
-                < (p0.x-b.x)*(p0.x-b.x) + (p0.y-b.y)*(p0.y-b.y);
+            return (p0.x-a.x)*(p0.x-a.x) + (p0.y-a.y)*(p0.y-a.y) < (p0.x-b.x)*(p0.x-b.x) + (p0.y-b.y)*(p0.y-b.y);
         return o < 0;
     });
     if (include_collinear) {
@@ -2113,14 +2302,12 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
         while (i >= 0 && collinear(p0, a[i], a.back())) i--;
         reverse(a.begin()+i+1, a.end());
     }
-
     vector<vec2> st;
     for (int i = 0; i < (int)a.size(); i++) {
         while (st.size() > 1 && !cw(st[st.size()-2], st.back(), a[i], include_collinear))
             st.pop_back();
         st.push_back(a[i]);
     }
-
     //make sure there are no duplicate vertices
     vector<vec2> ans(0);
     for(int i = 0; i < st.size(); i++){
@@ -2131,15 +2318,16 @@ vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
         }
         ans.push_back(st[i]);
     }
-
+    //reverse to make winding CCW
+    reverse(ans.begin(), ans.end());
     return ans;
 }
 
 //checks if the area of the triangle is the same as the three triangle areas formed by drawing lines from pt to the vertices. 
 //i don't think triangle winding order matters
 bool point_inside_triangle(vec2 pt, vec2 t0, vec2 t1, vec2 t2) {
-    ld a1 = abs(cross(sub(t1, t0), sub(t2, t0)));
-    ld a2 = abs(cross(sub(t0, pt), sub(t1, pt))) + abs(cross(sub(t1, pt), sub(t2, pt))) + abs(cross(sub(t2, pt), sub(t0, pt)));
+    ld a1 = abs(cross(t1 - t0, t2 - t0));
+    ld a2 = abs(cross(t0 - pt, t1 - pt)) + abs(cross(t1 - pt, t2 - pt)) + abs(cross(t2 - pt, t0 - pt));
     return abs(a1 - a2) < epsilon;
 }
 
@@ -2168,18 +2356,18 @@ vector<bool> points_inside_convex_hull(vector<vec2>& pts, vector<vec2>& hull) {
         }
     }
     sort(h_pts.begin(), h_pts.end(), [&pivot](vec2& a, vec2& b) -> bool {
-        return polar_angle(sub(a, pivot)) < polar_angle(sub(b, pivot));
+        return (a - pivot).polar_angle() < (b - pivot).polar_angle();
     });
     //for each point we want to check, compute it's polar angle, then binary search for the sector that should contain it
     for(int i = 0; i < pts.size(); i++){
         vec2 pt = pts[i];
-        ld pt_ang = polar_angle(sub(pt, pivot));
+        ld pt_ang = (pt - pivot).polar_angle();
         int low = 0;
         int high = h_pts.size() - 2;
         int tri_ind = low;
         while(low <= high) {
             int mid = low + (high - low) / 2;
-            if(polar_angle(sub(h_pts[mid], pivot)) <= pt_ang) {
+            if((h_pts[mid] - pivot).polar_angle() <= pt_ang) {
                 tri_ind = max(tri_ind, mid);
                 low = mid + 1;
             }
@@ -2191,7 +2379,6 @@ vector<bool> points_inside_convex_hull(vector<vec2>& pts, vector<vec2>& hull) {
     }
     return ans;
 }
-
 \end{lstlisting}
 
 \section{Misc}
@@ -2247,6 +2434,27 @@ vector<T> hungarian(const vector<vector<T>> &C) {
     return answers;
 }
 
+\end{lstlisting}
+
+\subsection{XOR Basis}
+Given a set of integers $S$, we can figure out if another integer $x$ can be constructed as a xor sum of integers in $S$ in $O(log(|S|))$ time per query with $O(|S|)$ precomputation by building a XOR basis. 
+
+Idea is that every basis vector will have a unique highest bit. Any unset basis vector should be 0 in the basis array. 
+\begin{lstlisting}
+bool insertBasis(vector<int> basis, int x){
+    for(int i = 0; i < basis.size(); i++){
+        if((x & 1 << i) == 0) continue;
+        if(!basis[i]) {basis[i] = x; return true;}
+        x ^= basis[i];
+    }
+    return false;
+}
+
+bool inBasis(vector<int> basis, int x){
+    for(int i = 0; i < basis.size(); i++)
+        if(x & 1 << i) x ^= basis[i];
+    return x == 0;
+}
 \end{lstlisting}
 
 \subsection{Fast Unordered Set / Map}

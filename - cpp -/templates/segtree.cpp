@@ -11,49 +11,37 @@ struct Segtree {
     int n;
     T* t;
     T uneut, qneut;
-
-    //single element modification function
-    function<T(T, T)> fmodify;
-
-    //product of two elements for query and updating tree
-    function<T(T, T)> fcombine;
+    function<T(T, T)> fmodify, fcombine;
 
     Segtree() {}
-    Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fmodify, function<T(T, T)> fcombine) {
-        this -> n = n;
+    Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fm, function<T(T, T)> fc) {
+        this->n = n;
         t = new T[2 * n];
-
-        this -> fmodify = fmodify;
-        this -> fcombine = fcombine;
-
+        this->fmodify = fm;
+        this->fcombine = fc;
         uneut = updateNeutral;
         qneut = queryNeutral;
-
-        for(int i = 0; i < n; i++){
-            t[i + n] = uneut;
-        }
+        for(int i = 0; i < n; i++) t[i + n] = uneut;
         build();
     }
 
     void assign(vector<T>& arr) {
-        for(int i = 0; i < min(n, (int) arr.size()); i++){
+        for(int i = 0; i < min(n, (int) arr.size()); i++)
             t[i + n] = arr[i];
-        }
         build();
     }
 
-    void build() { // build the tree after manually assigning the values.
-        for (int i = n - 1; i > 0; i--) {   
+	// build the tree after manually assigning the values.
+    void build() { 
+        for (int i = n - 1; i > 0; i--)
             t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
-        }
     }
 
     void modify(int p, T value) { // set value at position p
         p += n;
         t[p] = fmodify(t[p], value);
-        for (p /= 2; p > 0; p /= 2) {
+        for (p /= 2; p > 0; p /= 2)
             t[p] = fcombine(t[p * 2], t[p * 2 + 1]);
-        }
     }
 
     T query(int l, int r) { // sum on interval [l, r)
@@ -61,32 +49,18 @@ struct Segtree {
         bool l_none = true, r_none = true;
         for (l += n, r += n; l < r; l /= 2, r /= 2) {
             if (l % 2 == 1) {
-                if(l_none) {
-                    l_none = false;
-                    l_res = t[l];
-                }
-                else {
-                    l_res = fcombine(l_res, t[l]);
-                }
+                if(l_none) {l_none = false; l_res = t[l];}
+                else l_res = fcombine(l_res, t[l]);
                 l++;
             }
             if (r % 2 == 1) {
                 r--;
-                if(r_none) {
-                    r_none = false;
-                    r_res = t[r];
-                }
-                else {
-                    r_res = fcombine(t[r], r_res);
-                }
+                if(r_none) {r_none = false; r_res = t[r];}
+                else r_res = fcombine(t[r], r_res);
             }
         }
-        if(l_none) {
-            return r_res;
-        }
-        if(r_none) {
-            return l_res;
-        }
+        if(l_none) return r_res;
+        if(r_none) return l_res;
         return fcombine(l_res, r_res);
     }
 

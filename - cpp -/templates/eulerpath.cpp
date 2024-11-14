@@ -3,8 +3,8 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-//an euler tour only exists if the degrees of all vertices are even
-//an euler path only exists if the number of vertices with odd degrees are two, or zero, in which case an euler cycle exists. 
+//an eulerian circuit only exists if the degrees of all vertices are even
+//an eulerian path only exists if the number of vertices with odd degrees are two, or zero, in which case an eulerian circuit exists. 
 //and of course, the graph is sufficiently connected. 
 //this function doesn't check any of those. TODO make it do that
 

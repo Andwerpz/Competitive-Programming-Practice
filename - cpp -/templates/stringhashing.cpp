@@ -3,7 +3,6 @@ typedef long long ll;
 using namespace std;
 
 mt19937 rng((uint32_t)chrono::steady_clock::now().time_since_epoch().count());
-
 struct hstring {
 	// change M and B if you want
 	static const ll M = 1e9 + 9;
@@ -24,7 +23,7 @@ struct hstring {
 	}
 
 	long long get_hash(int start, int end) {
-		long long raw_val = (p_hash[end + 1] - (p_hash[start] * pow[end - start + 1]));
+		long long raw_val = (p_hash[end] - (p_hash[start] * pow[end - start]));
 		return (raw_val % M + M) % M;
 	}
 };

@@ -9,7 +9,7 @@ using namespace std;
 
 //note that for any good selection of 4 people, good as in the bars don't cross, there have to be exactly 2
 //people out of the 4 that have one person younger and one person older than them horizontally or vertically
-//adjacent (not diagonally). 
+//adjacent (not diagonally). Crucially, in any bad arrangement, there are no people who satisfy this condition. 
 
 //then, if we count for each person, the number of rectangles they are a part of where this is true and take
 //the sum across all people, the sum will be exactly twice the answer, because for each rectangle, there are 

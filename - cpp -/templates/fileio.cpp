@@ -9,4 +9,8 @@ int main() {
     ofstream out("--out--.txt");
     streambuf *coutbuf = cout.rdbuf(); //save old buf
     cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+
+    //seems like usaco likes this one
+    freopen("--in--.txt", "r", stdin);
+    freopen("--out--.txt", "w", stdout);
 }

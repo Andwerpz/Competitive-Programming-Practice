@@ -3,8 +3,6 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-//operator overloading for vec2 is done, have to verify everything works tho
-
 ld pi = acos(-1);
 ld epsilon = 1e-9;
 

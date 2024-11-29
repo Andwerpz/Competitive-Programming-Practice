@@ -3,6 +3,17 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
+//useful for problems involving queries centered around specific nodes in a tree. 
+
+//if we want to answer queries of type
+//1 : color some node red
+//2 : query some node for the closest red node
+//then we'd want to use bottom up. When coloring, update all your centroid ancestors as to what
+//red node is closest to them. When answering queries, look for the nearest red node to each centroid ancestor.
+
+//if we want to compute some property for every node in the tree, then top down divide + conquer is good.
+//refer to cielthecommander.cpp
+
 struct CentroidDecomp {
     CentroidDecomp() {
         //yay

@@ -19,6 +19,11 @@ typedef vector<vector<ld>> vvd;
 
 //guessforces lol
 
+//Consider the distribution of ways with only the first n - 1 elements. If we add on the nth element,
+//then the distribution will be copied, and shifted over by the next element. 
+
+//my idea is to test the middle of the new distribution to see if there are any duplicates. 
+
 vl gen(vl a){
     vl ans((1 << (int) a.size()));
     for(int i = 0; i < (1 << (int) a.size()); i++){

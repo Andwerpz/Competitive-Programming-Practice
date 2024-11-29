@@ -1,18 +1,87 @@
 #include <bits/stdc++.h>
-typedef long long ll;
-typedef __int128 lll;
-typedef long double ld;
 using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
 
-#include "segtree.cpp"
+//CSES - 2108
 
-// -- REMINDER --
-//make sure to modify the terminator character if '$' is used as a character in the input. 
-//terminator character is to 'flush' the buffered changes so that all suffixes are in the tree. 
-//it's also lexicographically smaller than any other character (i think this is important)
+//suffix automaton check
 
-//suffix array gives suffix indices in lexicographic order. 
-//lcp[i] means that suffix i and suffix i + 1 in lexicographic order share the first lcp[i] characters
+template <typename T>
+struct Segtree {
+    //note that t[0] is not used
+    int n;
+    T* t;
+    T uneut, qneut;
+    function<T(T, T)> fmodify, fcombine;
+
+    Segtree() {}
+    Segtree(int n, T updateNeutral, T queryNeutral, function<T(T, T)> fm, function<T(T, T)> fc) {
+        this->n = n;
+        t = new T[2 * n];
+        this->fmodify = fm;
+        this->fcombine = fc;
+        uneut = updateNeutral;
+        qneut = queryNeutral;
+        for(int i = 0; i < n; i++) t[i + n] = uneut;
+        build();
+    }
+
+    void assign(vector<T>& arr) {
+        for(int i = 0; i < min(n, (int) arr.size()); i++)
+            t[i + n] = arr[i];
+        build();
+    }
+
+	// build the tree after manually assigning the values.
+    void build() { 
+        for (int i = n - 1; i > 0; i--)
+            t[i] = fcombine(t[i * 2], t[i * 2 + 1]);
+    }
+
+    void modify(int p, T value) { // set value at position p
+        p += n;
+        t[p] = fmodify(t[p], value);
+        for (p /= 2; p > 0; p /= 2)
+            t[p] = fcombine(t[p * 2], t[p * 2 + 1]);
+    }
+
+    T query(int l, int r) { // sum on interval [l, r)
+        T l_res = qneut, r_res = qneut;
+        bool l_none = true, r_none = true;
+        for (l += n, r += n; l < r; l /= 2, r /= 2) {
+            if (l % 2 == 1) {
+                if(l_none) {l_none = false; l_res = t[l];}
+                else l_res = fcombine(l_res, t[l]);
+                l++;
+            }
+            if (r % 2 == 1) {
+                r--;
+                if(r_none) {r_none = false; r_res = t[r];}
+                else r_res = fcombine(t[r], r_res);
+            }
+        }
+        if(l_none) return r_res;
+        if(r_none) return l_res;
+        return fcombine(l_res, r_res);
+    }
+
+    T query(int ind) {
+        return this->query(ind, ind + 1);
+    }
+};
 
 struct SuffixTree {
     public:
@@ -60,7 +129,6 @@ struct SuffixTree {
             this->calc_suf_arr();
             this->calc_lcp();
             this->calc_usub_cnt();
-            this->calc_sub_cnt();
         }
 
         bool contains_string(string s) {
@@ -134,7 +202,6 @@ struct SuffixTree {
 
         //returns the kth (0 indexed) unique substring according to the lexicographic order defined by SuffixNode->children
         //returns {start, length}
-        //tested on https://cses.fi/problemset/task/2108/
         pii get_kth_unique_substring(ll k){
             function<pii(SuffixNode*, ll, int)> dfs = [&](SuffixNode* root, ll k, int clen) -> pii {
                 ll l = root->l, r = root->r;
@@ -149,27 +216,6 @@ struct SuffixTree {
                         return dfs(next, k, clen + r - l);
                     }
                     k -= usub_cnt[next->index];
-                }
-                return {-1, -1};
-            };
-            return dfs(nodes[0], k, 0);
-        }
-
-        //tested on https://cses.fi/problemset/task/2109/
-        pii get_kth_substring(ll k){
-            function<pii(SuffixNode*, ll, int)> dfs = [&](SuffixNode* root, ll k, int clen) -> pii {
-                ll l = root->l, r = root->r;
-                r = min((ll) chars.size() - 1, r);
-                if(k < (r - l) * leaf_cnt[root->index]){
-                    return {l - clen, clen + (k / leaf_cnt[root->index]) + 1};
-                }
-                k -= (r - l) * leaf_cnt[root->index];
-                for(auto i = root->children.begin(); i != root->children.end(); i++){
-                    SuffixNode* next = i->second;
-                    if(k < sub_cnt[next->index]){
-                        return dfs(next, k, clen + r - l);
-                    }
-                    k -= sub_cnt[next->index];
                 }
                 return {-1, -1};
             };
@@ -199,7 +245,6 @@ struct SuffixTree {
         vector<int> suf_to_suf_ind; //maps suffix indices to their locations in the suffix array. 
         vector<int> leaf_cnt;   //number of leaves in subtree
         vector<ll> usub_cnt;    //number of unique substrings that begin with current node
-        vector<ll> sub_cnt; //number of substrings that begin with current node
         vector<int> lcp;    //longest common prefix between adjacent suffixes in suffix array. 
 
         //uses kasai's algorithm to compute lcp array in O(n). 
@@ -249,7 +294,7 @@ struct SuffixTree {
         }
 
         void calc_usub_cnt() {
-            vector<ll> ans(this->nodes.size(), 0);
+            vector<ll> ans (this->nodes.size(), 0);
             function<ll(SuffixNode*)> dfs = [&](SuffixNode* root) -> ll {
                 ll l = root->l, r = root->r;
                 r = min((ll) chars.size() - 1, r);   //get rid of terminator char
@@ -262,22 +307,6 @@ struct SuffixTree {
             };
             dfs(nodes[0]);
             this->usub_cnt = ans;
-        }
-
-        void calc_sub_cnt() {
-            vector<ll> ans(this->nodes.size(), 0);
-            function<ll(SuffixNode*)> dfs = [&](SuffixNode* root) -> ll {
-                ll l = root->l, r = root->r;
-                r = min((ll) chars.size() - 1, r);
-                ll cnt = (r - l) * leaf_cnt[root->index];
-                for(auto i = root->children.begin(); i != root->children.end(); i++){
-                    cnt += dfs(i->second);
-                }
-                ans[root->index] = cnt;
-                return cnt;
-            };
-            dfs(nodes[0]);
-            this->sub_cnt = ans;
         }
 
         //do greedy dfs on the tree. 
@@ -396,3 +425,18 @@ struct SuffixTree {
         }
 };
 
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    string s;
+    cin >> s;
+    ll k;
+    cin >> k;
+    k --;
+    SuffixTree st(s);
+    pii ans = st.get_kth_unique_substring(k);
+    cout << s.substr(ans.first, ans.second) << "\n";
+    
+    return 0;
+}

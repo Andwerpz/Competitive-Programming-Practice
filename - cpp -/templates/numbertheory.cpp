@@ -1,10 +1,10 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
 typedef vector<ld> vd;
 // typedef __int128 lll;
 // typedef __float128 lld;
-using namespace std;
 
 ll ceil_div(ll a, ll b){
     return (a + b - 1) / b;
@@ -89,6 +89,39 @@ void calc_totient(int n) {
     }
 }
 
+//m(1) = 1
+//m(p^k) = (k == 0) - (k == 1)
+//m(xy) = m(x) m(y) if gcd(x, y) = 1
+//f(n) = \sum_{d|n} g(d) 
+//g(n) = \sum_{d|n} m(d) f(d)
+//\sum_{d|n} m(d) = (n == 1)
+vector<ll> mobius;
+void calc_mobius(int n) {
+    mobius = vector<ll>(n + 1, 0);
+    mobius[1] = 1;
+    vector<bool> c(n + 1, false);
+    vector<ll> p(0);
+    for(int i = 2; i <= n; i++){
+        if(!c[i]) {
+            p.push_back(i);
+            mobius[i] = -1;
+        }
+        for(int j = 0; j < p.size() && i * p[j] <= n; j++){
+            c[i * p[j]] = true;
+            if(i % p[j] == 0){
+                mobius[i * p[j]] = 0;
+                break;
+            }
+            else {
+                mobius[i * p[j]] = mobius[i] * mobius[p[j]];
+            }
+        }
+    }
+}
+
+//harmonic series approximation
+//H_n = ln(n) + \gamma
+//approximation gets better as N grows, so precompute H for small n. 
 vd H;
 void init_H() {
     H = vd(100000000);
@@ -98,9 +131,6 @@ void init_H() {
     }
 }
 
-//harmonic series approximation
-//H_n = ln(n) + \gamma
-//approximation gets better as N grows, so precompute H for small n. 
 ld calc_H(ll n) {
     if(n < H.size()) {
         return H[n];

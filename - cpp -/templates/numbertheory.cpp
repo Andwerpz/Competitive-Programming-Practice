@@ -73,7 +73,9 @@ ll chinese_remainder_theorem(vector<ll> modulo, vector<ll> remainder) {
 }
 
 //totient[i] or phi[i] = number of integers x where x < i and gcd(i, x) = 1. 
-//useful property: sum(phi[x]) where x is all the divisors of n = n. 
+//useful properties:
+//\sum_{d|n} phi(d) = n
+//\sum_{d|n} phi(d) (n / d) = \sum_{i = 1}^{n} gcd(i, n)
 //runs in n * log(log(n)) time. 
 vector<ll> totient;
 void calc_totient(int n) {

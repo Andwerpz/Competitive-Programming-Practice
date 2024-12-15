@@ -1,7 +1,34 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//Codeforces - 756D
+
+//observe that any string that can be created by the operations, can also be created using the following method:
+//1. choose any subsequence, c_1, c_2, ..., c_k. I'll put an extra requirement that c_i != c_{i + 1}. 
+//2. assign a positive integer to each character in the subsequence, x_1, x_2, ..., x_k, s.t. sum(x_i) = n
+//3. repeat c_i x_i times to construct the final string. 
+
+//note that given the length of the subsequence, we can compute the amount of assignments of x_i using stars
+//and bars. 
+
+//so the process reduces to counting the number of unique subsequences of the string that don't have two adjacent
+//characters that are the same, indexed by length. 
+//we can solve this problem using DP. However, when solving, you need to avoid adding the x26 constant factor
+//as n = 5000. 
 
 struct mint;
 typedef vector<mint> vm;
@@ -108,68 +135,43 @@ mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
     return nck(stars - 1, bars);
 }
 
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
-        return 0;
-    }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-//gives the nth catalan number. 
-//c_n = \sum_{i = 1}^{n} c_{i - 1} c{n - i}, c_0 = 1
-//c_n = number of regular bracket sequences of size 2n (n pairs of brackets)
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
-}
-
-//a derangement is a permutation with no fixed points
-//d[n][k] = number of derangements of size n with exactly k cycles
-//d[n][k] = (n - 1) (d[n - 2][k - 1] + d[n - 1][k])
-vvm d;
-void init_d(int N) {
-    d = vvm(N, vm(N, 0));
-    d[0][0] = 1;
-    for(int n = 2; n < d.size(); n++){
-        for(int k = 1; k <= n / 2; k++){
-            d[n][k] = mint(n - 1) * (d[n - 2][k - 1] + d[n - 1][k]);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(1e4);
+    int n;
+    cin >> n;
+    string s;
+    cin >> s;
+    //compute number of unique subsequences indexed by length
+    vvm dp(n + 1, vm(n + 1, 0));
+    vvm sum(n + 1, vm(26, 0));  
+    vm rsum(n + 1, 0);  
+    rsum[0] = 1;    //empty subsequence
+    vvm psum(26, vm(n + 1, 0));
+    for(int i = 1; i <= n; i++){
+        int cc = s[i - 1] - 'a';
+        for(int j = 1; j <= n; j++){
+            dp[i][j] = (rsum[j - 1] - sum[j - 1][cc]);
+        }
+        //subtract out doublecounting
+        for(int j = 1; j <= n; j++){
+            dp[i][j] -= psum[cc][j];
+            psum[cc][j] = (rsum[j - 1] - sum[j - 1][cc]);
+        }
+        //update sum, rsum
+        for(int j = 0; j <= n; j++){
+            rsum[j] += dp[i][j];
+            sum[j][cc] += dp[i][j];
         }
     }
-}
-
-//computes the number of derangements of size n using PIE
-//condition e_i is p[i] = i, or p[i] is a fixed point
-mint calc_d(int n) {
     mint ans = 0;
-    for(int i = 0; i <= n; i++){
-        ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
+    for(int i = 1; i <= n; i++){
+        mint sum = rsum[i];
+        ans += sum * stars_bars(n, i - 1);
     }
-    return ans;
+    cout << ans << "\n";
+    
+    return 0;
 }

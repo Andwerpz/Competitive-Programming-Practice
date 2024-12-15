@@ -1,7 +1,36 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//Codeforces - 93D
+
+//pattern recognition forces
+
+//compute the first 20 or so elements of the sequence using dp: dp[i][j][k] = number of flags of length i ending in
+//colors j and k. 
+
+//then, remove duplicates due to symmetry. To do so, note that palindromes are not double counted, so we want to
+//add them back in so we can divide everything by 2. Flags of even length cannot be palindromes, so we can go ahead
+//and divide them by 2, but flags of odd length can be palindromes. We can construct any palindrome by taking a flag and
+//reversing then appending it onto itself. 
+
+//you'll notice a pattern: all even length flags just multiply by 3 from the previous even length flag, and the uncorrected
+//counts for odd length flags also exhibit the same pattern, except for length 1. 
+
+//just replicate the pattern seen, and you'll get AC
 
 struct mint;
 typedef vector<mint> vm;
@@ -73,103 +102,92 @@ mint operator *(ll a, const mint& b) {return mint(a) * b;}
 mint operator /(ll a, const mint& b) {return mint(a) / b;}
 mint operator %(ll a, const mint& b) {return mint(a) % b;}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
-    }
-    return gcd(b, a % b);
+//first n even sizes
+mint calc_even(ll n){
+    return (mint(3).pow(n) - 1).inv_divide(2) * 4;
 }
 
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
+//first n odd sizes
+mint calc_odd(ll n){
+    if(n == 0) return 0;
+    mint ans = (mint(3).pow(n - 1) - 1).inv_divide(2) * 14;
+    // cout << "S1 : " << ans << "\n";
+    //account for doublecounting
+    ans += calc_even(n / 2) * 2;    //3, 7, 11, ...
+    ans += (mint(3).pow((n - 1) / 2) - 1).inv_divide(2) * 14;   //5, 9, 13, ...
+    // cout << "S2 : " << ans << "\n";
+    ans = ans.inv_divide(2);
+    ans += 4;   //length = 1
+    // cout << "CALC ODD : " << n << " " << ans << "\n";
     return ans;
 }
 
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
-    }
-    return nck(stars - 1, bars);
-}
-
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
-        return 0;
-    }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-//gives the nth catalan number. 
-//c_n = \sum_{i = 1}^{n} c_{i - 1} c{n - i}, c_0 = 1
-//c_n = number of regular bracket sequences of size 2n (n pairs of brackets)
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
-}
-
-//a derangement is a permutation with no fixed points
-//d[n][k] = number of derangements of size n with exactly k cycles
-//d[n][k] = (n - 1) (d[n - 2][k - 1] + d[n - 1][k])
-vvm d;
-void init_d(int N) {
-    d = vvm(N, vm(N, 0));
-    d[0][0] = 1;
-    for(int n = 2; n < d.size(); n++){
-        for(int k = 1; k <= n / 2; k++){
-            d[n][k] = mint(n - 1) * (d[n - 2][k - 1] + d[n - 1][k]);
-        }
-    }
-}
-
-//computes the number of derangements of size n using PIE
-//condition e_i is p[i] = i, or p[i] is a fixed point
-mint calc_d(int n) {
+mint solve(ll l, ll r) {    //[l, r)
     mint ans = 0;
-    for(int i = 0; i <= n; i++){
-        ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
-    }
+    //evens
+    ans += calc_even((r - 1) / 2) - calc_even((l - 1) / 2); 
+    //odds
+    ans += calc_odd(r / 2) - calc_odd(l / 2);
     return ans;
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    ll l, r;
+    cin >> l >> r;
+    r ++;
+    cout << solve(l, r) << "\n";
+
+    // int n;
+    // cin >> n;
+    // //W : 0, B : 1, Y : 2, R : 3
+    // int W = 0, B = 1, Y = 2, R = 3;
+    // vector<vvl> dp(n + 1, vvl(4, vl(4, 0)));
+    // dp[2][W][B] = 1;
+    // dp[2][B][W] = 1;
+    // dp[2][W][R] = 1;
+    // dp[2][R][W] = 1;
+    // dp[2][Y][B] = 1;
+    // dp[2][B][Y] = 1;
+    // dp[2][Y][R] = 1;
+    // dp[2][R][Y] = 1;
+    // for(int i = 2; i < n; i++){
+    //     for(int j = 0; j < 4; j++){
+    //         for(int k = 0; k < 4; k++){
+    //             for(int l = 0; l < 4; l++){
+    //                 if(l == k) continue;
+    //                 if((l == W && k == Y) || (l == Y && k == W)) continue;
+    //                 if((l == B && k == R) || (l == R && k == B)) continue;
+    //                 if(j == B && k == W && l == R) continue;
+    //                 if(j == R && k == W && l == B) continue;
+    //                 dp[i + 1][k][l] += dp[i][j][k];
+    //             }
+    //         }
+    //     }
+    // }
+    // vl dps(n + 1, 0), odps(n + 1, 0);
+    // dps[1] = 4;
+    // for(int i = 2; i <= n; i++){
+    //     for(int j = 0; j < 4; j++){
+    //         for(int k = 0; k < 4; k++){
+    //             dps[i] += dp[i][j][k];
+    //         }
+    //     }
+    //     odps[i] = dps[i];
+    //     cout << "OLD DPS : " << i << " " << odps[i] << "\n";
+    //     if(i % 2 == 1){
+    //         dps[i] += odps[i / 2 + 1];   //doublecount symmetrical flags
+    //     }
+    //     dps[i] /= 2;
+    // }
+    // for(int i = 1; i <= n; i++){
+    //     cout << "DPS : " << i << " " << dps[i] << "\n";
+    // }    
+    // for(int i = 2; i <= n; i += 2){
+    //     cout << "DIFF : " << dps[i] - dps[i - 1] << "\n";
+    // }
+    
+    return 0;
 }

@@ -1,14 +1,26 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
 
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
 typedef pair<mint, mint> pmm;
 
-const ll mod = 1e9 + 7;
+const ll mod = 998244353;
 struct mint {
     ll val; //this should always be in range [0, mod)
     mint(ll _val = 0) {val = _val; if(val < 0) val = mod + (val % mod);}
@@ -100,76 +112,86 @@ mint nck(mint n, mint k) {
     return ans;
 }
 
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
-    }
-    return nck(stars - 1, bars);
+//a to b
+mint calc_lattice(pii a, pii b) {
+    if(a.first > b.first || a.second > b.second) return 0;
+    return nck(b.first - a.first + b.second - a.second, b.first - a.first);
 }
 
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
-        return 0;
-    }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-//gives the nth catalan number. 
-//c_n = \sum_{i = 1}^{n} c_{i - 1} c{n - i}, c_0 = 1
-//c_n = number of regular bracket sequences of size 2n (n pairs of brackets)
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
-}
-
-//a derangement is a permutation with no fixed points
-//d[n][k] = number of derangements of size n with exactly k cycles
-//d[n][k] = (n - 1) (d[n - 2][k - 1] + d[n - 1][k])
-vvm d;
-void init_d(int N) {
-    d = vvm(N, vm(N, 0));
-    d[0][0] = 1;
-    for(int n = 2; n < d.size(); n++){
-        for(int k = 1; k <= n / 2; k++){
-            d[n][k] = mint(n - 1) * (d[n - 2][k - 1] + d[n - 1][k]);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(1e6);
+    int t;
+    cin >> t;
+    while(t--) {
+        ll n, m, _k;
+        cin >> n >> m >> _k;
+        vector<pii> a(_k);
+        for(int i = 0; i < _k; i++){
+            cin >> a[i].first >> a[i].second;
+            a[i].first = n - a[i].first;
+            a[i].second = m - a[i].second;
         }
+        //figure out number of pairwise paths between points without touching any other points
+        sort(a.begin(), a.end(), [](pii a, pii b) -> bool {
+            return a.first + a.second < b.first + b.second;
+        });
+        vvm lp(_k, vm(_k, 0));
+        for(int i = 0; i < _k; i++){
+            for(int j = 0; j < _k; j++){
+                lp[i][j] = calc_lattice(a[i], a[j]);
+            }
+        }
+        vvm c(_k, vm(_k, 0));
+        for(int i = 0; i < _k; i++){
+            for(int j = i - 1; j >= 0; j--){
+                if(a[j].first > a[i].first || a[j].second > a[i].second) continue;
+                c[j][i] = lp[j][i];
+                for(int k = j + 1; k < i; k++){
+                    c[j][i] -= c[j][k] * lp[k][i];
+                }
+            }
+        }
+        vm c0(_k, 0);   //from 0
+        vm cn(_k, 0);   //to n
+        for(int i = 0; i < _k; i++){
+            c0[i] = calc_lattice({0, 0}, a[i]);
+            for(int j = 0; j < i; j++){
+                c0[i] -= c0[j] * lp[j][i];
+            }
+        }
+        for(int i = _k - 1; i >= 0; i--){
+            cn[i] = calc_lattice(a[i], {n, m});
+            for(int j = i + 1; j < _k; j++){
+                cn[i] -= c[i][j] * calc_lattice(a[j], {n, m});
+            }
+        }
+        vm dp(_k, 0);   //sum over all paths leading to this point
+        for(int i = 0; i < _k; i++){
+            dp[i] = c0[i] * (2 * a[i].first + a[i].second);
+            for(int j = 0; j < i; j++){
+                int dr = a[i].first - a[j].first;
+                int dc = a[i].second - a[j].second;
+                dp[i] += c[j][i] * (dp[j] * 2 + (dr * 2 + dc) * calc_lattice({0, 0}, a[j]));
+            }
+        }
+        //compute number of paths that touch no royal decrees
+        mint ans = nck(n + m, n);
+        for(int i = 0; i < _k; i++){
+            ans -= c0[i] * calc_lattice(a[i], {n, m});
+        }
+        ans *= (2 * n + m);
+        for(int i = 0; i < _k; i++){
+            int dr = n - a[i].first;
+            int dc = m - a[i].second;
+            ans += cn[i] * (dp[i] * 2 + (dr * 2 + dc) * calc_lattice({0, 0}, a[i]));
+        }
+        // cout << "INIT ANS : " << ans << "\n";
+        ans = ans.inv_divide(calc_lattice({0, 0}, {n, m}));
+        cout << ans << "\n";
     }
-}
-
-//computes the number of derangements of size n using PIE
-//condition e_i is p[i] = i, or p[i] is a fixed point
-mint calc_d(int n) {
-    mint ans = 0;
-    for(int i = 0; i <= n; i++){
-        ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
-    }
-    return ans;
+    
+    return 0;
 }

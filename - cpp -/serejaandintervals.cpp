@@ -1,7 +1,38 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//Codeforces - 367E
+
+//first observe that two segments cannot share a left or right boundary, as one of the segments 
+//must contain the other in that case. 
+
+//next, consider sorting all the intervals by left bound. Since all the intervals have to be different, we 
+//can just count the number of sorted interval sequences and then multiply by n!
+//Note that if we sort by the left bound, then the right bounds also have to be sorted strictly ascending. 
+
+//So, this leads to a dp solution. dp[i][j][k] = number of ways where
+//i = current value
+//j = number of segments completely to the left
+//k = number of segments i is inside of. 
+
+//this runs in O(n^2 m), but note that if n > m, then the answer is always 0, so the actual runtime is at
+//most O((nm)^(3/2)), or around 10^(7.5). 
+
+//we can easily enforce the condition with x by forcing to place an element at position x. 
 
 struct mint;
 typedef vector<mint> vm;
@@ -73,103 +104,56 @@ mint operator *(ll a, const mint& b) {return mint(a) * b;}
 mint operator /(ll a, const mint& b) {return mint(a) / b;}
 mint operator %(ll a, const mint& b) {return mint(a) % b;}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
-    }
-    return gcd(b, a % b);
-}
-
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
-    }
-    return nck(stars - 1, bars);
-}
-
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    int n, m, x;
+    cin >> n >> m >> x;
+    if(n > m) {
+        cout << "0\n";
         return 0;
     }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-//gives the nth catalan number. 
-//c_n = \sum_{i = 1}^{n} c_{i - 1} c{n - i}, c_0 = 1
-//c_n = number of regular bracket sequences of size 2n (n pairs of brackets)
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
-}
-
-//a derangement is a permutation with no fixed points
-//d[n][k] = number of derangements of size n with exactly k cycles
-//d[n][k] = (n - 1) (d[n - 2][k - 1] + d[n - 1][k])
-vvm d;
-void init_d(int N) {
-    d = vvm(N, vm(N, 0));
-    d[0][0] = 1;
-    for(int n = 2; n < d.size(); n++){
-        for(int k = 1; k <= n / 2; k++){
-            d[n][k] = mint(n - 1) * (d[n - 2][k - 1] + d[n - 1][k]);
+    //j = nr segments completely to left
+    //k = nr segments inside of
+    //j + k <= n
+    vector<vvm> dp(2, vvm(n + 1, vm(n + 1, 0)));    
+    dp[0][n][0] = 1;
+    for(int i = 0; i <= m; i++){
+        for(int j = 0; j <= n; j++){
+            for(int k = 0; k <= n; k++){
+                dp[1][j][k] = 0;
+            }
         }
+        for(int j = 0; j <= n; j++){
+            for(int k = 0; j + k <= n; k++){
+                if(i + 1 == x){
+                    //forced to put an element here
+                    if(j == 0) continue;
+                    //start an element here
+                    dp[1][j - 1][k + 1] += dp[0][j][k];
+                    //start and end an element here
+                    if(k != 0) dp[1][j - 1][k] += dp[0][j][k];
+                }
+                else {
+                    //do nothing
+                    dp[1][j][k] += dp[0][j][k];
+                    //start an element here
+                    if(j != 0) dp[1][j - 1][k + 1] += dp[0][j][k];
+                    //end an element here
+                    if(k != 0) dp[1][j][k - 1] += dp[0][j][k];
+                    //start and end an element here
+                    if(j != 0 && k != 0) dp[1][j - 1][k] += dp[0][j][k];
+                }
+            }
+        }
+        swap(dp[1], dp[0]);
     }
-}
-
-//computes the number of derangements of size n using PIE
-//condition e_i is p[i] = i, or p[i] is a fixed point
-mint calc_d(int n) {
-    mint ans = 0;
-    for(int i = 0; i <= n; i++){
-        ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
+    mint ans = dp[0][0][0];
+    for(int i = 1; i <= n; i++){
+        ans *= i;
     }
-    return ans;
+    cout << ans << "\n";
+    
+    return 0;
 }

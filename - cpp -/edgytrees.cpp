@@ -1,7 +1,32 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//Codeforces - 1139C
+
+//My first observation is that we can compress the tree by the components connected purely by red edges. 
+//We consider the components connected by red edges because any path between two nodes within the same 'red' 
+//component will never touch a black edge.
+
+//My second observation is that any path between two nodes in different 'red' components will always touch a black edge, 
+//as there must be a black edge separating the two 'red' components, otherwise the two red components would be one component. 
+
+//This leads to a natural complement counting solution. Instead of counting the number of sequences that have a black edge, 
+//we can instead count the number of sequences with no black edges, and then take the complement. As noted above, any sequence 
+//with no black edges must be entirely contained within one 'red' component.
 
 struct mint;
 typedef vector<mint> vm;
@@ -73,103 +98,66 @@ mint operator *(ll a, const mint& b) {return mint(a) * b;}
 mint operator /(ll a, const mint& b) {return mint(a) / b;}
 mint operator %(ll a, const mint& b) {return mint(a) % b;}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
-    }
-    return gcd(b, a % b);
-}
+struct DSU {
+    int N;
+    vector<int> dsu, sz;
 
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
-    }
-    return nck(stars - 1, bars);
-}
-
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
-        return 0;
-    }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-//gives the nth catalan number. 
-//c_n = \sum_{i = 1}^{n} c_{i - 1} c{n - i}, c_0 = 1
-//c_n = number of regular bracket sequences of size 2n (n pairs of brackets)
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
-}
-
-//a derangement is a permutation with no fixed points
-//d[n][k] = number of derangements of size n with exactly k cycles
-//d[n][k] = (n - 1) (d[n - 2][k - 1] + d[n - 1][k])
-vvm d;
-void init_d(int N) {
-    d = vvm(N, vm(N, 0));
-    d[0][0] = 1;
-    for(int n = 2; n < d.size(); n++){
-        for(int k = 1; k <= n / 2; k++){
-            d[n][k] = mint(n - 1) * (d[n - 2][k - 1] + d[n - 1][k]);
+    DSU(int n) {
+        this->N = n;
+        this->dsu = vector<int>(n, 0);
+        this->sz = vector<int>(n, 1);
+        for(int i = 0; i < n; i++){ //initialize roots
+            dsu[i] = i;
         }
     }
-}
 
-//computes the number of derangements of size n using PIE
-//condition e_i is p[i] = i, or p[i] is a fixed point
-mint calc_d(int n) {
-    mint ans = 0;
-    for(int i = 0; i <= n; i++){
-        ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
+    int find(int a) {
+        if(dsu[a] == a) {
+            return a;
+        }
+        return dsu[a] = find(dsu[a]);
     }
-    return ans;
+
+    int get_sz(int a){
+        return sz[find(a)];
+    }
+
+    //ret true if updated something
+    bool unify(int a, int b) {
+        int ra = find(a);
+        int rb = find(b);
+        if(ra == rb) {
+            return false;
+        }
+        dsu[rb] = ra;
+        sz[ra] += sz[rb];
+        return true;
+    }
+};
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    int n, k;
+    cin >> n >> k;
+    DSU dsu(n);
+    for(int i = 0; i < n - 1; i++){
+        int u, v, col;
+        cin >> u >> v >> col;
+        u --;
+        v --;
+        if(!col) dsu.unify(u, v);
+    }
+    mint ans = mint(n).pow(k);
+    vb v(n, false);
+    for(int i = 0; i < n; i++){
+        int p = dsu.find(i);
+        if(v[p]) continue;
+        ans -= mint(dsu.sz[p]).pow(k);
+        v[p] = true;
+    }
+    cout << ans << "\n";
+    
+    return 0;
 }

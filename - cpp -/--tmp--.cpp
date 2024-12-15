@@ -1,116 +1,75 @@
 #include <bits/stdc++.h>
-
 typedef long long ll;
-
+typedef __int128 lll;
+typedef long double ld;
 using namespace std;
 
-
-int n, k;
-
-vector<int> graph[200001];
-
-int subtree[200001];
-
-
-ll ans = 0;
-
-int cnt[200001]{1}, mx_depth;
-
-bool processed[200001];
-
-
-int get_subtree_sizes(int node, int parent = 0) {
-
-	subtree[node] = 1;
-
-	for (int i : graph[node])
-
-		if (!processed[i] && i != parent) subtree[node] += get_subtree_sizes(i, node);
-
-	return subtree[node];
-
-}
-
-
-int get_centroid(int desired, int node, int parent = 0) {
-
-	for (int i : graph[node])
-
-		if (!processed[i] && i != parent && subtree[i] >= desired)
-
-			return get_centroid(desired, i, node);
-
-	return node;
-
-}
-
-
-void get_cnt(int node, int parent, bool filling, int depth = 1) {
-
-	if (depth > k) return;
-
-	mx_depth = max(mx_depth, depth);
-
-	if (filling) cnt[depth]++;
-
-	else ans += cnt[k - depth];
-
-	for (int i : graph[node])
-
-		if (!processed[i] && i != parent) get_cnt(i, node, filling, depth + 1);
-
-}
-
-
-void centroid_decomp(int node = 1) {
-
-	int centroid = get_centroid(get_subtree_sizes(node) >> 1, node);
-
-	processed[centroid] = true;
-
-	mx_depth = 0;
-
-	for (int i : graph[centroid])
-
-		if (!processed[i]) {
-
-			get_cnt(i, centroid, false);
-
-			get_cnt(i, centroid, true);
-
-		}
-
-	fill(cnt + 1, cnt + mx_depth + 1, 0);
-
-	for (int i : graph[centroid])
-
-		if (!processed[i]) centroid_decomp(i);
-
-}
-
-
-int main() {
-
-	cin.tie(0)->sync_with_stdio(0);
-
-	cin >> n >> k;
-
-	for (int i = 1; i < n; i++) {
-
-		int u, v;
-
-		cin >> u >> v;
-
-		graph[u].push_back(v);
-
-		graph[v].push_back(u);
-
-	}
-
-	centroid_decomp();
-
-	cout << ans;
-
-	return 0;
-
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n, d;
+    cin >> n >> d;
+    vector<int> a(n);
+    for(int i = 0; i < n; i++){
+        cin >> a[i];
+        if(a[i] != -1) {
+            a[i] --;    
+        }
+    }
+    vector<int> used(n, false);
+    for(int i = 0; i < n; i++){
+        if(a[i] != -1){
+            used[a[i]] = true;
+        }
+    }
+    vector<vector<ll>> dp(n + 1, vector<ll>((1 << (d * 2 + 1)), 0));
+    dp[0][0] = 1;
+    ll mod = 998244353;
+    for(int i = 0; i < n; i++){
+        if(a[i] != -1){
+            if(abs(a[i] - i) > d) {
+                continue;
+            }
+            for(int j = 0; j < dp[0].size(); j++){
+                int last_val = i - d;
+                if(last_val > 0 && !used[last_val] && (j & 1) == 0) {
+                    continue;
+                }
+                dp[i + 1][j >> 1] += dp[i][j];
+                dp[i + 1][j >> 1] %= mod;
+            }
+            continue;
+        }
+        for(int j = 0; j < dp[0].size(); j++){
+            int bits = j;
+            for(int k = 0; k < 2 * d + 1; k++){
+                if(bits & (1 << k)) {
+                    continue;
+                }
+                int try_val = i - d + k;
+                if(try_val < 0 || try_val >= n || used[try_val]) {
+                    continue;
+                }
+                int last_val = i - d;
+                if(try_val != last_val && last_val > 0 && !used[last_val] && (j & 1) == 0) {
+                    continue;
+                }
+                int n_bits = bits >> 1;
+                if(k > 0) {
+                    n_bits |= (1 << (k - 1));
+                }
+                dp[i + 1][n_bits] += dp[i][bits];
+                dp[i + 1][n_bits] %= mod;
+            }
+        }
+    }
+    ll ans = 0;
+    for(int i = 0; i < dp[0].size(); i++){
+        ans += dp[n][i];
+        ans %= mod;
+    }
+    cout << ans << "\n";
+    
+    return 0;
 }

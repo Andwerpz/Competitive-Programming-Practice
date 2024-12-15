@@ -1,42 +1,99 @@
 #include <bits/stdc++.h>
-typedef long long ll;
 using namespace std;
+typedef long long ll;
+typedef long double ld;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
 
-int getMax(vector<bool> &v, vector<vector<int>> &c, set<int> &s) {
-    return 0;
+ll subt_cnt(int cur, int p, vvi& c){
+    ll ans = 1;
+    for(int i = 0; i < c[cur].size(); i++){
+        int next = c[cur][i];
+        if(next == p) continue;
+        ans += subt_cnt(next, cur, c);
+    }
+    return ans;
 }
 
-int main() {
+signed main() {
     ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+    cin.tie(NULL); cout.tie(NULL);
     
+    //we want the 0 edge to belong to as many paths as possible
+    //then, with the 1 edge, we should place it adjacent to the 0 edge, but which edge to choose?
+    //so we're going to place a bunch of edges along a path. I'm guessing this path is the diameter?
+    //not necessarily the diameter?
+    //this is suboptimal
+
     int n;
     cin >> n;
-    vector<vector<int>> c(n, vector<int>(0));
+    vvi c(n);
+    vector<pii> e;
     for(int i = 0; i < n - 1; i++){
-        int a, b;
-        cin >> a >> b;
-        a --;
-        b --;
-        c[a].push_back(b);
-        c[b].push_back(a);
+        int u, v;
+        cin >> u >> v;
+        u --;
+        v --;
+        c[u].push_back(v);
+        c[v].push_back(u);
+        e.push_back({u, v});
     }
-    int nn = 4;
-    vector<int> a = {1, 2, 5, 1, 1};
-    vector<int> pfx = {1, 3, 8, 9, 10};
-    vector<int> sfx = {10, 9, 7, 2, 1};
-    vector<vector<int>> dp(nn, vector<int>(nn));
-    for(int k = 1; k < nn; k++){
-        for(int l = 0; l < nn - k; l++){
-            int r = l + k;
-            dp[l][r] = pfx[l] * sfx[r];
-            if(k != 1) {
-                dp[l][r] += max(dp[l + 1][r], dp[l][r - 1]);
-            }
-            cout << l << " " << r << " : " << dp[l][r] << endl;
+    ll ans = 0;
+    int l, r;
+    //find best place to put 0, just try every edge
+    for(int i = 0; i < n - 1; i++){
+        int u = e[i].first, v = e[i].second;
+        ll cans = subt_cnt(u, v, c) * subt_cnt(v, u, c);
+        if(cans > ans){
+            ans = cans;
+            l = u;
+            r = v;
         }
     }
-    cout << dp[0][nn - 1];
+    //put more and more edges in until you can't
+    vb v(n, false);
+    v[l] = true, v[r] = true;
+    int pl = r, pr = l;
+    while(c[l].size() != 1 || c[r].size() != 1){
+        ll inc = 0;
+        int nl, nr;
+        ll lcnt = subt_cnt(l, pl, c), rcnt = subt_cnt(r, pr, c);
+        for(int i = 0; i < c[l].size(); i++){
+            int next = c[l][i];
+            if(v[next]) continue;
+            ll cinc = subt_cnt(next, l, c) * rcnt;
+            if(cinc > inc){
+                inc = cinc;
+                nl = next;
+                nr = r;
+            }
+        }
+        for(int i = 0; i < c[r].size(); i++){
+            int next = c[r][i];
+            if(v[next]) continue;
+            ll cinc = subt_cnt(next, r, c) * lcnt;
+            if(cinc > inc){
+                inc = cinc;
+                nr = next;
+                nl = l;
+            }
+        }
+        ans += inc;
+        v[nl] = true, v[nr] = true;
+        if(l != nl) pl = l, l = nl;
+        if(r != nr) pr = r, r = nr;
+    }
+    cout << ans << "\n";
     
     return 0;
 }

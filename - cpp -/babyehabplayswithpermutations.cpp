@@ -1,12 +1,46 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl;
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//Codeforces - 1516E
+
+//solved it in a better (?) way than editorial, and can probably make it work in O(k^2). 
+
+//by experimentation, i figured out the minimum number of swaps to sort a permutation of size n with k cycles
+//is n - k (we use c - 1 swaps per cycle, if c is the size of the cycle). 
+
+//consider for a given amount of operations j, how many permutations can we sort using exactly j moves.
+//the only two requirements is that j be >= to the minimum required moves, and that j have the same parity 
+//as the minimum (so we can waste moves if j is too large). 
+
+//so given a j, we can count the number of permutations by iterating over first the number of misplaced
+//elements, and second the number of cycles. To do this, we first need to compute d(n, k), where
+//d(n, k) = number of derangements of size n with exactly k cycles. Then, when considering a permutation of
+//size N (different than n) with exactly n misplaced elements and k cycles (excluding fixed points), 
+//the number of permutations that fits is nck(N, n) * d(n, k)
+
+//note that n <= 2k, as if n > 2k, then the number of moves required to sort the derangement is too large.
+//so if implemented properly, this solution can be O(k^2). 
 
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
 typedef pair<mint, mint> pmm;
+vector<mint> fac;
+map<pair<mint, mint>, mint> nckdp;
 
 const ll mod = 1e9 + 7;
 struct mint {
@@ -80,81 +114,31 @@ mint gcd(mint a, mint b){
     return gcd(b, a % b);
 }
 
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
+int n;
+vm rfac;    //rfac[i] = n! / (n - i)!
 void fac_init(int N) {
     fac = vector<mint>(N);
     fac[0] = 1;
     for(int i = 1; i < N; i++){
         fac[i] = fac[i - 1] * i;
     }
+    rfac = vector<mint>(N);
+    rfac[0] = 1;
+    for(int i = 1; i < N; i++){
+        rfac[i] = rfac[i - 1] * (n - i + 1);
+    }
 }
 
 //n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
-    }
-    return nck(stars - 1, bars);
-}
-
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
-        return 0;
-    }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-//gives the nth catalan number. 
-//c_n = \sum_{i = 1}^{n} c_{i - 1} c{n - i}, c_0 = 1
-//c_n = number of regular bracket sequences of size 2n (n pairs of brackets)
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
+mint nck(mint k) {
+    return rfac[k].inv_divide(fac[k]);
 }
 
 //a derangement is a permutation with no fixed points
 //d[n][k] = number of derangements of size n with exactly k cycles
 //d[n][k] = (n - 1) (d[n - 2][k - 1] + d[n - 1][k])
 vvm d;
-void init_d(int N) {
+void calc_d(int N) {
     d = vvm(N, vm(N, 0));
     d[0][0] = 1;
     for(int n = 2; n < d.size(); n++){
@@ -164,12 +148,33 @@ void init_d(int N) {
     }
 }
 
-//computes the number of derangements of size n using PIE
-//condition e_i is p[i] = i, or p[i] is a fixed point
-mint calc_d(int n) {
+void solve(int k){
+    //iterate over count of misplaced elements
     mint ans = 0;
-    for(int i = 0; i <= n; i++){
-        ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
+    for(int i = 0; i <= min(n, 2 * k); i++){
+        //iterate over number of cycles
+        for(int j = 0; j <= i / 2; j++){
+            //checks
+            if((i - j) % 2 != k % 2 || i - j > k) continue;
+            // cout << "VALID : " << i << " " << j << " " << nck(i) << " " << d[i][j] << "\n";
+            ans += nck(i) * d[i][j];
+        }
     }
-    return ans;
+    cout << ans << " ";
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    calc_d(500);
+    int k;
+    cin >> n >> k;
+    fac_init(500);
+    for(int i = 1; i <= k; i++){
+        solve(i);
+    }
+    cout << "\n";
+    
+    return 0;
 }

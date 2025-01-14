@@ -103,14 +103,9 @@ void fac_init(int N) {
 }
 
 //n >= k
-map<pair<mint, mint>, mint> nckdp;
 mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n] * invfac[k] * invfac[n - k];
-    nckdp.insert({{n, k}, ans});
-    return ans;
+    // cout << "CALC NCK : " << n << " " << k << endl;
+    return fac[n] * invfac[k] * invfac[n - k];
 }
 
 signed main() {
@@ -120,26 +115,33 @@ signed main() {
     int n, r, c;
     cin >> n >> r >> c;
     r --, c --;
-    fac_init(n);
+    fac_init(n + 100);
     mint inv2 = mint(1).inv_divide(2);
-    vm pow2(n, 1);
-    for(int i = 1; i < n; i++) pow2[i] = pow2[i - 1] * 2;
+    vm pow2(n + 100, 1);
+    for(int i = 1; i < n + 100; i++) pow2[i] = pow2[i - 1] * 2;
     //precalc all answers
     vm a(n + 1, 0);
     a[1] = nck(n - 1, r) * nck(n - 1, c);
     for(int _ = 0; _ < 4; _++){
-        int low = c, high = c;
+        int low = c - 1, high = c;
         mint pfx = 0, sfx = 0;
-        for(int i = 2; i <= n; i--){    //only checking top side
+        for(int i = 0; i <= low; i++) pfx += nck(n - 1, i);
+        for(int i = c + 1; i <= n - 1; i++) sfx += nck(n - 1, i);
+        // cout << "PRECALC : " << r << " " << c << endl;
+        for(int i = 2; i <= n; i++){    //only checking top side
             if(r + 1 - i < 0) continue; 
+            // cout << "I : " << i << endl;
             int clow = max(0, c + 1 - i), chigh = min(n - i, c);
             int tot = n - i;
-            if(clow < low) pfx = (pfx - nck(tot, low)) * inv2, low --;
+            // cout << clow << " " << chigh << " " << tot << endl;
+            if(low != -1) pfx = (pfx - nck(tot, low)) * inv2, low --;
             if(chigh == high) sfx = (sfx - nck(tot, high)) * inv2;
-            a[i] += (pow2[i] - pfx - sfx) * 2;
+            // cout << pfx << " " << sfx << endl;
+            a[i] += (pow2[tot] - pfx - sfx) * nck(n - i, r + 1 - i) * 2;
         }
         int nr = c, nc = n - r - 1;
-    }   
+        c = nc, r = nr;
+    }
     for(int i = 2; i <= n; i++){    //subtract off corners
         if(r - i + 1 >= 0 && c - i + 1 >= 0) a[i] -= nck(n - i, r - i + 1) * nck(n - i, c - i + 1);
         if(r - i + 1 >= 0 && c + i <= n) a[i] -= nck(n - i, r - i + 1) * nck(n - i, c);
@@ -147,9 +149,8 @@ signed main() {
         if(r + i <= n && c + i <= n) a[i] -= nck(n - i, r) * nck(n - i, c);
     }
     for(int i = 2; i <= n; i++){    //mult by inner square ways
-
+        a[i] *= pow2[i - 2] * pow2[i - 2];
     }
-    
     int q;
     cin >> q;
     for(int i = 0; i < q; i++){

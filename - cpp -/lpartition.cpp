@@ -15,6 +15,12 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//AtCoder - ARC190B
+
+//pretty annoying implementation, and N = 1e7 means that we need good constant factor. 
+
+//let's first try to solve the problem if k = 1. 
+
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
@@ -92,19 +98,18 @@ mint gcd(mint a, mint b){
     return gcd(b, a % b);
 }
 
-vector<mint> fac, invfac;
+const int N = 1e7 + 100;
+vm fac, invfac;
 void fac_init(int N) {
-    fac = vector<mint>(N), invfac = vector<mint>(N);
-    fac[0] = 1, invfac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-        invfac[i] = mint(1).inv_divide(fac[i]);
-    }
+    fac = vm(N + 1), invfac = vm(N + 1);
+    fac[0] = 1;
+    for(int i = 1; i <= N; i++) fac[i] = fac[i - 1] * i;
+    invfac[N] = mint(1).inv_divide(fac[N]);
+    for(int i = N; i > 0; i--) invfac[i - 1] = invfac[i] * i;
 }
 
 //n >= k
 mint nck(mint n, mint k) {
-    // cout << "CALC NCK : " << n << " " << k << endl;
     return fac[n] * invfac[k] * invfac[n - k];
 }
 
@@ -115,29 +120,28 @@ signed main() {
     int n, r, c;
     cin >> n >> r >> c;
     r --, c --;
-    fac_init(n + 100);
+    fac_init(N);
     mint inv2 = mint(1).inv_divide(2);
-    vm pow2(n + 100, 1);
-    for(int i = 1; i < n + 100; i++) pow2[i] = pow2[i - 1] * 2;
+    vm pow2(N + 1);
+    pow2[0] = 1;
+    for(int i = 1; i <= N; i++) pow2[i] = pow2[i - 1] * 2;
     //precalc all answers
     vm a(n + 1, 0);
     a[1] = nck(n - 1, r) * nck(n - 1, c);
     for(int _ = 0; _ < 4; _++){
-        int low = c - 1, high = c;
-        mint pfx = 0, sfx = 0;
-        for(int i = 0; i <= low; i++) pfx += nck(n - 1, i);
-        for(int i = c + 1; i <= n - 1; i++) sfx += nck(n - 1, i);
-        // cout << "PRECALC : " << r << " " << c << endl;
-        for(int i = 2; i <= n; i++){    //only checking top side
-            if(r + 1 - i < 0) continue; 
-            // cout << "I : " << i << endl;
-            int clow = max(0, c + 1 - i), chigh = min(n - i, c);
-            int tot = n - i;
-            // cout << clow << " " << chigh << " " << tot << endl;
-            if(low != -1) pfx = (pfx - nck(tot, low)) * inv2, low --;
-            if(chigh == high) sfx = (sfx - nck(tot, high)) * inv2;
-            // cout << pfx << " " << sfx << endl;
-            a[i] += (pow2[tot] - pfx - sfx) * nck(n - i, r + 1 - i) * 2;
+        if(_ < 2){
+            int low = c - 1, high = c;
+            mint pfx = 0, sfx = 0;
+            for(int i = 0; i <= low; i++) pfx += nck(n - 1, i);
+            for(int i = c + 1; i <= n - 1; i++) sfx += nck(n - 1, i);
+            for(int i = 2; i <= n; i++){    //check top and bottom
+                int clow = max(0, c + 1 - i), chigh = min(n - i, c);
+                int tot = n - i;
+                if(low != -1) pfx = (pfx - nck(tot, low)) * inv2, low --;
+                if(chigh == high) sfx = (sfx - nck(tot, high)) * inv2;
+                if(r + 1 - i >= 0) a[i] += (pow2[tot] - pfx - sfx) * nck(n - i, r + 1 - i) * 2;
+                if(n - r >= i) a[i] += (pow2[tot] - pfx - sfx) * nck(n - i, r) * 2;
+            }
         }
         int nr = c, nc = n - r - 1;
         c = nc, r = nr;

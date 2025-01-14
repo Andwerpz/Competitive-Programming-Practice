@@ -80,24 +80,18 @@ mint gcd(mint a, mint b){
     return gcd(b, a % b);
 }
 
-vector<mint> fac;
+vm fac, invfac;
 void fac_init(int N) {
-    fac = vector<mint>(N);
+    fac = vm(N + 1), invfac = vm(N + 1);
     fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
+    for(int i = 1; i <= N; i++) fac[i] = fac[i - 1] * i;
+    invfac[N] = mint(1).inv_divide(fac[N]);
+    for(int i = N; i > 0; i--) invfac[i - 1] = invfac[i] * i;
 }
 
 //n >= k
-map<pair<mint, mint>, mint> nckdp;
 mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
+    return fac[n] * invfac[k] * invfac[n - k];
 }
 
 mint stars_bars(ll stars, ll bars, bool allow_zero = false) {

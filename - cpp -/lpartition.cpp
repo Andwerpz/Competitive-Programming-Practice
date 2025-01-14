@@ -15,10 +15,6 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
-//Codeforces - 2034F1
-
-//good enough for easy version, don't know how to get rid of extra factor of k for hard version. 
-
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
@@ -96,105 +92,70 @@ mint gcd(mint a, mint b){
     return gcd(b, a % b);
 }
 
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
+vector<mint> fac, invfac;
 void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
+    fac = vector<mint>(N), invfac = vector<mint>(N);
+    fac[0] = 1, invfac[0] = 1;
     for(int i = 1; i < N; i++){
         fac[i] = fac[i - 1] * i;
+        invfac[i] = mint(1).inv_divide(fac[i]);
     }
 }
 
 //n >= k
+map<pair<mint, mint>, mint> nckdp;
 mint nck(mint n, mint k) {
     if(nckdp.find({n, k}) != nckdp.end()) {
         return nckdp.find({n, k}) -> second;
     }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
+    mint ans = fac[n] * invfac[k] * invfac[n - k];
     nckdp.insert({{n, k}, ans});
     return ans;
-}
-
-//a to b
-mint calc_lattice(pii a, pii b) {
-    if(a.first > b.first || a.second > b.second) return 0;
-    return nck(b.first - a.first + b.second - a.second, b.first - a.first);
 }
 
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);
     
-    fac_init(1e6);
-    int t;
-    cin >> t;
-    while(t--) {
-        ll n, m, _k;
-        cin >> n >> m >> _k;
-        vector<pii> a(_k);
-        for(int i = 0; i < _k; i++){
-            cin >> a[i].first >> a[i].second;
-            a[i].first = n - a[i].first;
-            a[i].second = m - a[i].second;
+    int n, r, c;
+    cin >> n >> r >> c;
+    r --, c --;
+    fac_init(n);
+    mint inv2 = mint(1).inv_divide(2);
+    vm pow2(n, 1);
+    for(int i = 1; i < n; i++) pow2[i] = pow2[i - 1] * 2;
+    //precalc all answers
+    vm a(n + 1, 0);
+    a[1] = nck(n - 1, r) * nck(n - 1, c);
+    for(int _ = 0; _ < 4; _++){
+        int low = c, high = c;
+        mint pfx = 0, sfx = 0;
+        for(int i = 2; i <= n; i--){    //only checking top side
+            if(r + 1 - i < 0) continue; 
+            int clow = max(0, c + 1 - i), chigh = min(n - i, c);
+            int tot = n - i;
+            if(clow < low) pfx = (pfx - nck(tot, low)) * inv2, low --;
+            if(chigh == high) sfx = (sfx - nck(tot, high)) * inv2;
+            a[i] += (pow2[i] - pfx - sfx) * 2;
         }
-        //figure out number of pairwise paths between points without touching any other points
-        sort(a.begin(), a.end(), [](pii a, pii b) -> bool {
-            return a.first + a.second < b.first + b.second;
-        });
-        vvm lp(_k, vm(_k, 0));
-        for(int i = 0; i < _k; i++){
-            for(int j = 0; j < _k; j++){
-                lp[i][j] = calc_lattice(a[i], a[j]);
-            }
-        }
-        vvm c(_k, vm(_k, 0));
-        for(int i = 0; i < _k; i++){
-            for(int j = i - 1; j >= 0; j--){
-                if(a[j].first > a[i].first || a[j].second > a[i].second) continue;
-                c[j][i] = lp[j][i];
-                for(int k = j + 1; k < i; k++){
-                    c[j][i] -= c[j][k] * lp[k][i];
-                }
-            }
-        }
-        vm c0(_k, 0);   //from 0
-        vm cn(_k, 0);   //to n
-        for(int i = 0; i < _k; i++){
-            c0[i] = calc_lattice({0, 0}, a[i]);
-            for(int j = 0; j < i; j++){
-                c0[i] -= c0[j] * lp[j][i];
-            }
-        }
-        for(int i = _k - 1; i >= 0; i--){
-            cn[i] = calc_lattice(a[i], {n, m});
-            for(int j = i + 1; j < _k; j++){
-                cn[i] -= c[i][j] * calc_lattice(a[j], {n, m});
-            }
-        }
-        vm dp(_k, 0);   //sum over all paths leading to this point
-        for(int i = 0; i < _k; i++){
-            dp[i] = c0[i] * (2 * a[i].first + a[i].second);
-            for(int j = 0; j < i; j++){
-                int dr = a[i].first - a[j].first;
-                int dc = a[i].second - a[j].second;
-                dp[i] += c[j][i] * (dp[j] * 2 + (dr * 2 + dc) * calc_lattice({0, 0}, a[j]));
-            }
-        }
-        //compute number of paths that touch no royal decrees
-        mint ans = nck(n + m, n);
-        for(int i = 0; i < _k; i++){
-            ans -= c0[i] * calc_lattice(a[i], {n, m});
-        }
-        ans *= (2 * n + m);
-        for(int i = 0; i < _k; i++){
-            int dr = n - a[i].first;
-            int dc = m - a[i].second;
-            ans += cn[i] * (dp[i] * 2 + (dr * 2 + dc) * calc_lattice({0, 0}, a[i]));
-        }
-        // cout << "INIT ANS : " << ans << "\n";
-        ans = ans.inv_divide(calc_lattice({0, 0}, {n, m}));
-        cout << ans << "\n";
+        int nr = c, nc = n - r - 1;
+    }   
+    for(int i = 2; i <= n; i++){    //subtract off corners
+        if(r - i + 1 >= 0 && c - i + 1 >= 0) a[i] -= nck(n - i, r - i + 1) * nck(n - i, c - i + 1);
+        if(r - i + 1 >= 0 && c + i <= n) a[i] -= nck(n - i, r - i + 1) * nck(n - i, c);
+        if(r + i <= n && c - i + 1 >= 0) a[i] -= nck(n - i, r) * nck(n - i, c - i + 1);
+        if(r + i <= n && c + i <= n) a[i] -= nck(n - i, r) * nck(n - i, c);
+    }
+    for(int i = 2; i <= n; i++){    //mult by inner square ways
+
+    }
+    
+    int q;
+    cin >> q;
+    for(int i = 0; i < q; i++){
+        int k;
+        cin >> k;
+        cout << a[k] << "\n";
     }
     
     return 0;

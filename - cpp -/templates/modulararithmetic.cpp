@@ -81,7 +81,6 @@ mint gcd(mint a, mint b){
 }
 
 vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
 void fac_init(int N) {
     fac = vector<mint>(N);
     fac[0] = 1;
@@ -91,6 +90,7 @@ void fac_init(int N) {
 }
 
 //n >= k
+map<pair<mint, mint>, mint> nckdp;
 mint nck(mint n, mint k) {
     if(nckdp.find({n, k}) != nckdp.end()) {
         return nckdp.find({n, k}) -> second;
@@ -172,4 +172,19 @@ mint calc_d(int n) {
         ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
     }
     return ans;
+}
+
+//stirling number of the first kind (unsigned)
+//s1[n][k] = number of permutations of length n with exactly k cycles
+//s1[n + 1][k] = n * s1[n][k] + s1[n][k - 1]
+vvm s1;
+void init_s1(int N) {
+    s1 = vvm(N + 1, vm(N + 1, 0));
+    s1[1][1] = 1;
+    for(int n = 2; n <= N; n++){
+        for(int k = 1; k <= n; k++){
+            if(k != 1) s1[n][k] += s1[n - 1][k - 1];
+            s1[n][k] += (n - 1) * s1[n - 1][k];
+        }
+    }
 }

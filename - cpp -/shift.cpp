@@ -15,9 +15,31 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
-//Codeforces - 2034F1
+//AtCoder - AGC46C
 
-//good enough for easy version, don't know how to get rid of extra factor of k for hard version. 
+//somehow this solution gets AC with 50ms, but by my analysis it's around n^4. Even removing the check for
+//dp[i][j][k] == 0 and it only slows down to 130ms. 
+
+//We can understand the operation better if we view the '1's as being separated by '0's into buckets. Then, the
+//operation is pretty much: select some bucket, subtract 1 from it, and add 1 to any bucket to the left. 
+//With this interpretation, it's pretty obvious that we'll need to use dp to solve this problem. 
+
+//We can use this dp definition to solve the problem: dp[i][j][k] = number of ways to populate the first i buckets given
+//that we have j '1's in debt, and k total operations performed. By '1' debt, I mean that we're able to place extra '1's 
+//when we want, we just have to 'return' the '1's that we owe later by placing fewer '1's. 
+
+//Transitions are as follows:
+//dp[i][j][k] -> dp[i + 1][j][k] : do nothing
+//dp[i][j][k] -> dp[i + 1][j + p][k + p] : 'borrow' p '1's from position i
+//dp[i][j][k] -> dp[i + 1][j - p][k] : 'return' p '1's to position i
+
+//We also have some other restrictions: for some i, we cannot return more than b[i] '1's, where b[i] is the amount of '1's 
+//originally in the ith bucket. And, we cannot be borrowing more than sfx[i + 1] '1's at position i, where sfx[i + 1] is the 
+//amount of '1's originally in buckets to the right of i. 
+
+//Note that we have around n^3 states, and each transition looks like it will cost linear time, since we have to iterate 
+//through all valid values of p. However, I believe that the constant factor will be so small that this solution will
+//not TLE. 
 
 struct mint;
 typedef vector<mint> vm;
@@ -89,113 +111,53 @@ mint operator *(ll a, const mint& b) {return mint(a) * b;}
 mint operator /(ll a, const mint& b) {return mint(a) / b;}
 mint operator %(ll a, const mint& b) {return mint(a) % b;}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
-    }
-    return gcd(b, a % b);
-}
-
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-//a to b
-mint calc_lattice(pii a, pii b) {
-    if(a.first > b.first || a.second > b.second) return 0;
-    return nck(b.first - a.first + b.second - a.second, b.first - a.first);
-}
-
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);
     
-    fac_init(1e6);
-    int t;
-    cin >> t;
-    while(t--) {
-        ll n, m, _k;
-        cin >> n >> m >> _k;
-        vector<pii> a(_k);
-        for(int i = 0; i < _k; i++){
-            cin >> a[i].first >> a[i].second;
-            a[i].first = n - a[i].first;
-            a[i].second = m - a[i].second;
-        }
-        //figure out number of pairwise paths between points without touching any other points
-        sort(a.begin(), a.end(), [](pii a, pii b) -> bool {
-            return a.first + a.second < b.first + b.second;
-        });
-        vvm lp(_k, vm(_k, 0));
-        for(int i = 0; i < _k; i++){
-            for(int j = 0; j < _k; j++){
-                lp[i][j] = calc_lattice(a[i], a[j]);
-            }
-        }
-        vvm c(_k, vm(_k, 0));
-        for(int i = 0; i < _k; i++){
-            for(int j = i - 1; j >= 0; j--){
-                if(a[j].first > a[i].first || a[j].second > a[i].second) continue;
-                c[j][i] = lp[j][i];
-                for(int k = j + 1; k < i; k++){
-                    c[j][i] -= c[j][k] * lp[k][i];
-                }
-            }
-        }
-        vm c0(_k, 0);   //from 0
-        vm cn(_k, 0);   //to n
-        for(int i = 0; i < _k; i++){
-            c0[i] = calc_lattice({0, 0}, a[i]);
-            for(int j = 0; j < i; j++){
-                c0[i] -= c0[j] * lp[j][i];
-            }
-        }
-        for(int i = _k - 1; i >= 0; i--){
-            cn[i] = calc_lattice(a[i], {n, m});
-            for(int j = i + 1; j < _k; j++){
-                cn[i] -= c[i][j] * calc_lattice(a[j], {n, m});
-            }
-        }
-        vm dp(_k, 0);   //sum over all paths leading to this point
-        for(int i = 0; i < _k; i++){
-            dp[i] = c0[i] * (2 * a[i].first + a[i].second);
-            for(int j = 0; j < i; j++){
-                int dr = a[i].first - a[j].first;
-                int dc = a[i].second - a[j].second;
-                dp[i] += c[j][i] * (dp[j] * 2 + (dr * 2 + dc) * calc_lattice({0, 0}, a[j]));
-            }
-        }
-        //compute number of paths that touch no royal decrees
-        mint ans = nck(n + m, n);
-        for(int i = 0; i < _k; i++){
-            ans -= c0[i] * calc_lattice(a[i], {n, m});
-        }
-        ans *= (2 * n + m);
-        for(int i = 0; i < _k; i++){
-            int dr = n - a[i].first;
-            int dc = m - a[i].second;
-            ans += cn[i] * (dp[i] * 2 + (dr * 2 + dc) * calc_lattice({0, 0}, a[i]));
-        }
-        // cout << "INIT ANS : " << ans << "\n";
-        ans = ans.inv_divide(calc_lattice({0, 0}, {n, m}));
-        cout << ans << "\n";
+    string s;
+    cin >> s;
+    int _k;
+    cin >> _k;
+    int n = 1;
+    for(int i = 0; i < s.size(); i++){
+        n += s[i] == '0';
     }
+    vi a(n, 0), sfx(n + 1, 0);
+    int ptr = 0;
+    for(int i = 0; i < s.size(); i++){
+        a[ptr] += s[i] == '1';
+        ptr += s[i] == '0';
+    }
+    for(int i = n - 1; i >= 0; i--){
+        sfx[i] = sfx[i + 1] + a[i];
+    }
+    int sum = s.size() - (n - 1);
+    _k = min(_k, sum);
+    vector<vvm> dp(n + 1, vvm(sum + 1, vm(_k + 1, 0)));
+    dp[0][0][0] = 1;
+    for(int i = 0; i < n; i++){
+        for(int j = 0; j <= sum; j++){
+            for(int k = 0; k <= _k; k++){
+                if(dp[i][j][k] == 0) continue;
+                //borrow. Can only have the next sfx amount borrowed
+                for(int p = 1; j + p <= sfx[i + 1] && k + p <= _k; p++) {
+                    dp[i + 1][j + p][k + p] += dp[i][j][k];
+                }
+                //return. Can only return as much as is in the current node
+                for(int p = 1; j - p >= 0 && p <= a[i]; p++) {
+                    dp[i + 1][j - p][k] += dp[i][j][k];
+                }
+                //do nothing
+                dp[i + 1][j][k] += dp[i][j][k];
+            }
+        }
+    }
+    mint ans = 0;
+    for(int i = 0; i <= _k; i++){
+        ans += dp[n][0][i];
+    }
+    cout << ans << "\n";
     
     return 0;
 }

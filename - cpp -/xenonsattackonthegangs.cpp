@@ -15,6 +15,10 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Codeforces - 1292C
+
+//bruh
+
 ll subt_cnt(int cur, int p, vvi& c){
     ll ans = 1;
     for(int i = 0; i < c[cur].size(); i++){

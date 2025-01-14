@@ -15,16 +15,12 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
-//Codeforces - 2034F1
-
-//good enough for easy version, don't know how to get rid of extra factor of k for hard version. 
-
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
 typedef pair<mint, mint> pmm;
 
-const ll mod = 998244353;
+const ll mod = 1e9 + 7;
 struct mint {
     ll val; //this should always be in range [0, mod)
     mint(ll _val = 0) {val = _val; if(val < 0) val = mod + (val % mod);}
@@ -89,113 +85,62 @@ mint operator *(ll a, const mint& b) {return mint(a) * b;}
 mint operator /(ll a, const mint& b) {return mint(a) / b;}
 mint operator %(ll a, const mint& b) {return mint(a) % b;}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
-    }
-    return gcd(b, a % b);
-}
-
-vector<mint> fac;
-map<pair<mint, mint>, mint> nckdp;
-void fac_init(int N) {
-    fac = vector<mint>(N);
-    fac[0] = 1;
-    for(int i = 1; i < N; i++){
-        fac[i] = fac[i - 1] * i;
-    }
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    if(nckdp.find({n, k}) != nckdp.end()) {
-        return nckdp.find({n, k}) -> second;
-    }
-    mint ans = fac[n].inv_divide(fac[k] * fac[n - k]);
-    nckdp.insert({{n, k}, ans});
-    return ans;
-}
-
-//a to b
-mint calc_lattice(pii a, pii b) {
-    if(a.first > b.first || a.second > b.second) return 0;
-    return nck(b.first - a.first + b.second - a.second, b.first - a.first);
-}
-
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);
     
-    fac_init(1e6);
-    int t;
-    cin >> t;
-    while(t--) {
-        ll n, m, _k;
-        cin >> n >> m >> _k;
-        vector<pii> a(_k);
-        for(int i = 0; i < _k; i++){
-            cin >> a[i].first >> a[i].second;
-            a[i].first = n - a[i].first;
-            a[i].second = m - a[i].second;
-        }
-        //figure out number of pairwise paths between points without touching any other points
-        sort(a.begin(), a.end(), [](pii a, pii b) -> bool {
-            return a.first + a.second < b.first + b.second;
-        });
-        vvm lp(_k, vm(_k, 0));
-        for(int i = 0; i < _k; i++){
-            for(int j = 0; j < _k; j++){
-                lp[i][j] = calc_lattice(a[i], a[j]);
-            }
-        }
-        vvm c(_k, vm(_k, 0));
-        for(int i = 0; i < _k; i++){
-            for(int j = i - 1; j >= 0; j--){
-                if(a[j].first > a[i].first || a[j].second > a[i].second) continue;
-                c[j][i] = lp[j][i];
-                for(int k = j + 1; k < i; k++){
-                    c[j][i] -= c[j][k] * lp[k][i];
-                }
-            }
-        }
-        vm c0(_k, 0);   //from 0
-        vm cn(_k, 0);   //to n
-        for(int i = 0; i < _k; i++){
-            c0[i] = calc_lattice({0, 0}, a[i]);
-            for(int j = 0; j < i; j++){
-                c0[i] -= c0[j] * lp[j][i];
-            }
-        }
-        for(int i = _k - 1; i >= 0; i--){
-            cn[i] = calc_lattice(a[i], {n, m});
-            for(int j = i + 1; j < _k; j++){
-                cn[i] -= c[i][j] * calc_lattice(a[j], {n, m});
-            }
-        }
-        vm dp(_k, 0);   //sum over all paths leading to this point
-        for(int i = 0; i < _k; i++){
-            dp[i] = c0[i] * (2 * a[i].first + a[i].second);
-            for(int j = 0; j < i; j++){
-                int dr = a[i].first - a[j].first;
-                int dc = a[i].second - a[j].second;
-                dp[i] += c[j][i] * (dp[j] * 2 + (dr * 2 + dc) * calc_lattice({0, 0}, a[j]));
-            }
-        }
-        //compute number of paths that touch no royal decrees
-        mint ans = nck(n + m, n);
-        for(int i = 0; i < _k; i++){
-            ans -= c0[i] * calc_lattice(a[i], {n, m});
-        }
-        ans *= (2 * n + m);
-        for(int i = 0; i < _k; i++){
-            int dr = n - a[i].first;
-            int dc = m - a[i].second;
-            ans += cn[i] * (dp[i] * 2 + (dr * 2 + dc) * calc_lattice({0, 0}, a[i]));
-        }
-        // cout << "INIT ANS : " << ans << "\n";
-        ans = ans.inv_divide(calc_lattice({0, 0}, {n, m}));
-        cout << ans << "\n";
+    mint ans = 0;
+    int n, m;
+    cin >> n >> m;
+    vi a(n);
+    for(int i = 0; i < n; i++){
+        cin >> a[i];
+        a[i] --;
     }
+    vvb v(n, vb(n + 1, false)); //v[f][h]
+    for(int i = 0; i < m; i++){
+        int f, h;
+        cin >> f >> h;
+        f --;
+        v[f][h] = true;
+    }
+    vi pfx(n), sfx(n); //at each index, what hunger is required to stop here
+    {
+        vi cnt(n, 0);
+        for(int i = 0; i < n; i++) pfx[i] = ++ cnt[a[i]];
+        cnt = vi(n, 0);
+        for(int i = n - 1; i >= 0; i--) sfx[i] = ++ cnt[a[i]];
+    }
+    //classify partitions by what the 'deepest' cow on the right side is
+    int mx_cnt = -1;
+    for(int i = 0; i < n; i++){
+        if(!v[a[i]][pfx[i]]) continue;
+        cout << "TRY : " << i << "\n";
+        map<pii, int> mp;
+        for(int j = 0; j < n; j++) {
+            if(j < i) {
+                if(v[a[j]][pfx[j]]) mp[{a[j], pfx[j]}] ++;
+            }
+            else {
+                if(v[a[j]][sfx[j]]) mp[{a[j], sfx[j]}] ++;
+            } 
+        }
+        int mpsz = mp.size();
+        cout << "MP SIZE : " << mpsz << " " << mx_cnt << " " << (mpsz > mx_cnt) << "\n";
+        if(mpsz > mx_cnt) {
+            cout << "REPLACE MX CNT : " << "\n";
+            mx_cnt = mpsz;
+            ans = 0;
+        }
+        if(mpsz == mx_cnt) {
+            mint cans = 1;
+            for(auto j = mp.begin(); j != mp.end(); j++){
+                cans *= j->second;
+            }
+            ans += cans;
+        }
+    }
+    cout << mx_cnt << " " << ans << "\n";
     
     return 0;
 }

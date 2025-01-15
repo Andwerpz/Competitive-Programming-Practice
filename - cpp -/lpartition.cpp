@@ -19,7 +19,25 @@ typedef vector<vector<ld>> vvd;
 
 //pretty annoying implementation, and N = 1e7 means that we need good constant factor. 
 
-//let's first try to solve the problem if k = 1. 
+//how does building an L-partition work? We can place the Ls from large to small. For the largest L, there are 4
+//ways to place it, and after placing it there are 4 ways to place the next L. So in total, there are 4^{N - 1} 
+//L-partitions in total. 
+
+//let's first try to solve the problem if k = 1. In this case, we just want to count the number of partitions 
+//that place the k = 1 L on position (r, c). Observe that there is some space to the top, right, bottom, left, 
+//of the target tile. Each L placed will decrement one space from the (top or bottom) and (left or right). 
+//So if there are A, B, C, D, units of space respectively, then there are \binom{A + C}{A} * \binom{B + D}{B} 
+//partitions that put the k = 1 L on (r, c). 
+
+//Actually in general, if we want to leave a square (of any size) blank, and want to compute the number of 
+//L-partitions that can do that, we can use the above conclusion to do so. 
+
+//So to compute the answer for arbitrary k, we just need to see how many ways there are to generate a partition 
+//with (r, c) being on the edge of a blank square of size k. Let's consider the number of ways for (r, c) to be 
+//on one side (we can consider each side seperately). We can 'slide' the square, and notice that one binomial
+//coefficient stays the same, and the other one changes. Note that when we increment k by 1, the range on which 
+//this binomial coefficient sums over changes slowly and predictably. Therefore, we can just keep track of the 
+//prefix and suffix across k. 
 
 struct mint;
 typedef vector<mint> vm;

@@ -15,6 +15,20 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//AtCoder - ARC190A
+
+//We can do some casework:
+// - if there exists a segment that covers the entire range, then take it with operation 1 (cost 1)
+// - if there exists two disjoint segments, take operation 2 on both (cost 2)
+// - if there exists two segments where one contains the other, take operation 1 on the larger one
+//   and operation 2 on the smaller one (cost 2)
+
+//otherwise, all segments are pairwise intersecting, but not containing. If there are two segments
+//which the union form the entire range, take operation 1 on both (cost 2), otherwise we can pick
+//any 3 segments and do operation 1, 2, 1, if we sort the segments according to left bound (cost 3)
+
+//any other case is impossible. 
+
 template <typename T>
 struct Segtree {
     //note that t[0] is not used
@@ -119,23 +133,18 @@ signed main() {
         for(int i = 0; i < m; i++){
             int l = a[i][0], r = a[i][1];
             //check if this segment is disjoint with another
-            pii ql = segt.query(0, l), qm = segt.query(l + 1, r), qr = segt.query(r, n);
-            if(ql[1] != -1 && ql[0] <= l) {
+            pii ql = segt.query(0, l), qm = segt.query(l, r), qr = segt.query(r, n);
+            if(ql[1] != -1 && ql[0] <= l && ql[1] != i) {
                 found = true, ans[i] = 2, ans[ql[1]] = 2, op_amt = 2;
                 break;
             } 
-            if(qr[1] != -1) {
+            if(qr[1] != -1 && qr[1] != i) {
                 found = true, ans[i] = 2, ans[qr[1]] = 2, op_amt = 2;
                 break;
             }
             //check if this segment completely contains another
-            if(qm[1] != -1 && qm[0] <= r) {
+            if(qm[1] != -1 && qm[0] <= r && qm[1] != i) {
                 found = true, ans[i] = 1, ans[qm[1]] = 2, op_amt = 2;
-                break;
-            }
-            // cout << "MINR : " << minr[l][1] << " " << minr[l][0] << "\n";
-            if(minr[l][1] != -1 && minr[l][1] != i) {
-                found = true, ans[i] = 1, ans[minr[l][i]] = 2, op_amt = 2;
                 break;
             }
         }

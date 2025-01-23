@@ -1,14 +1,45 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef array<int, 2> pii;
+typedef array<ll, 2> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl; 
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//Codeforces - 1327F
+
+//2ptr dp
+
+//first thing to observe is that we can actually handle each bit seperately. Just compute the amount of ways to set each 
+//bit for all numbers, and then multiply everything together. 
+
+//for some specific bit, consider some restriction [l, r], x. If x contains the bit, then all numbers in [l, r] must also 
+//contain it. If x does not contain it, then at least one number in [l, r] has to not contain it. I'll call these
+//type A and type B restrictions respectively. 
+
+//we can actually solve this in linear time using dp. dp[i] = nr sequences of length i that end on '0'. For any i that's covered
+//by a type A restriction, we can automatically set dp[i] = 0. Otherwise, we can consider all j < i to transition to dp[i].
+
+//Transition from j -> i will be placing '1's until you get to i, then you place a '0'. 
+//What j can transition to i? As long as [j, i] doesn't completely contain a type B restriction, then you can transition. 
+//Notice that the minimum valid j will monotonically increase as i increases, so we can keep track of the sum of states that
+//can transition to i using a second pointer. 
 
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
 typedef pair<mint, mint> pmm;
 
-const ll mod = 1e9 + 7;
+const ll mod = 998244353;
 struct mint {
     ll val; //this should always be in range [0, mod)
     mint(ll _val = 0) {val = _val; if(val < 0) val = mod + (val % mod);}
@@ -35,8 +66,8 @@ struct mint {
     mint operator *(ll other) const {return *this * mint(other);}
     mint& operator *=(const mint& other) {*this = *this * other; return *this;}
     mint& operator *=(ll other) {*this = *this * other; return *this;}
-    mint operator /(const mint& other) const {return *this * other.pow(mod - 2);}
-    mint operator /(ll other) const {return *this * mint(other).pow(mod - 2);}
+    mint operator /(const mint& other) const {return mint((val / other.val) % mod);}
+    mint operator /(ll other) const {return *this / mint(other);}
     mint& operator /=(const mint& other) {*this = *this / other; return *this;}
     mint& operator /=(ll other) {*this = *this / other; return *this;}
     mint operator %(const mint& other) const {return mint(val % other.val);}
@@ -54,6 +85,11 @@ struct mint {
     }
     mint pow(ll other) const {return this->pow(mint(other));}
 
+    //returns X such that A = (B * X) % mod
+    mint inv_divide(const mint& other) const {
+        return *this * other.pow(mod - 2);
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const mint& m) {os << m.val; return os;}
     friend std::istream& operator>>(std::istream& is, mint& m) {is >> m.val; return is;}
     operator size_t() const {return val;}
@@ -68,112 +104,40 @@ mint operator *(ll a, const mint& b) {return mint(a) * b;}
 mint operator /(ll a, const mint& b) {return mint(a) / b;}
 mint operator %(ll a, const mint& b) {return mint(a) % b;}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
-    }
-    return gcd(b, a % b);
-}
-
-vm fac, invfac;
-void fac_init(int N) {
-    fac = vm(N + 1), invfac = vm(N + 1);
-    fac[0] = 1;
-    for(int i = 1; i <= N; i++) fac[i] = fac[i - 1] * i;
-    invfac[N] = mint(1) / fac[N];
-    for(int i = N; i > 0; i--) invfac[i - 1] = invfac[i] * i;
-}
-
-//n >= k
-mint nck(mint n, mint k) {
-    return fac[n] * invfac[k] * invfac[n - k];
-}
-
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
-    }
-    return nck(stars - 1, bars);
-}
-
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
-        return 0;
-    }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-//gives the nth catalan number. 
-//c_n = \sum_{i = 1}^{n} c_{i - 1} c{n - i}, c_0 = 1
-//c_n = number of regular bracket sequences of size 2n (n pairs of brackets)
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
-}
-
-//a derangement is a permutation with no fixed points
-//d[n][k] = number of derangements of size n with exactly k cycles
-//d[n][k] = (n - 1) (d[n - 2][k - 1] + d[n - 1][k])
-vvm d;
-void init_d(int N) {
-    d = vvm(N, vm(N, 0));
-    d[0][0] = 1;
-    for(int n = 2; n < d.size(); n++){
-        for(int k = 1; k <= n / 2; k++){
-            d[n][k] = mint(n - 1) * (d[n - 2][k - 1] + d[n - 1][k]);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    int n, m, k;
+    cin >> n >> k >> m;
+    //1 indexed
+    vvi fix(k, vi(n + 2, 0)), minl(k, vi(n + 2, 0));
+    for(int i = 0; i < m; i++){
+        int l, r, x;
+        cin >> l >> r >> x;
+        r ++;
+        for(int j = 0; j < k; j++) {
+            if(x & (1 << j)) fix[j][l] ++, fix[j][r] --;
+            else minl[j][r] = max(minl[j][r], l);
         }
     }
-}
-
-//computes the number of derangements of size n using PIE
-//condition e_i is p[i] = i, or p[i] is a fixed point
-mint calc_d(int n) {
-    mint ans = 0;
-    for(int i = 0; i <= n; i++){
-        ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
+    for(int i = 0; i < k; i++){
+        for(int j = 1; j <= n + 1; j++) fix[i][j] += fix[i][j - 1], minl[i][j] = max(minl[i][j], minl[i][j - 1]);
     }
-    return ans;
-}
-
-//stirling number of the first kind (unsigned)
-//s1[n][k] = number of permutations of length n with exactly k cycles
-//s1[n + 1][k] = n * s1[n][k] + s1[n][k - 1]
-vvm s1;
-void init_s1(int N) {
-    s1 = vvm(N + 1, vm(N + 1, 0));
-    s1[1][1] = 1;
-    for(int n = 2; n <= N; n++){
-        for(int k = 1; k <= n; k++){
-            if(k != 1) s1[n][k] += s1[n - 1][k - 1];
-            s1[n][k] += (n - 1) * s1[n - 1][k];
+    mint ans = 1;
+    for(int i = 0; i < k; i++){
+        //dp[i] = nr sequences of length i that end on a '0'
+        vm dp(n + 2, 0);
+        dp[0] = 1;
+        int lptr = 0;
+        mint psum = 1;
+        for(int j = 1; j <= n + 1; j++){
+            while(lptr < minl[i][j]) psum -= dp[lptr ++];
+            if(!fix[i][j]) dp[j] = psum, psum *= 2;
         }
+        ans *= dp[n + 1];
     }
+    cout << ans << "\n";
+    
+    return 0;
 }

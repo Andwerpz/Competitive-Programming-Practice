@@ -3,11 +3,13 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-//basic union find implementation with path compression
+//basic union find implementation with path compression and small to large merging
+
 struct DSU {
     int N;
     vector<int> dsu, sz;
 
+    DSU() {}
     DSU(int n) {
         this->N = n;
         this->dsu = vector<int>(n, 0);
@@ -35,6 +37,8 @@ struct DSU {
         if(ra == rb) {
             return false;
         }
+        if(sz[rb] > sz[ra]) swap(ra, rb);
+        //merge rb into ra
         dsu[rb] = ra;
         sz[ra] += sz[rb];
         return true;

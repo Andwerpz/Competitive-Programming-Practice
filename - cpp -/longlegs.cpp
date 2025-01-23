@@ -19,10 +19,10 @@ int main() {
     while(t-- > 0){
         ll a, b;
         cin >> a >> b;
-        ll ans = INT32_MAX;
+        ll ans = 1e18;
         for(ll i = 1; i < 1e6; i++){
-            ll nAns = a / i + (a % i != 0) + b / i + (b % i != 0) + i - 1;
-            ans = min(ans, nAns);
+            ll cans = a / i + (a % i != 0) + b / i + (b % i != 0) + i - 1;
+            ans = min(ans, cans);
         }
         cout << ans << "\n";
     }

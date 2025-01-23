@@ -15,9 +15,22 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
-//implementation of kosajaru's algorithm. 
-//runs in linear time with respect to the sum of nodes and edges. 
-//returns multiple lists of node ids, each list being a scc
+//AtCoder - ARC188C
+
+//intuitively, this should always work, but ig I didn't prove it very rigorously. 
+
+//lets solve this simplified problem: we want all incoming edges to each node to all be of the same color. We can 
+//choose some subset of nodes and swap the color of all their outgoing edges. Consider the perspective of one node,
+//we can either swap all the incoming color '0' edges, or swap all incoming color '1' edges. If we can choose some
+//subset of nodes to swap that will satisfy one of these for all nodes, then we've solved the problem. 
+
+//The above problem can be solved using 2SAT. For each node, we'll maintain a variable saying whether or not 
+//we select it, and then for each node, we can use a chain of XNOR to enforce that either we choose all '0' or '1's. 
+
+//Next, we can convert the solution to the above problem into a solution for the original problem. First, tentatively
+//mark anyone that had to be toggled as confused. Now, we can determine for everyone whether they're a liar or not. 
+//If there is a person who is a liar, mark them as a liar, then toggle their confusion. 
+
 vector<vector<int>> find_scc(int n, vector<vector<int>>& adj) {
     vector<vector<int>> adj_rev(n, vector<int>(0));
     vector<bool> used(n, false);
@@ -223,14 +236,7 @@ signed main() {
         c[a].push_back({b, ty});
         rc[b].push_back({a, ty});
     }
-    //each person needs to be entirely picked or unpicked
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < (int) c[i].size() - 1; j++) {
-            int a = c[i][j][0], b = c[i][j + 1][0];
-            sat.addXNOR(a, true, b, true);
-        }
-    }
-    //need to also 'fix' every node
+    //need to 'fix' every node
     for(int i = 0; i < n; i++){
         for(int j = 0; j < (int) rc[i].size() - 1; j++){ 
             int a = rc[i][j][0], ta = rc[i][j][1];

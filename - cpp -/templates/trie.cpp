@@ -101,6 +101,7 @@ struct TrieXOR {
         }
     }
 
+    //what's the maximum value of x ^ a, given that a is an element in the trie
     int query_max(int x) {
         if(size() == 0)
             return -1;

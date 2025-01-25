@@ -36,7 +36,7 @@ struct mint {
     mint& operator *=(const mint& other) {*this = *this * other; return *this;}
     mint& operator *=(ll other) {*this = *this * other; return *this;}
     mint operator /(const mint& other) const {return *this * other.pow(mod - 2);}
-    mint operator /(ll other) const {return *this * mint(other).pow(mod - 2);}
+    mint operator /(ll other) const {return *this / mint(other);}
     mint& operator /=(const mint& other) {*this = *this / other; return *this;}
     mint& operator /=(ll other) {*this = *this / other; return *this;}
     mint operator %(const mint& other) const {return mint(val % other.val);}

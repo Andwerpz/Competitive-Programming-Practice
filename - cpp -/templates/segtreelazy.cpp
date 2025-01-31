@@ -224,6 +224,21 @@ int main() {
         run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
     }
 
+    // -- INCREMENT MODIFY, MINIMUM AND MINIMUM INDEX QUERY --
+    // {min, min ind}, if there are multiple minimums, gives you the leftmost index
+    {
+        function<pii(pii, pii)> fmodify = [](const pii src, const pii val) -> pii{
+            return {src.first + val.first, src.second};
+        };
+        function<pii(pii, pii, int)> fmodifyk = [](const pii src, const pii val, const int k) -> pii{
+            return {src.first + val.first, src.second};
+        };
+        function<pii(pii, pii)> fcombine = [](const pii a, const pii b) -> pii{
+            return a.first == b.first? (pii){a.first, min(a.second, b.second)} : (a.first < b.first? a : b);
+        };
+        SegtreeLazy<pii> segt(n, {0, 0}, {1e9, 1e9}, {0, 0}, fmodify, fmodifyk, fcombine);
+    }
+
     // -- INCREMENT MODIFY, MINIMUM AND COUNT OF MINIMUM QUERY --
     // {min, min cnt}
     {

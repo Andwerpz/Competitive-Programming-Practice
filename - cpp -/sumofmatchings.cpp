@@ -17,9 +17,22 @@ typedef vector<vector<ld>> vvd;
 
 //Codeforces - 1651E
 
-//we can compute the sum over all (L, R) for each (l, r) in amortized O(1) time. 
+//note that in the graph given, each node is guaranteed to have a degree of 2. This means that the graph
+//is just a union of a bunch of simple cycles. So if we take the entire graph, we can always create n matchings. 
 
-//
+//imagine fixing (l, r) and computing the sum. Let's call the image of nodes [l, r] all the nodes that [l, r]
+//can reach. For a choice of (L, R), the number of matchings is equal to the number of nodes in the image contained
+//by [L, R]. 
+
+//Actually, not quite. If there is a incomplete cycle in [l, r] and [L, R] contains the entire image of it, then one
+//node cannot be matched as there are just not enough nodes in [l, r] in that incomplete cycle. So for every incomplete
+//cycle that [L, R] contains, we have to subtract 1. 
+
+//we can precompute for each node how many segments contain it, and for each incomplete cycle, we can also compute how many
+//segments [L, R] entirely contain its image. 
+
+//we can compute the sum over all (L, R) for each (l, r) in amortized O(1) time. Fix l, and iterate r from l to n. 
+//Use DSU to keep track of what components you've already merged. 
 
 struct DSU {
     int N;

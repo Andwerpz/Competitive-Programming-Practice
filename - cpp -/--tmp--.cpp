@@ -1,75 +1,136 @@
 #include <bits/stdc++.h>
-using namespace std;
- 
 typedef long long ll;
-typedef unsigned long long ull;
- 
-#define pb push_back
-#define gl getline
-double inf = numeric_limits<double>::infinity();
-double EPS = 1e-9;
- 
- 
-int main() {
-    ios::sync_with_stdio(false);
+typedef long double ld;
+using namespace std;
+
+struct TrieNode {
+    int cnt;
+    string small;
+    TrieNode* c[26];
+    TrieNode() {
+        cnt = 0;
+        small = "";
+        for(int i = 0; i < 26; i++) {
+            c[i] = nullptr;
+        }
+    }
+};
+
+void insert(string s, TrieNode* root) {
+    assert(s.size());
+    TrieNode* curr = root;
+    curr->cnt++;
+    if(curr->small == "" || s < curr->small) {
+        curr->small = s;
+    }
+    for(int i = s.size() - 1; i >= 0; i--) {
+        if(curr->c[s[i] - 'a'] == nullptr) {
+            curr->c[s[i] - 'a'] = new TrieNode();
+            curr->c[s[i] - 'a']->small = s;
+        }
+        curr = curr->c[s[i] - 'a'];
+        curr->cnt++;
+        assert(curr->small != "");
+        curr->small = min(curr->small, s);
+    }
+}
+
+string query(string s, TrieNode* root) {
+    TrieNode* curr = root;
+    for(int i = s.size() - 1; i >= 0; i--) { //iterate over characters in suffix
+        if(curr->c[s[i] - 'a'] != nullptr && (curr->c[s[i] - 'a']->cnt > 1  || curr->c[s[i] - 'a']->small != s)) { //see if there exists a child with the next matching character that is not equal to the current word. 
+            curr = curr->c[s[i] - 'a'];
+        } else { //no further rhyming children
+            break;
+        }
+    }
+
+    if(curr->small != s) return curr->small;
+
+    string res = "";
+    for(int j = 0; j < 26; j++) {
+        if(curr->c[j] != nullptr && curr->c[j]->small != s) {
+            if(res == "" || curr->c[j]->small < res) {
+                res = curr->c[j]->small;
+            }
+        }
+    }
+    assert(res != "");
+    return res;
+
+}
+
+signed main() {
+    ios_base::sync_with_stdio(false);
     cin.tie(NULL);
- 
-    /*
-        greedy approach, start from greatest value and move left until our rolling sum == the value we need
- 
-        the "value we need" is just sum(1, n] / 2 aka n(n+1)/2
-    */
- 
-    ll n;
-    cin >> n;
-    ll total = n * (n + 1) / 2;
-    if (total % 2 == 1) {
-        cout << "NO" << endl;
-        return 0;
-    }
- 
-    ll goal = total / 2;
-    vector<int> vals(n, -1);
-    for (int i = 0; i < n; i++) {
-        vals[i] = i + 1;
-    }
- 
-    ll rolling_sum = 0;
-    ll ctr = 0;
-    for (int i = n - 1; i >= 0; i--) {
-        if (rolling_sum + vals[i] <= goal) {
-            rolling_sum += vals[i];
-            ctr++;
-            vals[i] = -1;
+
+    TrieNode* root = new TrieNode();
+    string s;
+
+    set<string> vis;
+
+    getline(cin, s);
+    while(s != "") {
+        if(vis.count(s) == 0) {
+            insert(s,root);
         }
+        vis.insert(s);
+        getline(cin,s);
     }
- 
-    if (rolling_sum != goal) {
-        cout << "NO" << endl;
-        return 0;
+
+    while(getline(cin,s)) {
+        if(s.size() == 0) break;
+        cout << query(s, root) << '\n';
     }
- 
-    cout << "YES" << endl;
-    cout << n - ctr << endl;
-    for (int i = 0; i < n - 1; i++) {
-        if (vals[i] != -1) {
-            cout << vals[i] << " ";
-        }
-    }
-    if (vals[n - 1] != -1) {
-        cout << vals[n - 1];
-    }
- 
-    cout << endl << ctr << endl;
-    for (int i = 0; i < n - 1; i++) {
-        if (vals[i] == -1) {
-            cout << i + 1 << " ";
-        }
-    }
-    if (vals[n - 1] == -1) {
-        cout << n;
-    }
-    cout << endl;
- 
+
     return 0;
 }
+
+/*
+a
+b
+aa
+ab
+ba
+bb
+aaa
+aab
+aba
+abb
+baa
+bab
+bba
+bbb
+
+a
+b
+aa
+ab
+ba
+bb
+aaa
+aab
+aba
+abb
+baa
+bab
+bba
+bbb
+aaaa
+aaab
+aaba
+aabb
+abaa
+abab
+abba
+abbb
+baaa
+baab
+baba
+babb
+bbaa
+bbab
+bbba
+bbbb
+
+*/

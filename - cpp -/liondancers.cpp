@@ -1,7 +1,24 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef array<int, 2> pii;
+typedef array<ll, 2> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl; 
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//UTPC Contest 1-29-25 Div.1 - D
+
+//for each column, the formula is nck(a[i], n). Since each column is independent, just multiply them 
+//all together. 
 
 struct mint;
 typedef vector<mint> vm;
@@ -89,92 +106,20 @@ mint nck(mint n, mint k) {
     return fac[n] * invfac[k] * invfac[n - k];
 }
 
-//given a bunch of stars, how many ways are there to partition the stars using bars. 
-mint stars_bars(ll stars, ll bars, bool allow_zero = false) {
-    if(allow_zero) {
-        //zero group is group with nothing inside
-        return stars_bars(stars + bars + 1, bars, false);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(1e6);
+    int n, m;
+    cin >> n >> m;
+    vi a(m);
+    mint ans = 1;
+    for(int i = 0; i < m; i++) {
+        cin >> a[i];
+        ans *= nck(a[i], n);
     }
-    return nck(stars - 1, bars);
-}
-
-//given that we choose n / 2 left brackets and n / 2 right brackets, 
-//nck(n, n / 2) is the total amount of bracket sequences, and nck(n, n / 2 + 1) is the amount of bad sequences.
-mint nr_rbs(int n){
-    if(n == 0){
-        return 1;
-    }
-    if(n % 2){
-        return 0;
-    }
-    return nck(n, n / 2) - nck(n, n / 2 + 1);
-}
-
-//true if odd, false if even. 
-bool nck_parity(mint n, mint k) {   
-    return (k & (n - k)) == 0;
-}
-
-//gives the nth catalan number. 
-//c_n = \sum_{i = 1}^{n} c_{i - 1} c{n - i}, c_0 = 1
-//c_n = number of regular bracket sequences of size 2n (n pairs of brackets)
-mint catalan(mint n){
-    return nck(2 * n, n) - nck(2 * n, n + 1);
-}
-
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
-}
-
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
-}
-
-//a derangement is a permutation with no fixed points
-//d[n][k] = number of derangements of size n with exactly k cycles
-//d[n][k] = (n - 1) (d[n - 2][k - 1] + d[n - 1][k])
-vvm d;
-void init_d(int N) {
-    d = vvm(N, vm(N, 0));
-    d[0][0] = 1;
-    for(int n = 2; n < d.size(); n++){
-        for(int k = 1; k <= n / 2; k++){
-            d[n][k] = mint(n - 1) * (d[n - 2][k - 1] + d[n - 1][k]);
-        }
-    }
-}
-
-//computes the number of derangements of size n using PIE
-//condition e_i is p[i] = i, or p[i] is a fixed point
-mint calc_d(int n) {
-    mint ans = 0;
-    for(int i = 0; i <= n; i++){
-        ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
-    }
-    return ans;
-}
-
-//stirling number of the first kind (unsigned)
-//s1[n][k] = number of permutations of length n with exactly k cycles
-//s1[n + 1][k] = n * s1[n][k] + s1[n][k - 1]
-vvm s1;
-void init_s1(int N) {
-    s1 = vvm(N + 1, vm(N + 1, 0));
-    s1[1][1] = 1;
-    for(int n = 2; n <= N; n++){
-        for(int k = 1; k <= n; k++){
-            if(k != 1) s1[n][k] += s1[n - 1][k - 1];
-            s1[n][k] += (n - 1) * s1[n - 1][k];
-        }
-    }
+    cout << ans << "\n";
+    
+    return 0;
 }

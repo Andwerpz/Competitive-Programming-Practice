@@ -2,8 +2,8 @@
 using namespace std;
 typedef long long ll;
 typedef long double ld;
-typedef array<int, 2> pii;
-typedef array<ll, 2> pll;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
 typedef vector<int> vi;
 typedef vector<ll> vl; 
 typedef vector<bool> vb;

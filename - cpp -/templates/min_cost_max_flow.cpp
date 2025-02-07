@@ -93,3 +93,93 @@ struct MCMF {
 		assert(it >= 0); // negative cost cycle
 	}
 };
+
+//MCMF template copied from UCF team. 
+//maybe faster than the KACTL one, idk
+struct UCF_MCMF {
+    const ll INF = LLONG_MAX >> 2;
+
+    struct Edge {
+        int v;
+        ll cap, flow, cost;
+    };
+
+    int n;
+    vector<Edge> edges;
+    vector<vector<int>> adj;
+    vector<pair<int, int>> par;
+    vector<int> in_q;
+    vector<ll> dist, pi;
+
+    UCF_MCMF(int n) : n(n), adj(n), dist(n), pi(n), par(n), in_q(n) {}
+
+    void addEdge(int u, int v, ll cap, ll cost) {
+        int idx = edges.size();
+        edges.push_back({v, cap, 0, cost});
+        edges.push_back({u, cap, cap, -cost});
+        adj[u].push_back(idx);
+        adj[v].push_back(idx ^ 1);
+    }
+
+    bool find_path(int s, int t) {
+        fill(dist.begin(), dist.end(), INF);
+        fill(in_q.begin(), in_q.end(), 0);
+        queue<int> q;
+        q.push(s);
+        dist[s] = 0;
+        in_q[s] = 1;
+
+        while (!q.empty()) {
+            int cur = q.front();
+            q.pop();
+            in_q[cur] = 0;
+
+            for (int idx : adj[cur]) {
+                Edge& e = edges[idx];
+                int nxt = e.v;
+                ll cap = e.cap, fl = e.flow, wt = e.cost;
+                ll nxtD = dist[cur] + wt;
+
+                if (fl >= cap || nxtD >= dist[nxt]) continue;
+
+                dist[nxt] = nxtD;
+                par[nxt] = {cur, idx};
+
+                if (!in_q[nxt]) {
+                    q.push(nxt);
+                    in_q[nxt] = 1;
+                }
+            }
+        }
+        return dist[t] < INF;
+    }
+
+    pair<ll, ll> calc(int s, int t) {
+        ll flow = 0, cost = 0;
+
+        while (find_path(s, t)) {
+            for (int i = 0; i < n; i++) {
+                pi[i] = min(pi[i] + dist[i], INF);
+            }
+
+            ll f = INF;
+            for (int v = t, u, i; v != s; v = u) {
+                tie(u, i) = par[v];
+                f = min(f, edges[i].cap - edges[i].flow);
+            }
+
+            flow += f;
+            for (int v = t, u, i; v != s; v = u) {
+                tie(u, i) = par[v];
+                edges[i].flow += f;
+                edges[i ^ 1].flow -= f;
+            }
+        }
+
+        for (size_t i = 0; i < edges.size() / 2; i++) {
+            cost += edges[i * 2].cost * edges[i * 2].flow;
+        }
+
+        return {flow, cost};
+    }
+};

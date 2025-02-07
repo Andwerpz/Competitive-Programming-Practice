@@ -1,5 +1,8 @@
 {
     "files.associations": {
+        "*.sqlbook": "sql",
+        "*.ndjson": "jsonl",
+        "*.dbclient-js": "javascript",
         "*.tcc": "cpp",
         "optional": "cpp",
         "istream": "cpp",
@@ -90,7 +93,8 @@
         "spanstream": "cpp",
         "stacktrace": "cpp",
         "rope": "cpp",
-        "slist": "cpp"
+        "slist": "cpp",
+        "climits": "cpp"
     },
     "C_Cpp.dimInactiveRegions": false,
 }

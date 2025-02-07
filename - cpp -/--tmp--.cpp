@@ -3,134 +3,61 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
-struct TrieNode {
-    int cnt;
-    string small;
-    TrieNode* c[26];
-    TrieNode() {
-        cnt = 0;
-        small = "";
-        for(int i = 0; i < 26; i++) {
-            c[i] = nullptr;
+void solve()
+{
+    int numPrizes;
+    int totalStickers;
+    cin >> numPrizes >> totalStickers;
+
+    unordered_map<int, vector<int>> prizes;
+    for (int i = 0; i < numPrizes; i++)
+    {
+        int numStickers;
+        cin >> numStickers;
+        vector<int> currStickers;
+        for (int j = 0; j < numStickers; j++)
+        {
+            int sticker;
+            cin >> sticker;
+            currStickers.push_back(sticker);
         }
-    }
-};
-
-void insert(string s, TrieNode* root) {
-    assert(s.size());
-    TrieNode* curr = root;
-    curr->cnt++;
-    if(curr->small == "" || s < curr->small) {
-        curr->small = s;
-    }
-    for(int i = s.size() - 1; i >= 0; i--) {
-        if(curr->c[s[i] - 'a'] == nullptr) {
-            curr->c[s[i] - 'a'] = new TrieNode();
-            curr->c[s[i] - 'a']->small = s;
-        }
-        curr = curr->c[s[i] - 'a'];
-        curr->cnt++;
-        assert(curr->small != "");
-        curr->small = min(curr->small, s);
-    }
-}
-
-string query(string s, TrieNode* root) {
-    TrieNode* curr = root;
-    for(int i = s.size() - 1; i >= 0; i--) { //iterate over characters in suffix
-        if(curr->c[s[i] - 'a'] != nullptr && (curr->c[s[i] - 'a']->cnt > 1  || curr->c[s[i] - 'a']->small != s)) { //see if there exists a child with the next matching character that is not equal to the current word. 
-            curr = curr->c[s[i] - 'a'];
-        } else { //no further rhyming children
-            break;
-        }
+        int prize;
+        cin >> prize;
+        prizes[prize] = currStickers;
     }
 
-    if(curr->small != s) return curr->small;
+    vector<int> stickers(totalStickers);
+    for (int i = 0; i < totalStickers; i++)
+    {
+        int currStickers;
+        cin >> currStickers;
+        stickers[i] = currStickers;
+    }
 
-    string res = "";
-    for(int j = 0; j < 26; j++) {
-        if(curr->c[j] != nullptr && curr->c[j]->small != s) {
-            if(res == "" || curr->c[j]->small < res) {
-                res = curr->c[j]->small;
+    int total = 0;
+    for (auto &[prize, stickerList] : prizes)
+    {
+        int low = *max_element(stickers.begin(), stickers.end());
+        for (int sticker : stickerList){
+            if (stickers[sticker-1] < low){
+                low = stickers[sticker - 1];
             }
         }
+        cout << "LOW : " << low << "\n";
+        total += low * prize;
     }
-    assert(res != "");
-    return res;
-
+    cout << total << endl;
 }
 
-signed main() {
+signed main()
+{
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    TrieNode* root = new TrieNode();
-    string s;
-
-    set<string> vis;
-
-    getline(cin, s);
-    while(s != "") {
-        if(vis.count(s) == 0) {
-            insert(s,root);
-        }
-        vis.insert(s);
-        getline(cin,s);
-    }
-
-    while(getline(cin,s)) {
-        if(s.size() == 0) break;
-        cout << query(s, root) << '\n';
-    }
+    int casi;
+    cin >> casi;
+    while (casi-- > 0)
+        solve();
 
     return 0;
 }
-
-/*
-a
-b
-aa
-ab
-ba
-bb
-aaa
-aab
-aba
-abb
-baa
-bab
-bba
-bbb
-
-a
-b
-aa
-ab
-ba
-bb
-aaa
-aab
-aba
-abb
-baa
-bab
-bba
-bbb
-aaaa
-aaab
-aaba
-aabb
-abaa
-abab
-abba
-abbb
-baaa
-baab
-baba
-babb
-bbaa
-bbab
-bbba
-bbbb
-
-*/

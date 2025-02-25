@@ -15,6 +15,32 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Codeforces - 1190E
+
+//binary search + greedy with binary lifting. 
+
+//as with any geometry problem, we can probably binary search for the answer. Obviously if some minimum distance works, then
+//any minimum distance less than it will also work, so binary search should work. 
+
+//consider fixing the minimum distance at which the barriers must be placed from the origin, let this distance be r. WLOG, we
+//can say that any barrier placed must be tangent to the circle of radius r placed at the origin, as placing it any farther 
+//will be strictly worse. Then, the only parameter left that we can adjust when placing the barrier is its angle relative to the 
+//origin. 
+
+//Next, consider for a single point, the range of angles that a barrier can be placed such that the barrier protects the point. 
+//Now, we just want to place at most m barriers such that all n points are protected. If this problem were presented on a 
+//non-circular array, then there's a straightforwards greedy solution: sort all segments by increasing left bound, and string
+//as many segments in the front as possible until you can't anymore. 
+
+//We can solve this on a circular array as well, we just need to take some segment as an initial one, then the array becomes
+//non-circular and we can apply the above strategy. The problem is that we need to try all n choices of the initial segment so
+//it ends up being O(n^2). 
+
+//We can fix this by speeding up trying some initial choice by using binary lifting. First, copy over every segment so now
+//we have 2n segments. Then, bli[i][0] = what is the maximum segment that can't be covered when placing a barrier to cover 
+//segment i, and bli[i][j] = bli[bli[i][j - 1]][j - 1]. bli[i][0] can be computed in O(n * log(n)) time by observing that 
+//bli[i][0] >= bli[i - 1][0], and using 2 pointers. 
+
 ld pi = acos(-1);
 ld epsilon = 1e-11;
 
@@ -57,64 +83,55 @@ struct vec2 {
 };
 vec2 operator*(ld a, const vec2& b) {return vec2(a * b.x, a * b.y);}
 
+const int B = 17;
+int bli[200005][B];
+vector<pair<ld, ld>> seg(200005); //{enter time, exit time}
+ld d[200005];
 bool is_valid(vector<vec2>& a, int n, int m, ld r) {
-    vector<pair<ld, pii>> ev;   //{time, {exit? 0 : 1, ind}}
+    //find segments
     for(int i = 0; i < n; i++){
-        ld d = a[i].length();
         ld pa = a[i].polar_angle();
-        ld theta = acos(r / d);
-        ld indoff = i * 1e-13;  //make it so that every point has unique enter and exit (hopefully)
-        ev.push_back({pa - theta + indoff, {0, i}});
-        ev.push_back({pa + theta + indoff, {1, i}});
+        ld theta = acos(r / d[i]);
+        ld l = pa - theta, r = pa + theta;
+        while(l > 2 * pi) l -= 2 * pi, r -= 2 * pi;
+        while(l < 0) l += 2 * pi, r += 2 * pi;
+        seg[i] = {l, r};
     }
-    for(int i = 0; i < ev.size(); i++){
-        ld ang = ev[i].first;
-        while(ang > 2 * pi) ang -= 2 * pi;
-        while(ang < 0) ang += 2 * pi;
-        ev[i].first = ang;
+    sort(seg.begin(), seg.begin() + n);
+    for(int i = 0; i < n; i++) {
+        ld l = seg[i].first, r = seg[i].second;
+        seg[i + n] = {l + 2 * pi, r + 2 * pi};
     }
-    sort(ev.begin(), ev.end());
-    cout << "EV : " << "\n";
-    for(pair<ld, pii> x : ev) {
-        if(x.second)
-        cout << x.first << " " << x.second.first << " " << x.second.second << "\n";
+    //build binary lifting table
+    for(int i = 0; i < B; i++){
+        bli[n * 2][i] = n * 2;
     }
-    vi mext(n, -1);
-    set<int> s;
-    int mrec_enter = -1;
-    for(int i = 0; i < ev.size() * 2; i ++){
-        int exit = ev[i % ev.size()].second.first, ind = ev[i % ev.size()].second.second;
-        if(exit) s.erase(ind);
-        else s.insert(ind), mrec_enter = ind;
-        if(i >= ev.size()) {
-            if(exit) mext[ind] = mrec_enter;
-        }   
-        if(s.size() == n) return true;
+    set<ld> rset;
+    int rptr = 0;
+    for(int i = 0; i < n * 2; i++){
+        while(rptr != n * 2) {
+            if(rset.size() != 0 && *rset.begin() < seg[rptr].first) break;
+            rset.insert(seg[rptr].second);
+            rptr ++;
+        }
+        bli[i][0] = rptr;
+        rset.erase(seg[i].second);
     }
-    vi dp(n + 1, -1), endpt(n, -1);
-    dp[n] = 0;
-    for(int i = n - 1; i >= 0; i--){
-        int stop = mext[i];
-        while(stop < i) stop += n;
-        stop = min(stop + 1, n);
-        dp[i] = dp[stop] + 1;
-        endpt[i] = stop == n? i : endpt[stop];
-    }
-    cout << "SOLVE : " << r << "\n";
-    cout << "DP : ";
-    for(int x : dp) cout << x << " ";
-    cout << "\n";
-    cout << "MEXT : " << "\n";
-    for(int x : mext) cout << x << " ";
-    cout << "\n";
-    int min_bar = 1e9;
+    for(int i = 1; i < B; i++){
+        for(int j = 0; j < n * 2; j++){
+            bli[j][i] = bli[bli[j][i - 1]][i - 1];
+        }
+    }   
+    //check valid
+    bool is_valid = false;
     for(int i = 0; i < n; i++){
-        int end = endpt[i];
-        int stop = mext[end];
-        stop += 1;
-        if(stop > i && stop <= end) min_bar = min(min_bar, dp[i]);
+        int ptr = i;
+        for(int j = B - 1; j >= 0; j--){
+            if(m & (1 << j)) ptr = bli[ptr][j];
+        }
+        is_valid |= (ptr - i) >= n;
     }
-    return min_bar <= m;
+    return is_valid;
 }
 
 signed main() {
@@ -123,25 +140,19 @@ signed main() {
     
     int n, m;
     cin >> n >> m;
-    map<pii, int> as;
+    set<pii> as;
     for(int i = 0; i < n; i++){
         int x, y;
         cin >> x >> y;
-        int g = gcd(abs(x), abs(y));
-        if(g == 0) g = 1;
-        x /= g, y /= g;
-        if(!as.count({x, y})) as[{x, y}] = 1e9;
-        as[{x, y}] = min(as[{x, y}], g);
+        as.insert({x, y});
     }
     n = as.size();
     vector<vec2> a;
-    for(auto i = as.begin(); i != as.end(); i++) a.push_back({i->first.first * i->second, i->first.second * i->second});
+    for(auto i = as.begin(); i != as.end(); i++) a.push_back({i->first, i->second});
+    for(int i = 0; i < n; i++) d[i] = a[i].length();
     ld low = 0, high = 1e18;
     for(int i = 0; i < n; i++) high = min(high, a[i].length());
-    sort(a.begin(), a.end(), [](vec2& a, vec2& b) -> bool {
-        return a.polar_angle() < b.polar_angle();
-    });
-    while(high - low > epsilon) {
+    while(high - low > 1e-7) {
         ld mid = low + (high - low) / 2;
         if(is_valid(a, n, m, mid)) low = mid;
         else high = mid;

@@ -224,6 +224,25 @@ int main() {
         run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
     }
 
+    // -- INCREMENT MODIFY WITH IGNORE INCREMENT MASK, SUM QUERY
+    // {sum, nr ignoring elements}
+    // modify is either increment all non-ignoring elements if val.second == 0, 
+    // or toggling the ignoring state of all elements in range if val.second != 0
+    {
+        function<pll(pll, pll)> fmodify = [](const pll src, const pll val) -> pll {
+            if(val.second) return {src.first, 1 - src.second};
+            else return {src.first + val.first * (1 - src.second), src.second};
+        };
+        function<pll(pll, pll, int)> fmodifyk = [](const pll src, const pll val, const int k) -> pll {
+            if(val.second) return {src.first, k - src.second};
+            else return {src.first + val.first * (k - src.second), src.second};
+        };
+        function<pll(pll, pll)> fcombine = [](const pll a, const pll b) -> pll{
+            return {a.first + b.first, a.second + b.second};
+        };
+        SegtreeLazy<pll> segt(n, {0, 0}, {0, 0}, {0, 0}, fmodify, fmodifyk, fcombine);
+    }
+
     // -- INCREMENT MODIFY, MINIMUM AND MINIMUM INDEX QUERY --
     // {min, min ind}, if there are multiple minimums, gives you the leftmost index
     {

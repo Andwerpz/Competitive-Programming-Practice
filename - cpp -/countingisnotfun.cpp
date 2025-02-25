@@ -1,14 +1,48 @@
 #include <bits/stdc++.h>
+using namespace std;
 typedef long long ll;
 typedef long double ld;
-using namespace std;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+typedef vector<int> vi;
+typedef vector<ll> vl; 
+typedef vector<bool> vb;
+typedef vector<ld> vd;
+typedef vector<vector<int>> vvi;
+typedef vector<vector<ll>> vvl;
+typedef vector<vector<bool>> vvb;
+typedef vector<vector<ld>> vvd;
+// typedef __int128 lll;
+// typedef __float128 lld;
+
+//Codeforces - 2063 F1 F2
+
+//catalan(n) = number of balanced bracket sequences of length 2n. 
+
+//if you're asked how many ways to construct a valid bracket sequence given the position of two balanced brackets
+//somewhere in the sequence, something like '????(????)????', where you can fill the '?' with brackets, then the answer
+//is just catalan(inside / 2) * catalan(outside / 2) where inside and outside are the number of '?' on the inside and outside
+//of the given brackets respectively. 
+
+//Since we're given that the brackets are balanced, we can insert them anywhere inside another balanced bracket sequence, 
+//therefore the ways to assign the outer brackets are given by catalan(outside / 2). Likewise with the inner brackets. 
+
+//With many balanced brackets, we just look at the number of '?' on each 'level'. So given some fixed balanced brackets,
+//we can easily compute the number of bracket sequences that satisfy it. 
+
+//Now, to answer the problem, we can simply work backwards. Start with all the hints, and take them away one at a time. Each
+//time you take a hint away, you increase the amount of '?' belonging to your parent hint by 2 + the amount of '?' currently
+//contained by the removed hint. 
+
+//However, how to determine what is your parent hint? Since brackets can get removed all the time, we can use path 
+//compression to quickly get the next existing parent hint. 
 
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
 typedef pair<mint, mint> pmm;
 
-const ll mod = 1e9 + 7;
+const ll mod = 998244353;
 struct mint {
     ll val; //this should always be in range [0, mod)
     mint(ll _val = 0) {val = _val; if(val < 0) val = mod + (val % mod); val %= mod;}
@@ -119,62 +153,70 @@ bool nck_parity(mint n, mint k) {
 //c_n = \sum_{i = 1}^{n} c_{i - 1} c{n - i}, c_0 = 1
 //c_n = number of regular bracket sequences of size 2n (n pairs of brackets)
 mint catalan(mint n){
+    if(n == 0) return 1;
     return nck(2 * n, n) - nck(2 * n, n + 1);
 }
 
-//cantor pairing function, uniquely maps a pair of integers back to the set of integers. 
-mint cantor(mint a, mint b) {
-    return ((a + b) * (a + b + 1) / 2 + b);
+int find(vi& p, vb& v, int cur) {
+    if(v[cur]) return cur;
+    return p[cur] = find(p, v, p[cur]);
 }
 
-//sum of elements in arithmetic sequence from start to start + (nr_elem - 1) * inc
-mint arith_sum(mint start, mint nr_elem, mint inc) {
-    mint ans = start * nr_elem;
-    ans += inc * nr_elem * (nr_elem - 1) / 2;
-    return ans;
-}
-
-//number of labelled forests on n vertices with k connected components
-//roots of each component are 1, 2, ..., k
-mint cayley(ll n, ll k) {
-    return mint(k) * mint(n).pow(n - k - 1);
-}
-
-//a derangement is a permutation with no fixed points
-//d[n][k] = number of derangements of size n with exactly k cycles
-//d[n][k] = (n - 1) (d[n - 2][k - 1] + d[n - 1][k])
-vvm d;
-void init_d(int N) {
-    d = vvm(N, vm(N, 0));
-    d[0][0] = 1;
-    for(int n = 2; n < d.size(); n++){
-        for(int k = 1; k <= n / 2; k++){
-            d[n][k] = mint(n - 1) * (d[n - 2][k - 1] + d[n - 1][k]);
+signed main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL); cout.tie(NULL);
+    
+    fac_init(3e6);
+    int t;
+    cin >> t;
+    while(t--){
+        int n;
+        cin >> n;
+        vector<pii> seg(n);
+        vi b(2 * n, -1);
+        for(int i = 0; i < n; i++){
+            int l, r;
+            cin >> l >> r;
+            l --, r --;
+            b[l] = 1, b[r] = -1;
+            seg[i] = {l, r};
         }
-    }
-}
-
-//computes the number of derangements of size n using PIE
-//condition e_i is p[i] = i, or p[i] is a fixed point
-mint calc_d(int n) {
-    mint ans = 0;
-    for(int i = 0; i <= n; i++){
-        ans += nck(n, i) * fac[n - i] * (i % 2? -1 : 1);
-    }
-    return ans;
-}
-
-//stirling number of the first kind (unsigned)
-//s1[n][k] = number of permutations of length n with exactly k cycles
-//s1[n + 1][k] = n * s1[n][k] + s1[n][k - 1]
-vvm s1;
-void init_s1(int N) {
-    s1 = vvm(N + 1, vm(N + 1, 0));
-    s1[1][1] = 1;
-    for(int n = 2; n <= N; n++){
-        for(int k = 1; k <= n; k++){
-            if(k != 1) s1[n][k] += s1[n - 1][k - 1];
-            s1[n][k] += (n - 1) * s1[n - 1][k];
+        vi id(2 * n, -1);
+        int idptr = 1;
+        vi p(1, -1), a(1, 0);
+        vb v(1, true);
+        stack<int> s;
+        s.push(0);
+        for(int i = 0; i < 2 * n; i++){
+            if(b[i] == 1){
+                int cid = idptr ++;
+                id[i] = cid;
+                p.push_back(s.top());
+                a.push_back(0);
+                v.push_back(true);
+                s.push(cid);
+            }
+            else {
+                s.pop();
+            }
         }
+        vm ans(n + 1, 1);
+        mint cans = 1;
+        for(int i = n - 1; i >= 0; i--){
+            //remove the ith hint
+            int cid = id[seg[i].first];
+            v[cid] = false;
+            //find valid parent
+            int pid = find(p, v, cid);
+            //upd ans
+            cans /= catalan(a[cid]) * catalan(a[pid]);
+            a[pid] += a[cid] + 1;
+            cans *= catalan(a[pid]);
+            ans[i] = cans;
+        }
+        for(int i = 0; i <= n; i++) cout << ans[i] << " ";
+        cout << "\n";
     }
+    
+    return 0;
 }

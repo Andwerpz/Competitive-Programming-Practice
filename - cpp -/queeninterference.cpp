@@ -15,6 +15,10 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Topcoder - 2935
+
+//they give you the algorithm to implement lol
+
 ll randstate = 1;
 ll rand(ll up) {
     ll ans = (randstate % up);

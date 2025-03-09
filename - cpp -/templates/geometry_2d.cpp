@@ -2,15 +2,18 @@
 typedef long long ll;
 typedef long double ld;
 using namespace std;
+typedef pair<int, int> pii;
 
 ld pi = acos(-1);
 ld epsilon = 1e-9;
+ld inf = 1e9;
 
 struct vec2 {
     ld x, y;
     vec2(ld _x = 0, ld _y = 0) {x = _x; y = _y;}
     vec2(const vec2& other) {x = other.x; y = other.y;}
     vec2(const vec2& a, const vec2& b) {x = b.x - a.x; y = b.y - a.y;}  //creates A to B
+    bool operator==(const vec2& other) {return x == other.x && y == other.y;}
     vec2& operator=(const vec2& other) {x = other.x; y = other.y; return *this;}
     vec2 operator-() const {return vec2(-x, -y);}
     vec2 operator+(const vec2& other) const {return vec2(x + other.x, y + other.y);}
@@ -175,6 +178,8 @@ vec2 polygon_centroid(vector<vec2>& poly) {
 }
 
 //returns convex hull in CCW order
+//make sure that there aren't any duplicate points. This algorithm really doesn't like that (tends to infinite loop)
+//if you want better convex hull construction, use ll instead of ld.
 vector<vec2> convex_hull(vector<vec2> a, bool include_collinear = false) {
     function<int(vec2, vec2, vec2)> orientation = [](vec2 a, vec2 b, vec2 c) -> int {
         ld v = a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y);
@@ -279,4 +284,186 @@ vector<bool> points_inside_convex_hull(vector<vec2>& pts, vector<vec2>& hull) {
         ans[i] = point_inside_triangle(pt, pivot, h_pts[tri_ind], h_pts[tri_ind + 1]);
     }
     return ans;
+}
+
+//finds all pairs of points that are 'directly across' from each other on a convex hull
+//don't include collinear points in the hull
+//useful for finding the furthest pair of points in a set of points
+//https://codeforces.com/blog/entry/133763
+vector<pii> antipodal_pairs(vector<vec2> &p) {
+    int n = p.size();
+    //degenerate hull
+    if(n == 1) return {{0, 0}};
+    if(n == 2) return {{0, 1}};
+
+    int p1 = 0, p2 = 0; // two "pointers"
+    vector<pii> result;
+
+    // parallel edges should't be visited twice
+    vector<bool> vis(n, false);
+
+    function<int(int)> nx = [&n](int i) -> int {return (i + 1) % n;};
+    function<int(int)> pv = [&n](int i) -> int {return (i - 1 + n) % n;};
+    function<int(ll)> sign = [](ll x) -> int {return x == 0? 0 : (x < 0? -1 : 1);};
+
+    for (;p1<n;p1++) {
+        // the edge that we are going to consider in this iteration
+        // the datatype is Point, but it acts as a vector
+        vec2 base = p[nx(p1)] - p[p1];
+
+        // the last condition makes sure that the cross products don't have the same sign
+        while (p2 == p1 || p2 == nx(p1) || sign(cross(base, p[nx(p2)] - p[p2])) == sign(cross(base, p[p2] - p[pv(p2)]))) {
+            p2 = nx(p2);
+        }
+
+        if (vis[p1]) continue;
+        vis[p1] = true;
+
+        result.push_back({p1, p2});
+        result.push_back({nx(p1), p2});
+        
+        // if both edges from p1 and p2 are parallel to each other
+        if (cross(base, p[nx(p2)] - p[p2]) == 0) {
+            result.push_back({p1, nx(p2)});
+            result.push_back({nx(p1), nx(p2)});
+            vis[p2] = true;
+        }
+    }
+
+    return result;
+}
+
+struct Halfplane { 
+    // 'p' is a passing point of the line and 'pq' is the direction vector of the line.
+    vec2 p, pq; 
+    // angle is the polar angle of 'pq'
+    long double angle;
+
+    Halfplane() {}
+    Halfplane(const vec2& a, const vec2& b) : p(a), pq(b - a) {
+        angle = atan2l(pq.y, pq.x);    
+    }
+
+    // Check if point 'r' is outside this half-plane. 
+    // Every half-plane allows the region to the LEFT of its line.
+    bool out(const vec2& r) { 
+        return cross(pq, r - p) < -epsilon; 
+    }
+
+    // Comparator for sorting. 
+    bool operator < (const Halfplane& e) const { 
+        return angle < e.angle;
+    } 
+
+    // Intersection point of the lines of two half-planes. It is assumed they're never parallel.
+    friend vec2 inter(const Halfplane& s, const Halfplane& t) {
+        long double alpha = cross((t.p - s.p), t.pq) / cross(s.pq, t.pq);
+        return s.p + (s.pq * alpha);
+    }
+};
+
+//given some halfplanes, return the convex polygon that represents the intersection of all the halfplanes, 
+//or an empty list if there is none
+//https://cp-algorithms.com/geometry/halfplane-intersection.html
+vector<vec2> hp_intersect(vector<Halfplane>& H) { 
+    vec2 box[4] = {  // Bounding box in CCW order
+        vec2(inf, inf), 
+        vec2(-inf, inf), 
+        vec2(-inf, -inf), 
+        vec2(inf, -inf) 
+    };
+
+    for(int i = 0; i<4; i++) { // Add bounding box half-planes.
+        Halfplane aux(box[i], box[(i+1) % 4]);
+        H.push_back(aux);
+    }
+
+    // Sort by angle and start algorithm
+    sort(H.begin(), H.end());
+    deque<Halfplane> dq;
+    int len = 0;
+    for(int i = 0; i < int(H.size()); i++) {
+
+        // Remove from the back of the deque while last half-plane is redundant
+        while (len > 1 && H[i].out(inter(dq[len-1], dq[len-2]))) {
+            dq.pop_back();
+            --len;
+        }
+
+        // Remove from the front of the deque while first half-plane is redundant
+        while (len > 1 && H[i].out(inter(dq[0], dq[1]))) {
+            dq.pop_front();
+            --len;
+        }
+
+        // Special case check: Parallel half-planes
+        if (len > 0 && fabsl(cross(H[i].pq, dq[len-1].pq)) < epsilon) {
+            // Opposite parallel half-planes that ended up checked against each other.
+            if (dot(H[i].pq, dq[len-1].pq) < 0.0)
+                return vector<vec2>();
+
+            // Same direction half-plane: keep only the leftmost half-plane.
+            if (H[i].out(dq[len-1].p)) {
+                dq.pop_back();
+                --len;
+            }
+            else continue;
+        }
+
+        // Add new half-plane
+        dq.push_back(H[i]);
+        ++len;
+    }
+
+    // Final cleanup: Check half-planes at the front against the back and vice-versa
+    while (len > 2 && dq[0].out(inter(dq[len-1], dq[len-2]))) {
+        dq.pop_back();
+        --len;
+    }
+
+    while (len > 2 && dq[len-1].out(inter(dq[0], dq[1]))) {
+        dq.pop_front();
+        --len;
+    }
+
+    // Report empty intersection if necessary
+    if (len < 3) return vector<vec2>();
+
+    // Reconstruct the convex polygon from the remaining half-planes.
+    vector<vec2> ret(len);
+    for(int i = 0; i+1 < len; i++) {
+        ret[i] = inter(dq[i], dq[i+1]);
+    }
+    ret.back() = inter(dq[len-1], dq[0]);
+    return ret;
+}
+
+//returns {center, radius} where radius is minimized and the circle encloses all points in a
+//runs in expected linear time using welzl's algorithm
+pair<vec2, ld> enclosing_circle(vector<vec2> a){
+    //randomly permute a
+    random_shuffle(a.begin(), a.end());
+    //run welzl's algorithm
+    function<pair<vec2, ld>(vector<vec2>)> welzl = [&](vector<vec2> r) -> pair<vec2, ld> {
+        if(a.size() == 0 || r.size() == 3) {
+            if(r.size() == 0) return {{0, 0}, 0};
+            else if(r.size() == 1) return {r[0], epsilon};
+            else if(r.size() == 2) return {(r[0] + r[1]) / 2.0, (r[0] - r[1]).length() / 2.0};
+            else {
+                vec2 center = threept_circle(r[0], r[1], r[2]);
+                return {center, (r[0] - center).length()};
+            }
+        }
+        vec2 cur = a.back();
+        a.pop_back();
+        pair<vec2, ld> ret = welzl(r);
+        a.push_back(cur);
+        if(ret.second != 0 && (cur - ret.first).length() - epsilon <= ret.second) return ret;
+        r.push_back(cur);
+        a.pop_back();
+        ret = welzl(r);
+        a.push_back(cur);
+        return ret;
+    };
+    return welzl({});
 }

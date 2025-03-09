@@ -1,5 +1,8 @@
 {
     "files.associations": {
+        "*.sqlbook": "sql",
+        "*.ndjson": "jsonl",
+        "*.dbclient-js": "javascript",
         "iostream": "cpp",
         "random": "cpp",
         "array": "cpp",
@@ -88,6 +91,8 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "stacktrace": "cpp"
+        "stacktrace": "cpp",
+        "expected": "cpp",
+        "spanstream": "cpp"
     }
 }

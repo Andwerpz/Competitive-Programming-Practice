@@ -15,6 +15,10 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Topcoder - 14199
+
+//can compute stirling numbers of the first kind by just expanding the polynomial identity.
+
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
@@ -335,8 +339,6 @@ poly stirling(int n) {
 class CyclesNumber {
 public:
     vector<int> getExpectation(vector<int> a, vector<int> b) {
-        a = {3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5};
-        b = {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
         fac_init(1e6);
         int n = a.size();
         vi ans(n);
@@ -347,7 +349,6 @@ public:
                 cans += mint(j).pow(b[i]) * s.coeff(j);
             }
             ans[i] = cans.val;
-            cout << "DONE " << i << endl;
         }
         return ans;
     }

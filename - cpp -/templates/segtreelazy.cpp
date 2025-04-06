@@ -224,6 +224,22 @@ int main() {
         run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
     }
 
+    // -- ASSIGNMENT MODIFY, MAXIMUM AND MAXIMUM FREQUENCY QUERY --
+    // {maximum, max freq}
+    // usage:
+    // set range to x : segt.modify(l, r, {x, 0});
+    {
+        function<pii(pii, pii)> fmodify = [](const pii src, const pii val) -> pii{return {val.first, 1};};
+        function<pii(pii, pii, int)> fmodifyk = [](const pii src, const pii val, const int k) -> pii {
+            return {val.first, k};
+        };
+        function<pii(pii, pii)> fcombine = [](const pii a, const pii b) -> pii {
+            if(a.first == b.first) return {a.first, a.second + b.second};
+            return a.first > b.first? a : b;
+        };
+        SegtreeLazy<pii> segt(n, {0, 0}, {-1e9, 0}, {0, 1}, fmodify, fmodifyk, fcombine);
+    }
+
     // -- INCREMENT MODIFY WITH IGNORE INCREMENT MASK, SUM QUERY
     // {sum, nr ignoring elements}
     // modify is either increment all non-ignoring elements if val.second == 0, 

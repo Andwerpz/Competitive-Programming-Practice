@@ -4,6 +4,12 @@ using ll = long long;
 using pi = pair<int, int>;
 #define rep(i, a, b) for (int i = a; i < b; ++i)
 
+//The 3rd Universal Cup. Stage 18: Southeastern Europe - K
+
+//we can use sqrt decomposition. When handling the doubling query, on the buckets that are completely covered by the query, 
+//we can just keep track of how many times we should double it via some lazy change. On the print character query, we can
+//just iterate through the buckets in O(sqrt(n)) time. 
+
 int main() {
     cin.tie(0)->sync_with_stdio(0);
     cin.exceptions(cin.failbit);

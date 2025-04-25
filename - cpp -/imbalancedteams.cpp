@@ -10,6 +10,18 @@ typedef vector<ll> vl;
 #define all(x) begin(x), end(x)
 #define sz(x) (int) (x).size()
 
+//2024 ICPC Polish Collegiate Programming Contest - I
+
+//observe that to maximize the imbalance, we always want to assign the k worst players to one team, and the k best players
+//to the other team. So the only leeway we get is the best players on the worst team, and the worst players on the best team.
+
+//there are two cases: the middle players are the same value or different. 
+
+//if they're different, just multiply the ways to pick for each team. 
+
+//if they're same, first choose the players you're going to pick, then divvy them up between the teams. Special case is if
+//all the players are the same strength, then you have to divide your answer by 2. 
+
 const ll mod = 1e9 + 7;
 
 ll binpow(ll a, ll b) {

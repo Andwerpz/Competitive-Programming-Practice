@@ -10,6 +10,14 @@ typedef vector<ll> vl;
 #define all(x) begin(x), end(x)
 #define sz(x) (int) (x).size()
 
+//2024 ICPC Polish Collegiate Programming Contest - B
+
+//first compute all pairs shortest paths for zero and one suitcases. You will not need to do any backtracking, as 
+//with 1 suitcase, leaving it anywhere is always suboptimal. 
+
+//for 2 suitcases, sometimes you'll want to bring 1 suitcase along, then another. Use the shortest paths from 0 and 1 
+//suitcases to compute the ones for 2 suitcases. 
+
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);

@@ -3,6 +3,16 @@ typedef long long ll;
 typedef long double ld;
 using namespace std;
 
+//Kattis - candydistribution
+
+//we have K * X + 1 = C * Y, where we want to solve for positive integer X and Y. Rearranging, we get
+//C * Y - K * X = 1
+
+//observe that the right side must be a multiple of gcd(C, K), therefore gcd(C, K) = 1. If this is not the case, 
+//then it's impossible. 
+
+//Otherwise, we can find a solution using the extended euclidean algorithm. 
+
 //Standard euclidean algorithm
 ll gcd(ll a, ll b) {
     return b == 0? a : gcd(b, a % b);

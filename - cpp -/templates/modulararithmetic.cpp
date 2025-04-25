@@ -46,13 +46,11 @@ struct mint {
 
     //don't forget about fermat's little theorem, 
     //a^(m-1) % m = 1. This means that a^(p % m) % m != a^(p) % m, rather a^(p % (m-1)) % m = a^(p) % m. 
-    mint pow(const mint& other) const {
+    mint pow(ll b) const {
         mint ans(1), p(val);
-        ll b = other.val;
         while(b != 0) {if(b % 2 == 1) {ans *= p;} p *= p; b /= 2;}
         return ans;
     }
-    mint pow(ll other) const {return this->pow(mint(other));}
 
     friend std::ostream& operator<<(std::ostream& os, const mint& m) {os << m.val; return os;}
     friend std::istream& operator>>(std::istream& is, mint& m) {is >> m.val; return is;}
@@ -175,6 +173,20 @@ void init_s1(int N) {
         for(int k = 1; k <= n; k++){
             if(k != 1) s1[n][k] += s1[n - 1][k - 1];
             s1[n][k] += (n - 1) * s1[n - 1][k];
+        }
+    }
+}
+
+//stirling number of the second kind (unsigned)
+//s2[n][k] = number of ways to partition a set of n labelled objects into k nonempty unlabelled bins
+//s2[n][k] = \frac{1}{k!} \sum_{i = 0}^{k} (-1)^{k - i} \binom{k}{i} i^n
+vvm s2;
+void init_s2(int N) {
+    s2 = vvm(N + 1, vm(N + 1, 0));
+    s2[0][0] = 1;
+    for(int n = 1; n <= N; n++){
+        for(int k = 1; k <= n; k++){
+            s2[n][k] = k * s2[n - 1][k] + s2[n - 1][k - 1];
         }
     }
 }

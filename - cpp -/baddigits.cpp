@@ -15,6 +15,10 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//3rd Universal Cup Stage 31 : Wroclaw - B
+
+//just generate the numbers as if the digits weren't there, then skip over them when printing. 
+
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);

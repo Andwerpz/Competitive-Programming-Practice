@@ -10,6 +10,10 @@ typedef vector<bool> vb;
 #define all(x) begin(x), end(x)
 #define sz(x) (int) (x).size()
 
+//2024 ICPC Polish Collegiate Programming Contest - A
+
+//implementation
+
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);

@@ -93,6 +93,29 @@ ld ray_circleIntersect(vec2 ray_a, vec2 ray_b, vec2 center, ld radius) {
     return dot(ray_dir, to_center) - int_depth;
 }
 
+//if no intersections found, returns {{inf, inf}, {inf, inf}}
+//if one circle is contained by other, returns {smaller center, inf}
+//otherwise, returns the two intersections
+pair<vec2, vec2> circle_circleIntersect(vec2 c1, ld r1, vec2 c2, ld r2) {
+    //see if intersection even exists
+    if(c1.dist(c2) > r1 + r2) return {{inf, inf}, {inf, inf}};
+    //see if c1 contains c2
+    if(r1 - c1.dist(c2) > r2) return {c2, {inf, inf}};
+    //see if c2 contains c1
+    if(r2 - c2.dist(c1) > r1) return {c1, {inf, inf}};
+    //proper intersection. Suppose that c1 is at origin, c2 is on x axis
+    c2 -= c1;
+    ld c2ang = c2.polar_angle();
+    ld c2x = c2.length();
+    //calc intersection x coordinate. 
+    ld intx = (r1 * r1 - r2 * r2 + c2x * c2x) / (2.0 * c2x);
+    ld inty = sqrt(r1 * r1 - intx * intx);
+    vec2 p1 = {intx, inty}, p2 = {intx, -inty};
+    p1 = p1.rotate_CCW(c2ang), p2 = p2.rotate_CCW(c2ang);
+    p1 += c1, p2 += c1;
+    return {p1, p2};
+}
+
 //sector area of circle 
 ld sector_area(ld theta, ld radius) {
     return radius * radius * pi * ((theta) / (2.0 * pi));

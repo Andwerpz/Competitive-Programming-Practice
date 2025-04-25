@@ -15,6 +15,20 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//3rd Universal Cup Stage 31 : Wroclaw - H
+
+//this is identical to asking whether or not it's possible to create a valid venn diagram using n circles
+
+//Observe that it's impossible if n >= 4. First, check if every circle is pairwise intersecting. Also check
+//if any circle contains another one. If the first is not true, or the second is true, then you've found 
+//the missing hue. 
+
+//Otherwise, every circle is pairwise intersecting. Just take the first 4 circles and do some more extensive 
+//checks. 
+
+//note that every region has an intersection point on the edge. We can list out all intersection points
+//between circles and find all the created hues that way. 
+
 ld pi = acos(-1);
 ld epsilon = 1e-11;
 ld inf = 1e18;
@@ -154,12 +168,9 @@ pair<vec2, vec2> circle_circleIntersect(vec2 c1, ld r1, vec2 c2, ld r2) {
     //calc intersection x coordinate. 
     ld intx = (r1 * r1 - r2 * r2 + c2x * c2x) / (2.0 * c2x);
     ld inty = sqrt(r1 * r1 - intx * intx);
-    // cout << "INTX : " << intx << " " << inty << "\n";
-    // cout << "c2ang : " << c2ang << "\n";
     vec2 p1 = {intx, inty}, p2 = {intx, -inty};
     p1 = p1.rotate_CCW(c2ang), p2 = p2.rotate_CCW(c2ang);
     p1 += c1, p2 += c1;
-    // cout << "P1 P2 : " << p1 << " " << p2 << "\n";
     return {p1, p2};
 }
 

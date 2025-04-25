@@ -9,6 +9,10 @@ typedef vector<int> vi;
 #define all(x) begin(x), end(x)
 #define sz(x) (int) (x).size()
 
+//2024 ICPC Polish Collegiate Programming Contest - G
+
+//implementation. 
+
 vi dr = {-1, -1, -1, 0, 0, 1, 1, 1};
 vi dc = {-1, 0, 1, -1, 1, -1, 0, 1};
 

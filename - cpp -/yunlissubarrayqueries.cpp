@@ -17,7 +17,7 @@ typedef vector<vector<ld>> vvd;
 
 //Codeforces - 2009 G1 G2
 
-//only solves easy and hard versions D:
+//only solves easy and hard versions D: (there is an extreme version)
 
 //for each index, we can compute the minimum cost to make a k-consecutive sequence ending at
 //that index. The idea is that if we subtract i from every a[i], then k-consecutive sequences will look

@@ -53,7 +53,7 @@ struct RMQ  {
     }
     int query(int l, int r) {   //queries range [l, r)
         r --;
-        // return query(l, r);              //return the index with minimum value
+        // return _query(l, r);              //return the index with minimum value
         return elements[_query(l, r)];      //return the minimum value
     }
 };

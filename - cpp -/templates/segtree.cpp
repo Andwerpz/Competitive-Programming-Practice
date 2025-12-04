@@ -139,6 +139,13 @@ int main() {
         run_segt_tests(n, 0, 0, fmodify, fcombine); 
     }
 
+    // -- INCREMENT MODIFY, SUM QUERY LL --
+    {
+        function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return src + val;};
+        function<ll(ll, ll)> fcombine = [](const ll a, const ll b) -> ll{return a + b;};
+        Segtree<ll> segt(n, 0, 0, fmodify, fcombine);
+    }
+
     // -- ASSIGNMENT MODIFY, MIN QUERY -- 
     {
         function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};

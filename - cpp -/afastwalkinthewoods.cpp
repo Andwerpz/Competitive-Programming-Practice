@@ -15,6 +15,17 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//ECNA 2023 - L
+
+//the problem is to simulate the walk through the graph. 
+//naive simulation is too slow as there can be up to n * 10^6 steps, which is around 2.5 * 10^9. 
+
+//instead, we simulate naively until we find a cycle, at which point we can figure out how many times he's going to go around
+//the cycle before an edge gets deleted. This should take O(n) processing to do, so the complexity is now around O(n^2). 
+
+//one thing: since edges are bidirectional, it may be the case that you use the same edge twice in a cycle. Make sure to
+//account for that when solving. 
+
 //N = 0
 //E = 1
 //S = 2
@@ -86,6 +97,7 @@ signed main() {
         c[next][curd ^ 2].second --;
         cur = next;
     }
+    vector<vector<bool>> vis(n, vb(4, false));
     while(true) {
         set<pii> v;         //{pos, outgoing dir}
         vector<pii> path;   //{pos, outgoing dir}
@@ -116,19 +128,18 @@ signed main() {
             cur = next;
             curd = nd;
         }
-        //have a path cycle, find first minimum, repeat cycle that many times
+        //have a path cycle, find the edge that will require the minimum amount of 
+        //cycle iterations to deplete
         int minval = 1e9;
-        int minpos = -1;
         for(int i = 0; i < cycle.size(); i++) {
             int pos = cycle[i].first;
             int out = cycle[i].second;
-            if(c[pos][out].second < minval) {
-                minval = c[pos][out].second;
-                minpos = i;
-            }
+            int npos = c[pos][out].first;
+            vis[pos][out] = true;
+            minval = min(minval, c[pos][out].second);
+            if(vis[npos][out ^ 2]) minval = min(minval, c[pos][out].second / 2);
         }
         assert(minval >= 0);
-        assert(minpos != -1);
         //traverse cycle
         for(int i = 0; i < cycle.size(); i++) {
             int pos = cycle[i].first;
@@ -136,25 +147,16 @@ signed main() {
             int npos = c[pos][out].first;
             assert(npos != -1);
             assert(c[pos][out].second >= minval);
-            // if(i < minpos) assert(c[pos][out].second > minval);
             c[pos][out].second -= minval;
             c[npos][out ^ 2].second -= minval;
-            if(i < minpos) {
-                c[pos][out].second -= 1;
-                c[npos][out ^ 2].second -= 1;
-            }
-            // assert(c[pos][out].second >= 0);
-            // assert(c[npos][out ^ 2].second >= 0);
-            // assert(c[pos][out].second == c[npos][out ^ 2].second);
+            assert(c[pos][out].second >= 0);
+            assert(c[npos][out ^ 2].second >= 0);
+            assert(c[pos][out].second == c[npos][out ^ 2].second);
+            vis[pos][out] = false;
         }
         //update cur, curd
-        cur = cycle[minpos].first;
-        if(minpos == 0) {
-            curd = cycle[cycle.size() - 1].second;
-        }
-        else {
-            curd = cycle[minpos - 1].second;
-        }
+        cur = cycle[0].first;
+        curd = cycle[cycle.size() - 1].second;
     }
     done: {}
     // cout << (cur + 1) << "\n";

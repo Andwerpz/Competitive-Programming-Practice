@@ -15,6 +15,11 @@ typedef vector<vector<ld>> vvd;
 typedef __int128 lll;
 // typedef __float128 lld;
 
+//ECNA 2023 - F
+
+//to find the greatest value we can make, we can use a monotonic stack
+//note that values can be relatively large, just use 128 bit int
+
 lll read_lll() {
     string s;
     cin >> s;

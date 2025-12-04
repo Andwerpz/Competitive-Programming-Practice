@@ -15,6 +15,12 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//ECNA 2023 - K
+
+//we want to count the number of unique pairs of strings such that there is a valid clue 
+
+//since string lengths are <= 20, we can do this by just brute forcing every pair of strings. 
+
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);

@@ -17,6 +17,19 @@ typedef vector<vector<ld>> vvd;
 
 //Codeforces - 1485F
 
+//we can rephrase the two options in terms of b[i], so a[i] has to satisfy either
+// - a[i] = b[i]
+// - a[i] = b[i] - \sum_{j = 1}^{i - 1} a[j]
+//so the difficulty seems to be that we might doublecount when \sum_{j = 1}^{i - 1} a[j] = 0. 
+
+//let's characterize the sum \sum_{j = 1}^{i - 1} a[j]. If there were not any prefix operations done beforehand, then 
+//the sum is just the prefix b[1, i - 1]. Suppose that the last prefix operation done was at index k. Then the sum is
+// b[k] + \sum_{j = k + 1}^{i - 1} a[j] = \sum_{j = k}^{i - 1} b[j]
+//so it's just the sum of b[i] since the last prefix operation. 
+
+//lets define dp[i] as the number of unique sequences ending with a prefix operation at i. To get to i, you need to start before i, 
+//so you want to get the sum of dp[j] where j < i and b[1, i] != b[1, j]. This can be done with some sort of map. 
+
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;

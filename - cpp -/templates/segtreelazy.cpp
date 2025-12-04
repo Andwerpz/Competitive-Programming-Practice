@@ -216,6 +216,14 @@ int main() {
         run_segt_tests(n, 0, 1e9, fmodify, fmodifyk, fcombine);
     }
 
+    // -- INCREMENT MODIFY, MAXIMUM QUERY (LL) --
+    {
+        function<ll(ll, ll)> fmodify = [](const ll src, const ll val) -> ll{return src + val;};
+        function<ll(ll, ll, ll)> fmodifyk = [](const ll src, const ll val, const ll k) -> ll{return src + val;};
+        function<ll(ll, ll)> fcombine = [](const ll a, const ll b) -> ll{return max(a, b);};
+        SegtreeLazy<ll> segt(n, 0, (ll) -1e9, 0, fmodify, fmodifyk, fcombine);
+    }
+
     // -- ASSIGNMENT MODIFY, MINIMUM QUERY --
     {
         function<int(int, int)> fmodify = [](const int src, const int val) -> int{return val;};

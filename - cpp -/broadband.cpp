@@ -15,6 +15,19 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//ECNA 2023 - B
+
+//first, we care about the squared distance, so we can consider the x and y components separately. 
+//the y component will always be fixed to (s / 2)^2, so pretty much the only interesting part is the x component. 
+
+//we can probably do a dp approach, dp[i][j] = minimum cost to satisfy the first i people given that we've placed down
+//j stations. transitions can be something like dp[i][j] -> dp[i + k][j + 1], where k >= 1. So now, we just have to compute
+//the minimum cost to satisfy some segment of people [i, i + k)
+
+//actually, the optimal placement of a station to satisfy some group of people is simply the average position of all the people, 
+//but I didn't know that so I just ternary searched for it. To ternary search, the following is useful:
+//\sum (x - p)^2 = \sum x^2 + \sum p^2 - \sum xp
+
 const ld epsilon = 1e-7;
 
 ld calc_cost(ld pos, vd& a, int l, int r) {

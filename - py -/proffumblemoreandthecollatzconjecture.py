@@ -1,4 +1,7 @@
 
+#ECNA 2023 - E
+
+# not good at math, so just look through first 1000 powers of 2 to find an answer. 
 
 def ispow2(x):
     while(x != 1):

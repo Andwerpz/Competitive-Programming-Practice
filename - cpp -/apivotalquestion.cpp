@@ -15,6 +15,10 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//ECNA 2023 - A
+
+//just need to create a max pfx and min sfx array, and then can just linear scan to get all of the pivots. 
+
 signed main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);

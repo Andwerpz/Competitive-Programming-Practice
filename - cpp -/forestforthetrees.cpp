@@ -15,6 +15,15 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//ECNA 2023 - G
+
+//first, fix the orientation. 
+//next, pick one sensor reading. Some tree has to correspond to that sensor reading, so for each orientation we get at most
+//n_t possible robot positions. 
+
+//just brute force try every robot position. can do this in O(n_t * log(n_s)) time, using a set or smth. 
+//finally, aggregate all possible robot positions + orientations at the end. 
+
 pii rot90(pii x) {
     return {-x.second, x.first};
 }

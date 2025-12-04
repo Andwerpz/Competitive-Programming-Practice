@@ -15,6 +15,47 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//Codeforces - 1930E
+
+//lets try to solve for k = 1
+// what arrays are reachable? what conditions are necessary and sufficient?
+//  - number of elements === n (mod 2)
+//  - must have at least 2 'connected components' of removed elements
+// are these two conditions necessary and sufficient? try to come up with a counterexample
+// for k = 1, these conditions are necessary and sufficient. 
+
+// now, consider k = 2
+//  - number of elements === n (mod 4)
+//  - if you remove the first and last 2 removed elements, then there must be a gap within the remaining removed elements 
+//    (by gap I mean the remaining removed elements cannot form a connected component)
+
+// so in general,
+//  - number of elements === n (mod 2k)
+//  - if you remove the first and last k removed elements, then there must be a gap within the remaining removed elements 
+//    (by gap I mean the remaining removed elements cannot form a connected component)
+
+// suppose we fix the first condition to be true, how many ways are there to not satisfy the second condition? If you don't 
+// satisfy the second condition, it must be the case that all the removed elements (except for the first k - 1 and last k - 1) 
+// form a connected component. So we can just scroll this connected component across the array and count?
+
+//naively, we get something like this for a given k
+// for(int mid = 2; mid <= n; mid += 2 * k) {
+//     for(int l = k - 1; n - (mid + l) >= k - 1; l++) {
+//         bcnt += nck(l, k - 1) * nck(n - mid - l, k - 1);
+//     }
+// }
+
+//observe that if we can somehow get rid of the inner loop, then the entire solution will be n * log(n). The inner loop is just
+//computing \sum_{i = k - 1}^{n - (k - 1)} \binom{i}{k - 1} \binom{(n - mid) - i}{k - 1}
+
+//lets get rid of some of the offsets, so we want to find a closed form formula for
+// \sum_{i = k}^{n - k} \binom{i}{k} \binom{n - i}{k}
+
+//this looks like we have n elements, and we're somehow choosing 2k elements. Imagine that we have an extra element, and we fix the
+//position of the extra element to be at position i. Then, we choose k elements from the stuff that come before and k from the stuff
+//that comes after. This is literally just counting the number of ways to choose 2k + 1 elements from n + 1 elements, so
+// \sum_{i = k}^{n - k} \binom{i}{k} \binom{n - i}{k} = \binom{n + 1, 2k + 1}
+
 struct mint;
 typedef vector<mint> vm;
 typedef vector<vector<mint>> vvm;
@@ -78,13 +119,6 @@ mint operator *(ll a, const mint& b) {return mint(a) * b;}
 mint operator /(ll a, const mint& b) {return mint(a) / b;}
 mint operator %(ll a, const mint& b) {return mint(a) % b;}
 
-mint gcd(mint a, mint b){
-    if(b == 0){
-        return a;
-    }
-    return gcd(b, a % b);
-}
-
 vm fac, invfac;
 void fac_init(int N) {
     fac = vm(N + 1), invfac = vm(N + 1);
@@ -115,12 +149,25 @@ signed main() {
             for(int i = 0; i <= n; i += 2 * k) ans += nck(n, i);
             // cout << "INIT ANS : " << k << " " << ans << "\n";
             //how many ways to not satisfy the second condition while satisfying the first condition
-            for(int l = k - 1; l <= n; l++){
-                for(int mid = 2; mid + l + (k - 1) <= n; mid += 2 * k){
-                    // cout << "NOT SATISFY : " << l << " " << mid << "\n";
-                    ans -= nck(l, k - 1) * nck(n - (mid + l), k - 1);
-                }
+            // for(int l = k - 1; l <= n; l++){
+            //     for(int mid = 2; mid + l + (k - 1) <= n; mid += 2 * k){
+            //         // cout << "NOT SATISFY : " << l << " " << mid << "\n";
+            //         ans -= nck(l, k - 1) * nck(n - (mid + l), k - 1);
+            //     }
+            // }
+            // cout << "TOT : " << ans << "\n";
+            // mint bcnt = 0;
+            // for(int mid = 2; mid <= n; mid += 2 * k) {
+            //     for(int l = k - 1; n - (mid + l) >= k - 1; l++) {
+            //         bcnt += nck(l, k - 1) * nck(n - mid - l, k - 1);
+            //     }
+            // }
+            mint ccnt = 0;
+            for(int mid = 2; 2 * (k - 1) <= n - mid; mid += 2 * k) {
+                ccnt += nck((n - mid) + 1, (2 * (k - 1)) + 1);
             }
+            // cout << "BCNT, CCNT : " << bcnt << " " << ccnt << " " << k << "\n";
+            ans -= ccnt;
             cout << ans << " ";
         }
         cout << "\n";

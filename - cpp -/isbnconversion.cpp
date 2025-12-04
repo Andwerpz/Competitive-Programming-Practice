@@ -15,6 +15,12 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//ECNA 2023 - I
+
+//another reading comprehension problem lmao
+
+//except, this one has a tricky edge case, make sure that you're not accepting a 'X' anywhere else than the last character. 
+
 bool isv(string s) {
     //check for invalid hyphen placement
     int hcnt = 0;

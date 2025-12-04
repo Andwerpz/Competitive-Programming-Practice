@@ -1,0 +1,130 @@
+#include <vector>;
+#include <deque>;
+#include <iostream>;
+#include <string>;
+#include <jstring>;
+typedef vector<i32> vi;
+typedef vector<vector<i32>> vvi;
+typedef i32 int;
+typedef i64 ll;
+
+//AOC 2025 - Day 2
+
+//hmm, should probably implement some sort of set stdlib
+
+struct range {
+    ll l;
+    ll r;
+
+    range(ll _l, ll _r) {
+        this.l = _l;
+        this.r = _r;
+    }
+}
+
+i64 dcnt(i64 x) {
+    i64 ans = $ll 0;
+    while(x != $i64 0) {
+        x /= $i64 10;
+        ans ++;
+    }
+    return ans;
+}
+
+//return a^b
+i64 pow(i64 a, i64 b) {
+    i64 res = $i64 1;
+    for(i64 i = $i64 0; i < b; i++) {
+        res *= a;
+    }
+    return res;
+}
+
+void solve_p1() {   
+    string line = cin.next_line();
+    vector<range> a;
+    {
+        vector<string> toks = line.split(',');
+        for(int i = 0; i < $int toks.size(); i++) {
+            vector<string> lr = toks[i].split('-');
+            a.push_back(new range(stoi64(lr[0]), stoi64(lr[1]) + $ll 1));
+        }
+    }
+    ll ans = $ll 0;
+    i32 vcnt = 0;
+    for(ll i = $ll 1; i < $ll 100000; i++) {
+        i32 valid = 0;
+        ll val = i + i * pow($i64 10, dcnt(i));
+        for(u64 j = 0x0; j < a.size(); j++) {
+            if(a[j].l <= val && val < a[j].r) {
+                valid = 1;
+                break;
+            }
+        }   
+        if(valid) {
+            ans += val;
+            vcnt ++;
+        }
+    }
+    cout << "VCNT : " << vcnt << "\n";
+    cout << "ANS : " << ans << "\n";
+}
+
+void solve_p2() {
+    string line = cin.next_line();
+    vector<range> a;
+    {
+        vector<string> toks = line.split(',');
+        for(int i = 0; i < $int toks.size(); i++) {
+            vector<string> lr = toks[i].split('-');
+            a.push_back(new range(stoi64(lr[0]), stoi64(lr[1]) + $ll 1));
+        }
+    }
+    for(u64 i = 0x0; i < a.size(); i++) {
+        assert(dcnt($ll a[i].l) <= $ll 10);
+        assert(dcnt($ll a[i].r) <= $ll 10);
+    }
+    ll ans = $ll 0;
+    i32 vcnt = 0;
+    vector<ll> v;
+    for(ll i = $ll 1; i < $ll 100000; i++) {
+        ll val = i;
+        for(u64 k = 0x2; dcnt(i) * $ll k <= $ll 10; k++) {
+            i32 valid = 0;
+            val = val * pow($i64 10, dcnt(i)) + i;
+            for(u64 j = 0x0; j < a.size(); j++) {
+                if(a[j].l <= val && val < a[j].r) {
+                    cout << "FOUND : " << a[j].l << " " << a[j].r << " " << val << "\n";
+                    valid = 1;
+                    break;
+                }
+            }   
+            if(valid) {
+                for(u64 l = 0x0; l < v.size(); l++) if(v[l] == val) {
+                    valid = 0;
+                    break;
+                }
+                if(valid) {
+                    cout << "VALID : " << val << "\n";
+                    ans += val;
+                    vcnt ++;
+                    v.push_back(val);
+                }
+            }
+        }
+
+    }
+    cout << "VCNT : " << vcnt << "\n";
+    cout << "ANS : " << ans << "\n";
+}
+
+i32 main() {
+
+    i32 fd = sys_open("./giftshop.in", O_RDONLY, $mode_t 0);
+    cin = new istream(fd);
+
+    // solve_p1();
+    solve_p2();
+
+    return 0;
+}

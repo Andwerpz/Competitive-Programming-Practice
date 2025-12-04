@@ -1,0 +1,69 @@
+#include <vector>;
+#include <deque>;
+#include <iostream>;
+#include <string>;
+#include <jstring>;
+typedef vector<i32> vi;
+typedef vector<vector<i32>> vvi;
+typedef i32 int;
+typedef i64 ll;
+
+//AOC 2025 - Day 3
+
+//this one went pretty smooth. Can just greedily select the largest digit for the most
+//significant digit
+
+//however, have to make sure to still have room for the other less significant digits
+
+void solve_p1() {
+    ll ans = $ll 0;
+    string line = cin.next_line();
+    while(!cin.eof()) {
+        u64 mxfind = 0x0;
+        for(u64 i = 0x0; i < line.size() - 0x1; i++) {
+            if(line[i] > line[mxfind]) mxfind = i;
+        }
+        u64 mxsind = mxfind + 0x1;
+        for(u64 i = mxfind + 0x1; i < line.size(); i++) {
+            if(line[i] > line[mxsind]) mxsind = i;
+        }
+        ll cans = $ll 10 * $ll (line[mxfind] - '0') + $ll (line[mxsind] - '0');
+        ans += cans;
+        cout << "CANS : " << cans << " " << line << "\n";
+        line = cin.next_line();
+    }
+    cout << "ANS : " << ans << "\n";
+}
+
+void solve_p2() {
+    ll ans = $ll 0;
+    string line = cin.next_line();
+    while(!cin.eof()) {
+        ll cans = $ll 0;
+        u64 start = 0x0;
+        for(u64 i = 0x0; i < $u64 12; i++) {
+            u64 mxind = start;
+            for(u64 j = start; j < line.size() - $u64 12 + i + 0x1; j++) {
+                if(line[j] > line[mxind]) mxind = j;
+            }
+            cans = $ll 10 * cans + $ll (line[mxind] - '0');
+            start = mxind + 0x1;
+        }
+        ans += cans;
+        cout << "CANS : " << cans << " " << line << "\n";
+        
+        line = cin.next_line();
+    }
+    cout << "ANS : " << ans << "\n";
+}
+
+i32 main() {
+
+    i32 fd = sys_open("./lobby.in", O_RDONLY, $mode_t 0);
+    cin = new istream(fd);
+
+    // solve_p1();
+    solve_p2();
+
+    return 0;
+}

@@ -1,0 +1,121 @@
+#include <vector>;
+#include <deque>;
+#include <iostream>;
+#include <string>;
+#include <jstring>;
+#include <pair>;
+typedef vector<i32> vi;
+typedef vector<vector<i32>> vvi;
+typedef i32 int;
+typedef i64 ll;
+
+//AOC 2025 - Day 4
+
+//p1 : just count
+//p2 : topological sort
+
+int[8] dr;
+int[8] dc;
+
+void solve_p1() {
+    vector<string> g;
+    {
+        string line = cin.next_line();
+        while(!cin.eof()) {
+            g.push_back(line);
+            line = cin.next_line();
+        }
+    }
+    int n = $int g.size();
+    int m = $int g[0].size();
+    // cout << "N M : " << n << " " << m << "\n";
+    int ans = 0;
+    for(int i = 0; i < n; i++) {
+        // cout << g[i] << "\n";
+        for(int j = 0; j < m; j++) {
+            // cout << "IJ : " << i << " " << j << " " << g[i][j] << "\n";
+            if(g[i][j] != '@') continue;
+            int cnt = 0;
+            for(int k = 0; k < 8; k++) {
+                int nr = i + dr[k];
+                int nc = j + dc[k];
+                if(nr < 0 || nc < 0 || nr >= n || nc >= m) continue;
+                if(g[nr][nc] == '@') cnt ++;
+            }
+            cout << "CNT : " << cnt << " " << i << " " << j << "\n";
+            if(cnt < 4) ans ++;
+        }
+    }
+    cout << "ANS : " << ans << "\n";
+}
+
+void solve_p2() {
+    vector<string> g;
+    {
+        string line = cin.next_line();
+        while(!cin.eof()) {
+            g.push_back(line);
+            line = cin.next_line();
+        }
+    }
+    int n = $int g.size();
+    int m = $int g[0].size();
+    deque<pair<int, int>> q;
+    vvi deg = new vvi(n, new vi(m, 0));
+    for(int i = 0; i < n; i++) {
+        for(int j = 0; j < m; j++) {
+            if(g[i][j] != '@') continue;
+            int cnt = 0;
+            for(int k = 0; k < 8; k++) {
+                int nr = i + dr[k];
+                int nc = j + dc[k];
+                if(nr < 0 || nc < 0 || nr >= n || nc >= m) continue;
+                if(g[nr][nc] == '@') deg[i][j] ++;
+            }
+        }
+    }
+    for(int i = 0; i < n; i++) {
+        for(int j = 0; j < m; j++) {
+            if(deg[i][j] < 4 && g[i][j] == '@') q.push_back(new pair<int, int>(i, j));
+        }
+    }
+    int ans = 0;
+    while(q.size() != 0x0) {
+        int r = q.front().first;
+        int c = q.front().second;
+        q.pop_front();
+        cout << "REM : " << r << " " << c << "\n";
+        ans ++;
+        for(int i = 0; i < 8; i++) {
+            int nr = r + dr[i];
+            int nc = c + dc[i];
+            if(nr < 0 || nc < 0 || nr >= n || nc >= m) continue;
+            if(g[nr][nc] == '@') {
+                deg[nr][nc] --;
+                if(deg[nr][nc] == 3) q.push_back(new pair<int, int>(nr, nc));
+            }
+        }
+    }    
+    cout << "N M : " << n << " " << m << "\n";
+    cout << "ANS : " << ans << "\n";
+}
+
+i32 main() {
+
+    i32 fd = sys_open("./printingdepartment.in", O_RDONLY, $mode_t 0);
+    cin = new istream(fd);
+
+    dr[0] = -1; dc[0] = -1;
+    dr[1] = -1; dc[1] = 0;
+    dr[2] = -1; dc[2] = 1;
+    dr[3] = 0; dc[3] = -1;
+    dr[4] = 0; dc[4] = 1;
+    dr[5] = 1; dc[5] = -1;
+    dr[6] = 1; dc[6] = 0;
+    dr[7] = 1; dc[7] = 1;
+
+    // solve_p1();
+    solve_p2();
+
+    return 0;
+}

@@ -1,0 +1,17 @@
+#include <vector>;
+#include <deque>;
+#include <iostream>;
+#include <string>;
+#include <jstring>;
+#include <pair>;
+typedef vector<i32> vi;
+typedef vector<vector<i32>> vvi;
+typedef i32 int;
+typedef i64 ll;
+
+i32 main() {
+
+
+
+    return 0;
+}

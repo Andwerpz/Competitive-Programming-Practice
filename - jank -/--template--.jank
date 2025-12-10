@@ -4,10 +4,16 @@
 #include <string>;
 #include <jstring>;
 #include <pair>;
-typedef vector<i32> vi;
-typedef vector<vector<i32>> vvi;
+#include <sort>;
+#include <math>;
 typedef i32 int;
 typedef i64 ll;
+typedef vector<i32> vi;
+typedef vector<vector<i32>> vvi;
+typedef vector<ll> vl;
+typedef vector<vector<ll>> vvl;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
 
 i32 main() {
 

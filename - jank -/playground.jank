@@ -1,0 +1,217 @@
+#include <vector>;
+#include <deque>;
+#include <iostream>;
+#include <string>;
+#include <jstring>;
+#include <pair>;
+#include <sort>;
+#include <math>;
+typedef i32 int;
+typedef i64 ll;
+typedef vector<i32> vi;
+typedef vector<vector<i32>> vvi;
+typedef vector<ll> vl;
+typedef vector<vector<ll>> vvl;
+typedef pair<int, int> pii;
+typedef pair<ll, ll> pll;
+
+//AOC 2025 - Day 8
+
+//implement MST
+
+struct DSU {
+    i32 N;
+    vector<i32> dsu;
+    vector<i32> sz;
+
+    DSU() {}
+    DSU(i32 n) {
+        this.N = n;
+        this.dsu = new vector<i32>(n);
+        this.sz = new vector<i32>(n, 1);
+        for(u64 i = 0x0; i < $u64 this.N; i++) {
+            this.dsu[i] = $i32 i;
+        }
+    }
+
+    i32 find(i32 a) {
+        if(this.dsu[a] == a) {
+            return a;
+        }
+        return this.dsu[a] = this.find(this.dsu[a]);
+    }
+
+    i32 get_sz(i32 a) {
+        return this.sz[this.find(a)];
+    }
+
+    i32 unify(i32 a, i32 b) {
+        i32 ra = this.find(a);
+        i32 rb = this.find(b);
+        if(ra == rb) {
+            return 0;
+        }
+        if(this.sz[rb] > this.sz[ra]) {
+            i32 tmp = ra;
+            ra = rb;
+            rb = tmp;
+        }
+        this.dsu[rb] = ra;
+        this.sz[ra] += this.sz[rb];
+        return 1;
+    }
+}
+
+struct pt {
+    ll x;
+    ll y;
+    ll z;
+
+    pt(ll x, ll y, ll z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
+
+ll sq(ll x) {
+    return x * x;
+}
+
+i32 cmp(pair<ll, pii> a, pair<ll, pii> b) {
+    if(a.first != b.first) return a.first < b.first;
+    return a.second < b.second;
+}
+
+template<T, U>
+i32 pair_cmp(pair<T, U> a, pair<T, U> b) {
+    if(a.second != b.second) return a.second < b.second;
+    return a.first < b.first;
+}
+
+template<T, U>
+i32 operator<(pair<T, U> a, pair<T, U> b) {
+    if(a.second != b.second) return a.second < b.second;
+    return a.first < b.first;
+}
+
+template<T>
+i32 cmp(T a, T b) {
+    return a < b;
+}
+
+void solve_p1() {   
+    vector<pt> a;
+    {
+        string line = cin.next_line();
+        while(!cin.eof()) {
+            vector<string> tok = line.split(',');
+            ll x = stoi64(tok[0]);
+            ll y = stoi64(tok[1]);
+            ll z = stoi64(tok[2]);
+            a.push_back(new pt(x, y, z));
+            line = cin.next_line();
+        }
+    }
+    cout << "PTS : \n";
+    for(u64 i = 0x0; i < a.size(); i++) cout << a[i].x << " " << a[i].y << " " << a[i].z << "\n";
+    cout.flush();
+    u64 n = a.size();
+    vector<pair<ll, pii>> ev;
+    for(u64 i = 0x0; i < n; i++) {
+        for(u64 j = i + 0x1; j < n; j++) {
+            ll dist = sq(a[i].x - a[j].x) + sq(a[i].y - a[j].y) + sq(a[i].z - a[j].z);
+            ev.push_back(new pair<ll, pii>(dist, new pii($int i, $int j)));
+        }
+    }
+    cout << "START SORT :\n";
+    cout.flush();
+    sort(ev, #<cmp(pair<ll, pii>, pair<ll, pii>)>);
+    cout << "DONE SORT\n";
+    cout.flush();
+    // cout << "EV :\n";
+    // for(u64 i = 0x0; i < ev.size(); i++) {
+    //     cout << ev[i].first << " " << ev[i].second.first << " " << ev[i].second.second << "\n";
+    // }
+    DSU dsu = new DSU($i32 n);
+    for(u64 i = 0x0; i < $u64 1000; i++) {
+        int u = ev[i].second.first;
+        int v = ev[i].second.second;
+        int res = dsu.unify(u, v);
+        cout << "UNIFY : " << u << " " << v << " " << res << "\n";
+    }
+    vi v = new vi(n, 0);
+    vl sz = new vl(0);
+    for(u64 i = 0x0; i < n; i++) {
+        i32 root = dsu.find($int i);
+        if(v[root]) continue;
+        v[root] = 1;
+        sz.push_back($ll dsu.get_sz($int i));
+    }
+    sort(sz, #<cmp(ll, ll)>);
+    cout << "SZ : \n";
+    for(u64 i = 0x0; i < sz.size(); i++) {
+        cout << sz[i] << " ";
+    }
+    cout << "\n";
+    assert(sz.size() >= 0x3, "sz.size() >= 0x3");
+    ll ans = $ll 1;
+    for(u64 i = 0x0; i < 0x3; i++) ans *= sz[sz.size() - 0x1 - i];
+    cout << "ANS : " << ans << "\n";
+}
+
+void solve_p2() {
+    vector<pt> a;
+    {
+        string line = cin.next_line();
+        while(!cin.eof()) {
+            vector<string> tok = line.split(',');
+            ll x = stoi64(tok[0]);
+            ll y = stoi64(tok[1]);
+            ll z = stoi64(tok[2]);
+            a.push_back(new pt(x, y, z));
+            line = cin.next_line();
+        }
+    }
+    cout << "PTS : \n";
+    for(u64 i = 0x0; i < a.size(); i++) cout << a[i].x << " " << a[i].y << " " << a[i].z << "\n";
+    cout.flush();
+    u64 n = a.size();
+    vector<pair<ll, pii>> ev;
+    for(u64 i = 0x0; i < n; i++) {
+        for(u64 j = i + 0x1; j < n; j++) {
+            ll dist = sq(a[i].x - a[j].x) + sq(a[i].y - a[j].y) + sq(a[i].z - a[j].z);
+            ev.push_back(new pair<ll, pii>(dist, new pii($int i, $int j)));
+        }
+    }
+    cout << "START SORT :\n";
+    cout.flush();
+    sort(ev, #<cmp(pair<ll, pii>, pair<ll, pii>)>);
+    cout << "DONE SORT\n";
+    cout.flush();
+    // cout << "EV :\n";
+    // for(u64 i = 0x0; i < ev.size(); i++) {
+    //     cout << ev[i].first << " " << ev[i].second.first << " " << ev[i].second.second << "\n";
+    // }
+    DSU dsu = new DSU($i32 n);
+    ll ans = $ll 0x0;
+    for(u64 i = 0x0; i < ev.size(); i++) {
+        int u = ev[i].second.first;
+        int v = ev[i].second.second;
+        int res = dsu.unify(u, v);
+        if(res) ans = a[u].x * a[v].x;
+        cout << "UNIFY : " << u << " " << v << " " << res << "\n";
+    }
+    cout << "ANS : " << ans << "\n";
+}
+
+i32 main() {
+
+    i32 fd = sys_open("./playground.in", O_RDONLY, $mode_t 0);
+    cin = new istream(fd);
+
+    // solve_p1();
+    solve_p2();
+
+    return 0;
+}

@@ -1,0 +1,157 @@
+#include <vector>;
+#include <deque>;
+#include <iostream>;
+#include <string>;
+#include <jstring>;
+#include <pair>;
+#include <sort>;
+#include <math>;
+typedef i32 int;
+typedef i64 ll;
+typedef vector<i32> vi;
+typedef vector<vector<i32>> vvi;
+typedef vector<ll> vl;
+typedef vector<vector<ll>> vvl;
+
+//AOC 2025 - Day 9
+
+//wish they had a better definition of what was considered 'inside' the line. 
+//just assumed that any green tile that is 'completely contained' by green tiles is considered
+//inside the line
+
+//suppose we wanted to draw the shape on the 2D grid, how would we do that without resorting to first 
+//drawing the border and then doing some floodfill?
+
+//we can do something related to the shoelace method for computing area. Observe that if we go around
+//the shape in CCW order, and if we do sweepline in increasing order of y, then horizontal 
+//left-right edges add and right-left edges subtract. Then, at any point in the sweepline, we just fill
+//in any non-zero x position. 
+
+//we can make a minor modification to this sweepline to instead keep track for every x position, the number
+//of contiguous green tiles below it from the perspective of the current y. 
+//then, we can easily test if some rectangle is possible by just maintaining this sweepline. 
+
+void solve_p1() {
+    vector<pair<ll, ll>> a;
+    string line = cin.next_line();
+    while(!cin.eof()) {
+        vector<string> tok = line.split(',');
+        ll x = stoi64(tok[0]);
+        ll y = stoi64(tok[1]);
+        a.push_back(new pair<ll, ll>(x, y));
+        line = cin.next_line();
+    }
+    ll ans = $ll 0;
+    for(u64 i = 0x0; i < a.size(); i++) {
+        for(u64 j = 0x0; j < a.size(); j++) {
+            ll area = (abs(a[i].first - a[j].first) + $ll 1) * (abs(a[i].second - a[j].second) + $ll 1);
+            ans = max(ans, area);
+        }
+    }
+    cout << "N : " << a.size() << "\n";
+    cout << "ANS : " << ans << "\n";
+}
+
+i32 cmp(pair<ll, pair<ll, ll>> a, pair<ll, pair<ll, ll>> b) {
+    if(a.first != b.first) return a.first < b.first;
+    i32 a_isasc = a.second.first < a.second.second;
+    i32 b_isasc = b.second.first < b.second.second;
+    return a_isasc < b_isasc;
+}
+
+template<T, U>
+i32 pair_cmp(pair<T, U> a, pair<T, U> b) {
+    if(a.second != b.second) return a.second < b.second;
+    return a.first < b.first;
+}
+
+void solve_p2() {
+    vector<pair<ll, ll>> a;
+    string line = cin.next_line();
+    while(!cin.eof()) {
+        vector<string> tok = line.split(',');
+        ll x = stoi64(tok[0]);
+        ll y = stoi64(tok[1]);
+        a.push_back(new pair<ll, ll>(x, y));
+        line = cin.next_line();
+    }
+    u64 n = a.size();
+    vector<pair<ll, pair<ll, ll>>> ev;  //{y, {x1, x2}}
+    for(u64 i = 0x0; i < n; i++) {
+        pair<ll, ll> u = a[i];
+        pair<ll, ll> v = a[(i + 0x1) % n];
+        if(u.second != v.second) continue;
+        ev.push_back(new pair<ll, pair<ll, ll>>(u.second, new pair<ll, ll>(u.first, v.first)));
+    }
+    sort(ev, #<cmp(pair<ll, pair<ll, ll>>, pair<ll, pair<ll, ll>>)>);
+    ll ans = $ll 0;
+    ll INF = $ll 1000000000;
+    u64 N = $u64 100000;
+    vector<ll> lv = new vector<ll>(N, INF);
+    vector<ll> cnt = new vector<ll>(N, $ll 0);
+    vector<ll> psfx = new vector<ll>(N);
+    u64 evptr = 0x0;
+    u64 aptr = 0x0;
+    sort(a, #<pair_cmp(pair<ll, ll>, pair<ll, ll>)>);
+    while(evptr != ev.size()) { 
+        ll cy = ev[evptr].first;
+        //find red tiles <= cy
+        while(aptr != n && a[aptr].second <= cy) {
+            //calc some pfx/sfx max lv centered at x
+            ll ax = a[aptr].first;
+            ll ay = a[aptr].second;
+            aptr ++;
+            psfx[ax] = lv[ax];
+            for(ll j = ax - $ll 1; j >= $ll 0; j--) {
+                psfx[j] = max(psfx[j + $ll 1], lv[j]);
+            }
+            for(ll j = ax + $ll 1; j < $ll N; j++) {
+                psfx[j] = max(psfx[j - $ll 1], lv[j]);
+            }
+            //check pairing with other tiles
+            for(u64 j = 0x0; j < n; j++) {
+                ll nx = a[j].first;
+                ll ny = a[j].second;
+                if(ny > ay) continue;
+                if(psfx[nx] > ny) continue;
+                ans = max(ans, (abs(ax - nx) + $ll 1) * (abs(ay - ny) + $ll 1));
+            }
+            cout << "DONE PROC : " << aptr << "\n";
+            cout.flush();
+        }
+
+        //upd lv, cnt
+        while(evptr != ev.size() && ev[evptr].first == cy) {
+            ll l = ev[evptr].second.first;
+            ll r = ev[evptr].second.second;
+            assert(l != r, "l != r");
+            cout.flush();
+            for(ll i = min(l, r); i < max(l, r); i++) {
+                if(l < r) {
+                    //increase
+                    if(cnt[i] == $ll 0) lv[i] = cy;
+                    cnt[i] ++;
+                }
+                else {
+                    //decrease
+                    assert(cnt[i], "cnt[i]");
+                    cnt[i] --;
+                    if(!cnt[i]) lv[i] = INF;
+                }
+            }
+            evptr ++;
+        }
+    }
+    cout << "ANS : " << ans << "\n";
+}
+
+i32 main() {
+
+    i32 fd = sys_open("./movietheater.in", O_RDONLY, $mode_t 0);
+    cin = new istream(fd);
+
+    // solve_p1();
+    solve_p2();
+
+    return 0;
+}

@@ -1,0 +1,44 @@
+#include <vector>;
+
+struct DSU {
+    i32 N;
+    vector<i32> dsu;
+    vector<i32> sz;
+
+    DSU() {}
+    DSU(i32 n) {
+        this.N = n;
+        this.dsu = new vector<i32>(n);
+        this.sz = new vector<i32>(n, 1);
+        for(u64 i = 0x0; i < $u64 this.N; i++) {
+            this.dsu[i] = $i32 i;
+        }
+    }
+
+    i32 find(i32 a) {
+        if(this.dsu[a] == a) {
+            return a;
+        }
+        return this.dsu[a] = this.find(this.dsu[a]);
+    }
+
+    i32 get_sz(i32 a) {
+        return this.sz[this.find(a)];
+    }
+
+    i32 unify(i32 a, i32 b) {
+        i32 ra = this.find(a);
+        i32 rb = this.find(b);
+        if(ra == rb) {
+            return 0;
+        }
+        if(this.sz[rb] > this.sz[ra]) {
+            i32 tmp = ra;
+            ra = rb;
+            rb = tmp;
+        }
+        this.dsu[rb] = ra;
+        this.sz[ra] += this.sz[rb];
+        return 1;
+    }
+}

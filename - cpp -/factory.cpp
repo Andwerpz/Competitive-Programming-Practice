@@ -15,6 +15,13 @@ typedef vector<vector<ld>> vvd;
 // typedef __int128 lll;
 // typedef __float128 lld;
 
+//AOC 2025 - Day 10
+
+//bruh, gotta use integer linear programming. 
+
+//came up with a brute-force backtracking + heuristic approach. 
+//this runs on the given testcases in around 5 minutes. 
+
 vector<string> split(string s, char delim) {
     vector<string> ret;
     for(int i = 0; i < s.size(); i++) {
@@ -171,15 +178,26 @@ void solve_p2() {
             }
 
             //recurse to next state
-            int ptr = 1e9;
-            for(int i = 0; i < B; i++) if(mv[ind] & (1 << i)) ptr = min(ptr, ga[i]);
-            for(int i = 0; i < B; i++) if(mv[ind] & (1 << i)) ga[i] -= ptr;
-            while(ptr >= 0) {
-                dfs(ind + 1, cmv + ptr);
-                if(ptr == 0) break;
-                ptr --;
-                for(int i = 0; i < B; i++) if(mv[ind] & (1 << i)) ga[i] ++;
+            int mxptr = 1e9;
+            for(int i = 0; i < B; i++) if(mv[ind] & (1 << i)) mxptr = min(mxptr, ga[i]);
+            vi nxt(mxptr + 1);
+            for(int i = 0; i <= mxptr; i++) nxt[i] = i;
+            // std::random_shuffle(nxt.begin(), nxt.end()); //try next states randomly lmao
+            reverse(nxt.begin(), nxt.end());
+            for(int i = 0; i < nxt.size(); i++) {
+                int amt = nxt[i];
+                for(int i = 0; i < B; i++) if(mv[ind] & (1 << i)) ga[i] -= amt;
+                dfs(ind + 1, cmv + amt);
+                for(int i = 0; i < B; i++) if(mv[ind] & (1 << i)) ga[i] += amt;
             }
+
+            // for(int i = 0; i < B; i++) if(mv[ind] & (1 << i)) ga[i] -= ptr;
+            // while(ptr >= 0) {
+            //     dfs(ind + 1, cmv + ptr);
+            //     if(ptr == 0) break;
+            //     ptr --;
+            //     for(int i = 0; i < B; i++) if(mv[ind] & (1 << i)) ga[i] ++;
+            // }
             // cout << "BACKTRACK" << endl;
             // for(int i = 0; i < B; i++) if(mv[ind] & (1 << i)) ga[i] += ptr;
         };
